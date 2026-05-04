@@ -1,26 +1,90 @@
 @import "tailwindcss";
 
+/* ─── VeloService Design Tokens ────────────────── */
 :root {
-	--background: #ffffff;
-	--foreground: #171717;
+  --vs-bg:         #e9e9ec;
+  --vs-card:       #ffffff;
+  --vs-ink:        #0f1114;
+  --vs-line:       #eae2d6;
+  --vs-line-2:     #efe9df;
+  --vs-chip:       #f4efe7;
+  --vs-warn:       #c85a2a;
+  --vs-warn-bg:    #fbeadd;
+  --vs-good:       #2f7d4f;
+  --vs-good-bg:    #e4f1e8;
+  --vs-info:       #3a6ea5;
+  --vs-info-bg:    #e4eaf2;
+  --vs-violet:     #6b5bd1;
+  --vs-violet-bg:  #ebe7fa;
+
+  --background:             var(--vs-bg);
+  --foreground:             var(--vs-ink);
+  --card:                   var(--vs-card);
+  --card-foreground:        var(--vs-ink);
+  --popover:                var(--vs-card);
+  --popover-foreground:     var(--vs-ink);
+  --primary:                var(--vs-ink);
+  --primary-foreground:     #ffffff;
+  --secondary:              var(--vs-chip);
+  --secondary-foreground:   var(--vs-ink);
+  --muted:                  var(--vs-chip);
+  --muted-foreground:       #8a7f70;
+  --accent:                 var(--vs-violet-bg);
+  --accent-foreground:      var(--vs-violet);
+  --destructive:            var(--vs-warn);
+  --destructive-foreground: #ffffff;
+  --border:                 var(--vs-line);
+  --input:                  var(--vs-line-2);
+  --ring:                   var(--vs-violet);
+  --radius:                 0.875rem;
 }
 
 @theme inline {
-	--color-background: var(--background);
-	--color-foreground: var(--foreground);
-	--font-sans: var(--font-geist-sans);
-	--font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+
+  --color-vs-bg:         var(--vs-bg);
+  --color-vs-card:       var(--vs-card);
+  --color-vs-ink:        var(--vs-ink);
+  --color-vs-line:       var(--vs-line);
+  --color-vs-line-2:     var(--vs-line-2);
+  --color-vs-chip:       var(--vs-chip);
+  --color-vs-warn:       var(--vs-warn);
+  --color-vs-warn-bg:    var(--vs-warn-bg);
+  --color-vs-good:       var(--vs-good);
+  --color-vs-good-bg:    var(--vs-good-bg);
+  --color-vs-info:       var(--vs-info);
+  --color-vs-info-bg:    var(--vs-info-bg);
+  --color-vs-violet:     var(--vs-violet);
+  --color-vs-violet-bg:  var(--vs-violet-bg);
+
+  --color-background:             var(--background);
+  --color-foreground:             var(--foreground);
+  --color-card:                   var(--card);
+  --color-card-foreground:        var(--card-foreground);
+  --color-popover:                var(--popover);
+  --color-popover-foreground:     var(--popover-foreground);
+  --color-primary:                var(--primary);
+  --color-primary-foreground:     var(--primary-foreground);
+  --color-secondary:              var(--secondary);
+  --color-secondary-foreground:   var(--secondary-foreground);
+  --color-muted:                  var(--muted);
+  --color-muted-foreground:       var(--muted-foreground);
+  --color-accent:                 var(--accent);
+  --color-accent-foreground:      var(--accent-foreground);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border:                 var(--border);
+  --color-input:                  var(--input);
+  --color-ring:                   var(--vs-violet);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--background: #0a0a0a;
-		--foreground: #ededed;
-	}
-}
-
-body {
-	background: var(--background);
-	color: var(--foreground);
-	font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * { border-color: var(--border); }
+  body { background: var(--background); color: var(--foreground); }
 }

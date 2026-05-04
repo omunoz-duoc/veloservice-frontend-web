@@ -50,3 +50,12 @@ next-env.d.ts
 
 
 !.dev.vars.example
+
+/.vscode
+
+# AI
+/examples
+/.agents
+/.claude
+/.superpowers
+/docs

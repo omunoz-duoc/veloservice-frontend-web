@@ -31,15 +31,15 @@ export function AuthBranding() {
       // style={{ background: "linear-gradient(180deg, #111418 0%, #1d2128 100%)" }}
       style={{ background: `url("/images/branding-bg.png") no-repeat center center / cover` }}
     >
-      <Image
-        src="/images/branding-bg.jpg"
+      {/* <Image
+        src="/images/branding-bg.png"
         alt="Branding background"
         fill
         sizes="44vw"
         className="absolute inset-0 object-cover  opacity-20 -z-10"
         priority
         quality={75}
-      />
+      /> */}
 
       <Logo inverted />
       <div className="flex-1 flex flex-col justify-center max-w-[440px]">

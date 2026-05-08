@@ -24,14 +24,14 @@
 		// see https://opennext.js.org/cloudflare/howtos/image
 		"binding": "IMAGES"
 	},
-	"services": [
-		{
-			// Self-reference service binding, the service name must match the worker name
-			// see https://opennext.js.org/cloudflare/caching
-			"binding": "WORKER_SELF_REFERENCE",
-			"service": "veloservice-web"
-		}
-	],
+	// "services": [
+	// 	{
+	// 		// Self-reference service binding — uncomment after first deploy
+	// 		// see https://opennext.js.org/cloudflare/caching
+	// 		"binding": "WORKER_SELF_REFERENCE",
+	// 		"service": "veloservice-web"
+	// 	}
+	// ],
 	"observability": {
 		"enabled": true
 	},

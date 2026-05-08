@@ -88,3 +88,31 @@
   * { border-color: var(--border); }
   body { background: var(--background); color: var(--foreground); }
 }
+
+/* ─── VeloService Animations ──────────────────── */
+@keyframes vs-slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes vs-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes vs-scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.vs-slide-in-right {
+  animation: vs-slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vs-fade-in {
+  animation: vs-fade-in 0.2s ease;
+}
+
+.vs-scale-in {
+  animation: vs-scale-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}

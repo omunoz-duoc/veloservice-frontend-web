@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Shield, Check } from "lucide-react";
 import { Field } from "@/components/common/Field";
 import { useLogin } from "@/features/auth/hooks/useAuth";
@@ -41,6 +42,7 @@ export function LoginForm({ onRecover, onRegister }: LoginFormProps) {
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [remember, setRemember] = useState(true);
+  const router = useRouter();
   const { mutateAsync: loginAsync, isPending } = useLogin();
   const { error, setError } = useAuthStore();
 
@@ -48,7 +50,9 @@ export function LoginForm({ onRecover, onRegister }: LoginFormProps) {
     e.preventDefault();
     try {
       await loginAsync({ email, password });
+      router.push("/dashboard");
     } catch (err) {
+      console.error("Login error:", err);
       // error handled by useLogin onError -> setError
     }
   };

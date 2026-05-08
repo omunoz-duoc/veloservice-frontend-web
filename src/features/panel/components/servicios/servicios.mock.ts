@@ -1,0 +1,146 @@
+// ─── Types ─────────────────────────────────────────────────────────────────────
+
+export type CatKey = "rapidos" | "mantencion" | "ruedas" | "ebike" | "kids" | "logistica"
+
+export type Categoria = {
+  key: CatKey
+  label: string
+  fg: string
+  bg: string
+  desc: string
+}
+
+export type Servicio = {
+  id: string
+  cat: CatKey
+  nombre: string
+  precio: number
+  precio2?: number
+  dur: number
+  desc: string
+  incluye: string[]
+  skills: string[]
+  activo: boolean
+  popular?: boolean
+  ots30: number
+}
+
+export type NuevoServicioPayload = {
+  cat: CatKey
+  nombre: string
+  precio: string
+  precio2: string
+  dur: string
+  desc: string
+  incluye: string[]
+  skills: string[]
+  activo: boolean
+  popular: boolean
+}
+
+// ─── Config ────────────────────────────────────────────────────────────────────
+
+export const CATEGORIAS: Categoria[] = [
+  { key: "rapidos",    label: "Servicios rápidos",       fg: "#6b5bd1", bg: "#ebe7fa", desc: "Trabajos de mostrador, sin reserva." },
+  { key: "mantencion", label: "Mantenciones integrales", fg: "#3a6ea5", bg: "#e4eaf2", desc: "Servicios completos con check-list." },
+  { key: "ruedas",     label: "Ruedas y neumáticos",     fg: "#8c6a1e", bg: "#faecd6", desc: "Centrado, recarga tubeless, cambios." },
+  { key: "ebike",      label: "E-bike",                  fg: "#c85a2a", bg: "#fbeadd", desc: "Inspección motor, firmware, batería." },
+  { key: "kids",       label: "Niños",                   fg: "#2f7d4f", bg: "#e4f1e8", desc: "Servicios para bicicletas infantiles." },
+  { key: "logistica",  label: "Logística & armado",      fg: "#6b5d46", bg: "#efe9df", desc: "Armado, embalaje, transporte." },
+]
+
+export const ALL_SKILLS = ["Mecánico Jr", "Mecánico Sr", "Especialista E-bike"]
+
+// ─── Mock data ─────────────────────────────────────────────────────────────────
+
+export const SERVICIOS_MOCK: Servicio[] = [
+  {
+    id: "SV-101", cat: "rapidos", nombre: "Recarga Tubeless", precio: 10000, dur: 20,
+    desc: "Recarga de líquido sellante en ruedas tubeless. Incluye revisión de la cinta y válvulas.",
+    incluye: ["Sellante 60ml por rueda", "Revisión válvula", "Test de presión"],
+    skills: ["Mecánico Jr"], activo: true, popular: true, ots30: 42,
+  },
+  {
+    id: "SV-102", cat: "rapidos", nombre: "Instalación Pedales", precio: 6000, precio2: 3500, dur: 10,
+    desc: "Instalación de pedales nuevos. Precio reducido si se realiza durante otro servicio.",
+    incluye: ["Limpieza rosca", "Pasta antiagarre", "Torque a especificación"],
+    skills: ["Mecánico Jr"], activo: true, ots30: 31,
+  },
+  {
+    id: "SV-103", cat: "rapidos", nombre: "Ajuste Bicicleta Nueva", precio: 11000, dur: 30,
+    desc: "Puesta a punto de bicicleta recién comprada: ajuste de cambios, frenos, presiones, torque.",
+    incluye: ["Ajuste de cambios", "Ajuste de frenos", "Torque general", "Presión de neumáticos"],
+    skills: ["Mecánico Jr", "Mecánico Sr"], activo: true, ots30: 18,
+  },
+  {
+    id: "SV-201", cat: "mantencion", nombre: "Mantención Básica", precio: 35000, dur: 90,
+    desc: "Limpieza profunda + ajuste de cambios y frenos + lubricación + check-list 25 puntos.",
+    incluye: ["Lavado", "Ajuste cambios", "Ajuste frenos", "Lubricación", "Check-list 25 puntos"],
+    skills: ["Mecánico Sr"], activo: true, ots30: 27,
+  },
+  {
+    id: "SV-202", cat: "mantencion", nombre: "Mantención Premium", precio: 65000, dur: 180,
+    desc: "Servicio completo con desmontaje de transmisión, baño ultrasónico de cassette y cadena.",
+    incluye: ["Lavado profundo", "Baño ultrasónico", "Desmontaje transmisión", "Centrado ruedas", "Sangrado básico"],
+    skills: ["Mecánico Sr"], activo: true, popular: true, ots30: 14,
+  },
+  {
+    id: "SV-203", cat: "mantencion", nombre: "Overhaul Completo", precio: 120000, dur: 360,
+    desc: "Despiece total de la bicicleta. Limpieza, engrase y reemplazo de rodamientos si aplica.",
+    incluye: ["Despiece total", "Engrase rodamientos", "Sangrado completo", "Centrado ruedas", "Test final"],
+    skills: ["Mecánico Sr"], activo: true, ots30: 5,
+  },
+  {
+    id: "SV-301", cat: "ruedas", nombre: "Centrado de Rueda (Aluminio)", precio: 15000, dur: 30,
+    desc: "Centrado y tensado de rueda aluminio en banco profesional Park Tool TS-2.3.",
+    incluye: ["Centrado lateral", "Centrado vertical", "Tensado uniforme", "Test de salto"],
+    skills: ["Mecánico Sr"], activo: true, ots30: 22,
+  },
+  {
+    id: "SV-302", cat: "ruedas", nombre: "Centrado de Rueda (Carbono)", precio: 25000, dur: 45,
+    desc: "Centrado de ruedas de carbono. Requiere mayor cuidado en tensiones por especificación de fabricante.",
+    incluye: ["Inspección llanta", "Tensiones por spec", "Centrado", "Sellado tubeless si aplica"],
+    skills: ["Mecánico Sr"], activo: true, ots30: 9,
+  },
+  {
+    id: "SV-401", cat: "ebike", nombre: "Inspección Motor", precio: 30000, dur: 60,
+    desc: "Diagnóstico completo del sistema motor + diagnóstico software (Bosch, Shimano, Specialized).",
+    incluye: ["Lectura códigos error", "Test de torque", "Inspección cableado", "Reporte impreso"],
+    skills: ["Especialista E-bike"], activo: true, ots30: 11,
+  },
+  {
+    id: "SV-402", cat: "ebike", nombre: "Actualización E-bike", precio: 15000, dur: 30,
+    desc: "Actualización de firmware del motor y display. Compatible con Bosch SmartSystem, Shimano EP801.",
+    incluye: ["Backup configuración", "Actualización firmware", "Verificación post-update"],
+    skills: ["Especialista E-bike"], activo: true, ots30: 7,
+  },
+  {
+    id: "SV-501", cat: "kids", nombre: "Servicio Full Kids", precio: 50000, dur: 90,
+    desc: "Servicio integral para bicicletas infantiles: ajuste, lubricación, ajuste de talla y revisión de seguridad.",
+    incluye: ["Lavado", "Ajuste talla", "Ajuste frenos & cambios", "Revisión seguridad", "Lubricación"],
+    skills: ["Mecánico Sr", "Mecánico Jr"], activo: true, ots30: 8,
+  },
+  {
+    id: "SV-601", cat: "logistica", nombre: "Armado de Bicicleta", precio: 30000, dur: 120,
+    desc: "Armado de bicicleta desde caja: ajuste manubrio, ruedas, frenos, cambios y test de ruta.",
+    incluye: ["Desembalaje", "Armado completo", "Torque a spec", "Test de ruta 5km"],
+    skills: ["Mecánico Sr"], activo: true, ots30: 6,
+  },
+  {
+    id: "SV-602", cat: "logistica", nombre: "Embalaje de Bicicleta", precio: 30000, dur: 60,
+    desc: "Embalaje protector para viaje aéreo o terrestre. Incluye caja, espumas y fijaciones.",
+    incluye: ["Caja reforzada", "Espumas protectoras", "Fijaciones", "Etiquetado"],
+    skills: ["Mecánico Jr", "Mecánico Sr"], activo: true, ots30: 4,
+  },
+]
+
+// ─── Utils ─────────────────────────────────────────────────────────────────────
+
+export function fmt(n: number): string {
+  return "$ " + n.toLocaleString("es-CL")
+}
+
+export function nextServicioId(servicios: Servicio[]): string {
+  const nums = servicios.map(s => parseInt(s.id.split("-")[1] ?? "0"))
+  return `SV-${(Math.max(...nums, 602) + 1).toString().padStart(3, "0")}`
+}

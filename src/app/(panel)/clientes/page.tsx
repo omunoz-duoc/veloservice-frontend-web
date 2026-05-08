@@ -1,8 +1,5 @@
-export default function ClientesPage() {
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">Clientes</h1>
-      <p className="text-[#8a7f70] mt-1">Módulo en construcción.</p>
-    </div>
-  );
+import { ClientesPage } from "@/features/panel/components/clientes/ClientesPage"
+
+export default function Page() {
+  return <ClientesPage />
 }

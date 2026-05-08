@@ -89,7 +89,7 @@ export const OrdenesKanban = () => {
 
 const configMap = {
   card: {
-    render: ({ data, column, index, isDraggable }) => (
+    render: ({ data, column, index, isDraggable }: any) => (
       <div className="task-card">
         <h4>{data.title}</h4>
         <p>{data.content?.description}</p>
@@ -103,7 +103,7 @@ const configMap = {
   },
 
   divider: {
-    render: ({ data }) => (
+    render: ({ data }: any) => (
       <div className="divider">
         <hr />
         <span>{data.title}</span>
@@ -113,7 +113,7 @@ const configMap = {
   },
 
   footer: {
-    render: ({ data, column }) => (
+    render: ({ data, column }: any) => (
       <button className="add-card-btn">+ Add card to {column.title}</button>
     ),
     isDraggable: false,

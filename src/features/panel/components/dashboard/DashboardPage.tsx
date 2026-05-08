@@ -37,8 +37,8 @@ export function DashboardPage() {
       {/* Row 2: Pipeline + Urgentes + Actividad */}
       <div className="grid grid-cols-12 gap-4 mb-4">
         <div className="col-span-6">
-          {/* <PipelinePlaceholder /> */}
-          < OrdenesKanban />
+          <PipelinePlaceholder />
+          {/* < OrdenesKanban /> */}
         </div>
         <div className="col-span-3">
           <UrgentesCard />

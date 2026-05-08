@@ -1,8 +1,5 @@
-export default function ServiciosPage() {
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">Servicios</h1>
-      <p className="text-[#8a7f70] mt-1">Módulo en construcción.</p>
-    </div>
-  );
+import { ServiciosPage } from "@/features/panel/components/servicios/ServiciosPage"
+
+export default function Page() {
+  return <ServiciosPage />
 }

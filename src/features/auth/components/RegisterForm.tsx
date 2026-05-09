@@ -1,29 +1,33 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Mail, Lock, User, CreditCard, Phone, Building2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Mail, Lock, User, CreditCard, Building2 } from "lucide-react";
 import { Field } from "@/components/common/Field";
 import { PasswordMeter } from "./PasswordMeter";
 import { StepIndicator } from "./shared/StepIndicator";
 import { useRegister } from "@/features/auth/hooks/useAuth";
 import type { RegisterPayload } from "@/features/auth/services/auth.service";
 import { cn } from "@/lib/utils";
+import { useRut } from "react-rut-formatter";
+import { PhoneField } from "@/components/common/PhoneField";
 
-const CARGOS = [
-  "Mecánico Jr",
-  "Mecánico Sr",
-  "Recepción / Vendedor",
-  "Especialista E-bike",
-  "Jefe de taller",
-  "Administrador",
-];
+const CARGOS_MAP: Record<string, string> = {
+  "JEFE_TALLER": "Jefe de taller",
+  "ADMIN_SUCURSAL": "Administrador",
+  "MECANICO": "Mecánico",
+  "RECEPCIONISTA": "Recepción",
+};
 
-const TALLERES = [
-  "VeloService Providencia",
-  "VeloService Las Condes",
-  "VeloService Ñuñoa",
-  "VeloService Vitacura",
-];
+const CARGOS = Object.values(CARGOS_MAP);
+
+const CARGOS_REVERSE_MAP: Record<string, string> = Object.fromEntries(
+  Object.entries(CARGOS_MAP).map(([k, v]) => [v, k])
+);
+
+const TALLERES_MAP: Record<string, string> = {
+  "660e8400-e29b-41d4-a716-446655440001": "VeloService Lo Barnechea",
+  "660e8400-e29b-41d4-a716-446655440002": "VeloService Vitacura",
+};
 
 function Summary({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
@@ -47,24 +51,62 @@ type FormData = Omit<RegisterPayload, "password"> & {
   marketing: boolean;
 };
 
+type FormErrors = Partial<Record<"nombre" | "apellido" | "rut" | "telefono" | "email", string>>;
+
+const LETTERS_RE = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s'-]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function RegisterForm({ onBack }: RegisterFormProps) {
+  const { rut, updateRut, isValid: rutIsValid } = useRut();
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [data, setData] = useState<FormData>({
     nombre: "",
     apellido: "",
     rut: "",
     telefono: "",
     email: "",
-    cargo: "Mecánico Sr",
-    taller: TALLERES[0],
+    rol: "ADMIN_SUCURSAL",
+    sucursalId: '660e8400-e29b-41d4-a716-446655440001',
     password: "",
     password2: "",
     terminos: false,
     marketing: false,
   });
 
-  const set = <K extends keyof FormData>(k: K, v: FormData[K]) =>
+  const set = <K extends keyof FormData>(k: K, v: FormData[K]) => {
     setData((prev) => ({ ...prev, [k]: v }));
+    setErrors((prev) => ({ ...prev, [k]: undefined }));
+  };
+
+  const validateStep1 = (): boolean => {
+    const e: FormErrors = {};
+    if (!data.nombre.trim()) e.nombre = "Ingresa tu nombre";
+    else if (data.nombre.length > 50) e.nombre = "Máximo 50 caracteres";
+    else if (!LETTERS_RE.test(data.nombre)) e.nombre = "Solo letras permitidas";
+
+    if (!data.apellido.trim()) e.apellido = "Ingresa tu apellido";
+    else if (data.apellido.length > 50) e.apellido = "Máximo 50 caracteres";
+    else if (!LETTERS_RE.test(data.apellido)) e.apellido = "Solo letras permitidas";
+
+    if (!rut.raw) e.rut = "Ingresa tu RUT";
+    else if (!rutIsValid) e.rut = "RUT inválido";
+
+    const phoneDigits = data.telefono.replace(/^\+56/, "").replace(/\D/g, "");
+    if (!data.telefono) e.telefono = "Ingresa tu teléfono";
+    else if (phoneDigits.length !== 9) e.telefono = "Debe tener 9 dígitos (sin +56)";
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const validateStep2 = (): boolean => {
+    const e: FormErrors = {};
+    if (!data.email.trim()) e.email = "Ingresa tu correo";
+    else if (!EMAIL_RE.test(data.email)) e.email = "Correo inválido";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   const { mutate: register, isPending } = useRegister();
 
@@ -73,11 +115,11 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
       {
         nombre: data.nombre,
         apellido: data.apellido,
-        rut: data.rut,
+        rut: rut.raw || data.rut,
         telefono: data.telefono,
         email: data.email,
-        cargo: data.cargo,
-        taller: data.taller,
+        rol: data.rol,
+        sucursalId: data.sucursalId,
         password: data.password,
       },
       { onSuccess: () => setStep(4) }
@@ -89,7 +131,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
 
   return (
     <div className="space-y-4">
-      {/* pass current=5 on step 4 so all indicators show green (matches example) */}
+      {/* StepIndicator has no "completed" state; current>steps turns all dots green */}
       <StepIndicator steps={4} current={step < 4 ? step : 5} />
 
       {step === 1 && (
@@ -108,6 +150,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
               placeholder="Nombre"
               value={data.nombre}
               onChange={(v) => set("nombre", v)}
+              error={errors.nombre}
               autoFocus
             />
             <Field
@@ -115,23 +158,24 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
               placeholder="Apellido"
               value={data.apellido}
               onChange={(v) => set("apellido", v)}
+              error={errors.apellido}
             />
           </div>
           <Field
             icon={<CreditCard size={18} />}
             placeholder="RUT (12.345.678-9)"
-            value={data.rut}
-            onChange={(v) => set("rut", v)}
+            value={rut.formatted}
+            onChange={(v) => { updateRut(v); setErrors((prev) => ({ ...prev, rut: undefined })); }}
             hint="Sólo se usa para validación de identidad."
+            error={errors.rut}
           />
-          <Field
-            icon={<Phone size={18} />}
-            placeholder="Teléfono (+56 9 …)"
+          <PhoneField
             value={data.telefono}
             onChange={(v) => set("telefono", v)}
+            error={errors.telefono}
           />
           <button
-            onClick={() => setStep(2)}
+            onClick={() => { if (validateStep1()) setStep(2); }}
             className="w-full flex items-center justify-center gap-2 bg-vs-ink text-white py-3 rounded-full text-[13.5px] font-semibold hover:bg-black transition-colors"
           >
             Continuar <ArrowRight size={18} />
@@ -157,6 +201,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
             onChange={(v) => set("email", v)}
             autoFocus
             hint="Te enviaremos el código de verificación a este correo."
+            error={errors.email}
           />
           <div>
             <div className="text-[11px] text-[#8a7f70] mb-1.5 ml-1">
@@ -167,10 +212,10 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
                 <button
                   key={c}
                   type="button"
-                  onClick={() => set("cargo", c)}
+                  onClick={() => set("rol", CARGOS_REVERSE_MAP[c])}
                   className={cn(
                     "text-left px-3 py-2.5 rounded-xl border text-[12.5px] font-medium transition-colors",
-                    data.cargo === c
+                    data.rol === CARGOS_REVERSE_MAP[c]
                       ? "bg-vs-ink text-white border-vs-ink"
                       : "bg-[#f7f3eb] border-vs-line-2 text-[#4a4438] hover:border-[#c7bba6]"
                   )}
@@ -189,12 +234,14 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
                 <Building2 size={18} />
               </span>
               <select
-                value={data.taller}
-                onChange={(e) => set("taller", e.target.value)}
+                value={data.sucursalId}
+                onChange={(e) => set("sucursalId", e.target.value)}
                 className="bg-transparent outline-none flex-1 text-sm text-vs-ink"
               >
-                {TALLERES.map((t) => (
-                  <option key={t}>{t}</option>
+                {Object.entries(TALLERES_MAP).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
                 ))}
               </select>
             </div>
@@ -207,7 +254,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
               <ArrowLeft size={18} />
             </button>
             <button
-              onClick={() => setStep(3)}
+              onClick={() => { if (validateStep2()) setStep(3); }}
               className="flex-1 flex items-center justify-center gap-2 bg-vs-ink text-white py-3 rounded-full text-[13.5px] font-semibold hover:bg-black transition-colors"
             >
               Continuar <ArrowRight size={18} />
@@ -328,8 +375,8 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
             <p className="text-[13px] text-[#8a7f70] mt-2 leading-relaxed">
               Hola <b className="text-vs-ink">{data.nombre || "—"}</b>, recibimos
               tu solicitud para el rol{" "}
-              <b className="text-vs-ink">{data.cargo}</b> en{" "}
-              <b className="text-vs-ink">{data.taller}</b>.<br />
+              <b className="text-vs-ink">{CARGOS_MAP[data.rol] || data.rol}</b> en{" "}
+              <b className="text-vs-ink">{TALLERES_MAP[data.sucursalId] || "—"}</b>.<br />
               El administrador del taller revisará y activará tu cuenta. Te
               avisaremos a{" "}
               <b className="text-vs-ink">{data.email || "tu correo"}</b>.
@@ -337,10 +384,10 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
           </div>
           <div className="bg-vs-chip rounded-2xl p-4 space-y-2 border border-vs-line-2">
             <Summary k="Nombre" v={`${data.nombre} ${data.apellido}`.trim() || "—"} />
-            <Summary k="RUT" v={data.rut || "—"} mono />
+            <Summary k="RUT" v={rut.formatted || "—"} mono />
             <Summary k="Correo" v={data.email || "—"} />
-            <Summary k="Cargo" v={data.cargo} />
-            <Summary k="Sucursal" v={data.taller} />
+            <Summary k="Rol" v={CARGOS_MAP[data.rol] || data.rol} />
+            <Summary k="Sucursal" v={TALLERES_MAP[data.sucursalId] || "—"} />
           </div>
           <button
             onClick={onBack}

@@ -34,7 +34,7 @@ interface LoginFormProps {
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   USER_NOT_FOUND: "No encontramos una cuenta con ese correo electrónico.",
-  INVALID_CREDENTIALS: "La contraseña es incorrecta. Verifica tus datos e intenta de nuevo.",
+  INVALID_PASSWORD: "La contraseña es incorrecta. Verifica tus datos e intenta de nuevo.",
 };
 
 export function LoginForm({ onRecover, onRegister }: LoginFormProps) {
@@ -45,60 +45,85 @@ export function LoginForm({ onRecover, onRegister }: LoginFormProps) {
   const router = useRouter();
   const { mutateAsync: loginAsync, isPending } = useLogin();
   const { error, setError } = useAuthStore();
+  const [soonTM, setSoonTM] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({ email: false, password: false });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateFields()) return;
     try {
       await loginAsync({ email, password });
       router.push("/dashboard");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login error:", err);
-      // error handled by useLogin onError -> setError
+      if (err.body?.message) {
+        setError(err.body.message);
+      } else {
+        setError("Ocurrió un error inesperado. Intenta de nuevo.");
+      }
     }
   };
+
+  function showSoonTM() {
+    setSoonTM(true);
+  }
+
+  const validateFields = () => {
+    const errors = {
+      email: !email,
+      password: !password,
+    };
+    setFieldErrors(errors);
+    return !errors.email && !errors.password;
+  };
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <h2 className="text-[26px] font-semibold tracking-tight">
-          Bienvenido de vuelta
+          Bienvenid@
         </h2>
         <p className="text-[13px] text-[#8a7f70] mt-1">
           Ingresa con tu cuenta corporativa para acceder al panel del taller.
         </p>
       </div>
 
-      <Field
-        icon={<Mail size={18} />}
-        type="email"
-        placeholder="tu@veloservice.cl"
-        value={email}
-        onChange={setEmail}
-        autoFocus
-      />
+      <div className={fieldErrors.email ? "border-red-500" : ""}>
+        <Field
+          icon={<Mail size={18} />}
+          type="email"
+          placeholder="admin@veloservice.cl"
+          value={email}
+          onChange={setEmail}
+          autoFocus
+        />
+      </div>
 
-      <Field
-        icon={<Lock size={18} />}
-        type={showPwd ? "text" : "password"}
-        placeholder="Contraseña"
-        value={password}
-        onChange={setPassword}
-        suffix={
-          <button
-            type="button"
-            onClick={() => setShowPwd(!showPwd)}
-            className="text-[#a59682] hover:text-vs-ink transition-colors"
-          >
-            {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
-        }
-      />
+      <div className={fieldErrors.password ? "border-red-500" : ""}>
+        <Field
+          icon={<Lock size={18} />}
+          type={showPwd ? "text" : "password"}
+          placeholder="Contraseña"
+          value={password}
+          onChange={setPassword}
+          suffix={
+            <button
+              type="button"
+              onClick={() => setShowPwd(!showPwd)}
+              className="text-[#a59682] hover:text-vs-ink transition-colors"
+            >
+              {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          }
+        />
+      </div>
 
       <div className="flex items-center justify-between">
         <button
           type="button"
           onClick={() => setRemember(!remember)}
-          className="flex items-center gap-2 text-[12.5px] text-[#4a4438]"
+          className="flex items-center gap-2 text-[12.5px] text-[#4a4438] invisible"
         >
           <span
             className={`w-[18px] h-[18px] rounded-[6px] border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all ${
@@ -146,12 +171,14 @@ export function LoginForm({ onRecover, onRegister }: LoginFormProps) {
       <div className="grid grid-cols-2 gap-2.5">
         <button
           type="button"
+          onClick={showSoonTM}
           className="flex items-center justify-center gap-2 bg-vs-chip py-2.5 rounded-full text-[12.5px] font-medium hover:bg-[#ebe3d6] transition-colors"
         >
           <GoogleIcon /> Google Workspace
         </button>
         <button
           type="button"
+          onClick={showSoonTM}
           className="flex items-center justify-center gap-2 bg-vs-chip py-2.5 rounded-full text-[12.5px] font-medium hover:bg-[#ebe3d6] transition-colors"
         >
           <span className="text-vs-violet">
@@ -183,6 +210,21 @@ export function LoginForm({ onRecover, onRegister }: LoginFormProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => setError(null)}>
+              Entendido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={!!soonTM} onOpenChange={(open) => { if (!open) setSoonTM(false)}}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Próximamente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta funcionalidad estará disponible en una próxima actualización. Si quieres ser de los primeros en probarla, contáctanos para unirte a nuestro programa de early access.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setSoonTM(false)}>
               Entendido
             </AlertDialogAction>
           </AlertDialogFooter>

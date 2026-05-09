@@ -1,9 +1,11 @@
+import { httpClient } from "@/lib/api/http-client";
+
 export interface User {
   id: string;
   nombre: string;
   apellido: string;
   email: string;
-  cargo: string;
+  rol: string;
   taller: string;
 }
 
@@ -13,10 +15,37 @@ export interface RegisterPayload {
   rut: string;
   telefono: string;
   email: string;
-  cargo: string;
-  taller: string;
+  rol: string;
+  sucursalId: string;
   password: string;
 }
+
+export const authService: IAuthService = {
+  async login(email, password) {
+    console.log("AuthService.login called with", { email, password });
+    return httpClient.post<User>("auth/login", { email, password });
+  },
+
+  async logout() {
+    return httpClient.post("auth/logout", {});
+  },
+
+  async recoverPassword(email) {
+    return httpClient.post("auth/reset-password", { email });
+  },
+
+  async verifyCode(code) {
+    return httpClient.post<boolean>("auth/verify-code", { code });
+  },
+
+  async resetPassword(newPassword) {
+    return httpClient.post("auth/reset-password", { password: newPassword });
+  },
+
+  async register(payload) {
+    return httpClient.post("auth/register", payload);
+  },
+};
 
 export interface IAuthService {
   login(email: string, password: string): Promise<User>;

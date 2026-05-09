@@ -1,7 +1,8 @@
 import { MockAuthService } from "@/features/auth/services/auth.mock";
+import { authService as AuthService } from "@/features/auth/services/auth.service";
 import type { MockUser } from "@/features/auth/services/auth.mock";
 
-export const authService = new MockAuthService();
+export const authService = AuthService
 
 const SEED_USERS: MockUser[] = [
   {
@@ -9,7 +10,7 @@ const SEED_USERS: MockUser[] = [
     nombre: "Pedro",
     apellido: "Soto",
     email: "admin@veloservice.cl",
-    cargo: "Administrador",
+    rol: "Administrador",
     taller: "VeloService Central",
     password: "admin123",
   },
@@ -18,7 +19,7 @@ const SEED_USERS: MockUser[] = [
     nombre: "Carlos",
     apellido: "Rodríguez",
     email: "jefe@veloservice.cl",
-    cargo: "Jefe de taller",
+    rol: "Jefe de taller",
     taller: "VeloService Providencia",
     password: "jefe123",
   },
@@ -27,7 +28,7 @@ const SEED_USERS: MockUser[] = [
     nombre: "Ana",
     apellido: "López",
     email: "mecanico@veloservice.cl",
-    cargo: "Mecánico",
+    rol: "Mecánico",
     taller: "VeloService Providencia",
     password: "mec123",
   },
@@ -36,10 +37,10 @@ const SEED_USERS: MockUser[] = [
     nombre: "Sofía",
     apellido: "Muñoz",
     email: "recepcion@veloservice.cl",
-    cargo: "Recepcionista",
+    rol: "Recepcionista",
     taller: "VeloService Las Condes",
     password: "rec123",
   },
 ];
 
-authService.seedUsers(SEED_USERS);
+// authService.seedUsers(SEED_USERS);

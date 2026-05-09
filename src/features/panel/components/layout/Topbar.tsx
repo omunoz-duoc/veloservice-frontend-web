@@ -28,11 +28,12 @@ export function Topbar() {
     router.push("/login")
   }
 
+  console.log("Current user in Topbar:", user)
   const initials = user
     ? `${user.nombre[0]}${user.apellido[0]}`.toUpperCase()
     : "MA"
   const fullName = user ? `${user.nombre} ${user.apellido}` : "Martín Álvarez"
-  const cargo = user?.cargo ?? "Jefe de taller"
+  const cargo = user?.rol ?? "Jefe de taller"
 
   return (
     <div className="flex items-center gap-4 mb-6">

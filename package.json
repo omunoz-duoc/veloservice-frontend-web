@@ -24,7 +24,9 @@
 		"radix-ui": "^1.4.3",
 		"react": "19.1.5",
 		"react-dom": "19.1.5",
+		"react-international-phone": "^4.8.0",
 		"react-kanban-kit": "0.0.2-beta.7",
+		"react-rut-formatter": "^0.3.0",
 		"tailwind-merge": "^3.5.0",
 		"zustand": "^5.0.12"
 	},

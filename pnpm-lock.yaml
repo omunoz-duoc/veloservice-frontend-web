@@ -35,9 +35,15 @@ importers:
       react-dom:
         specifier: 19.1.5
         version: 19.1.5(react@19.1.5)
+      react-international-phone:
+        specifier: ^4.8.0
+        version: 4.8.0(react@19.1.5)
       react-kanban-kit:
         specifier: 0.0.2-beta.7
         version: 0.0.2-beta.7(@types/node@20.19.39)(@types/react@19.2.14)(react-dom@19.1.5(react@19.1.5))(react@19.1.5)(typescript@5.9.3)(vite@8.0.10(@types/node@20.19.39)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.16.9)(yaml@2.8.3))
+      react-rut-formatter:
+        specifier: ^0.3.0
+        version: 0.3.0
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
@@ -4411,6 +4417,16 @@ packages:
     peerDependencies:
       react: ^19.1.5
 
+  react-dom@19.2.6:
+    resolution: {integrity: sha512-0prMI+hvBbPjsWnxDLxlCGyM8PN6UuWjEUCYmZhO67xIV9Xasa/r/vDnq+Xyq4Lo27g8QSbO5YzARu0D1Sps3g==}
+    peerDependencies:
+      react: ^19.2.6
+
+  react-international-phone@4.8.0:
+    resolution: {integrity: sha512-PoyXx8t0OZNZXLupZN5UtmLb8nO6PQ6f6jQvYCAtg7VzxonuBcDs/4YA4+flqZZj5QOVqN4DLY1p39mEtJAwzw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -4444,6 +4460,9 @@ packages:
       '@types/react':
         optional: true
 
+  react-rut-formatter@0.3.0:
+    resolution: {integrity: sha512-wK2ymb2kbhUU3Jztzt+cgJpBy9LVnA3eDQrYqZUTiSG8l3ziAdj/apTQ/+sUDQXhidDKcqxLcWTfCosV4GPuCw==}
+
   react-style-singleton@2.2.3:
     resolution: {integrity: sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ==}
     engines: {node: '>=10'}
@@ -4466,6 +4485,10 @@ packages:
 
   react@19.1.5:
     resolution: {integrity: sha512-lCX00zqONdNfcnJYEL91LuNYzyWFU70vKhApUR08Y1Fi/Y5FGw6l6hAWtlkq+k/vnx463XLm/5dyQp5HAJCw6Q==}
+    engines: {node: '>=0.10.0'}
+
+  react@19.2.6:
+    resolution: {integrity: sha512-sfWGGfavi0xr8Pg0sVsyHMAOziVYKgPLNrS7ig+ivMNb3wbCBw3KxtflsGBAwD3gYQlE/AEZsTLgToRrSCjb0Q==}
     engines: {node: '>=0.10.0'}
 
   redent@3.0.0:
@@ -4541,6 +4564,9 @@ packages:
 
   scheduler@0.26.0:
     resolution: {integrity: sha512-NlHwttCI/l5gCPR3D1nNXtWABUmBwvZpEQiD4IXSbIDq8BzLIK/7Ir5gTFSGZDUu37K5cMNp0hFtzO38sC7gWA==}
+
+  scheduler@0.27.0:
+    resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
 
   semver@6.3.1:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
@@ -10206,6 +10232,15 @@ snapshots:
       react: 19.1.5
       scheduler: 0.26.0
 
+  react-dom@19.2.6(react@19.2.6):
+    dependencies:
+      react: 19.2.6
+      scheduler: 0.27.0
+
+  react-international-phone@4.8.0(react@19.1.5):
+    dependencies:
+      react: 19.1.5
+
   react-is@16.13.1: {}
 
   react-is@17.0.2: {}
@@ -10255,6 +10290,11 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
 
+  react-rut-formatter@0.3.0:
+    dependencies:
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
+
   react-style-singleton@2.2.3(@types/react@19.2.14)(react@19.1.5):
     dependencies:
       get-nonce: 1.0.1
@@ -10271,6 +10311,8 @@ snapshots:
       '@types/react': 19.2.14
 
   react@19.1.5: {}
+
+  react@19.2.6: {}
 
   redent@3.0.0:
     dependencies:
@@ -10387,6 +10429,8 @@ snapshots:
       xmlchars: 2.2.0
 
   scheduler@0.26.0: {}
+
+  scheduler@0.27.0: {}
 
   semver@6.3.1: {}
 

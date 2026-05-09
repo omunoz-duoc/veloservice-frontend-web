@@ -1,4 +1,5 @@
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1/";
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://veloservice-backend-337hberz7q-tl.a.run.app/api/v1/";
 
 export const httpClient = {
   get: async <T>(endpoint: string): Promise<T> => {

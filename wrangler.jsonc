@@ -8,7 +8,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "veloservice-web",
+	"name": "veloservice-frontend-web",
 	"main": ".open-next/worker.js",
 	"compatibility_date": "2026-04-13",
 	"compatibility_flags": [

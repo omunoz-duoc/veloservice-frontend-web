@@ -1,9 +1,7 @@
 import { PageHeader } from "@/components/common/PageHeader"
 import { KpiGrid } from "./KpiGrid"
-import { PipelinePlaceholder } from "./PipelinePlaceholder"
 import { OrdenesKanban } from "./OrdenesKanban"
 import { UrgentesCard } from "./UrgentesCard"
-import { ActividadCard } from "./ActividadCard"
 import { RentabilidadPlaceholder } from "./RentabilidadPlaceholder"
 import { MecanicosCard } from "./MecanicosCard"
 
@@ -34,17 +32,13 @@ export function DashboardPage() {
       {/* Row 1: KPIs */}
       <KpiGrid />
 
-      {/* Row 2: Pipeline + Urgentes + Actividad */}
+      {/* Row 2: Kanban + Urgentes */}
       <div className="grid grid-cols-12 gap-4 mb-4">
-        <div className="col-span-6">
-          <PipelinePlaceholder />
-          {/* < OrdenesKanban /> */}
+        <div className="col-span-8">
+          <OrdenesKanban />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-4">
           <UrgentesCard />
-        </div>
-        <div className="col-span-3">
-          <ActividadCard />
         </div>
       </div>
 

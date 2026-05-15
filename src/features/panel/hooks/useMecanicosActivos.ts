@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
-import { getMecanicosActivos } from "@/features/panel/services/dashboard.mock"
+import { mecanicosService } from "@/features/panel/services/mecanicos.provider"
 
 export function useMecanicosActivos() {
   return useQuery({
     queryKey: ["mecanicos", "activos"],
-    queryFn: getMecanicosActivos,
+    queryFn: () => mecanicosService.getMecanicosActivos(),
     staleTime: 2 * 60 * 1000,
   })
 }

@@ -52,6 +52,37 @@ export type NuevaOTPayload = {
   notasInternas: string
 }
 
+export type ClienteResult = {
+  id: string
+  nombre: string
+  apellido: string
+  rut: string
+  telefono: string
+  email: string
+}
+
+export type BicicletaResult = {
+  id: string
+  clienteId: string
+  marca: string
+  modelo: string
+  tipo: string
+  color: string
+  numSerie?: string
+  anio?: number
+}
+
+export type NuevaOTApiPayload = {
+  clienteId: string
+  bicicletaId: string
+  tipo: TipoOT
+  prioridad: Prioridad
+  fechaEstimada: string
+  mecanicoId: string
+  descripcion: string
+  notasInternas?: string
+}
+
 // ─── Config maps ───────────────────────────────────────────────────────────────
 
 export const TIPO_CONFIG: Record<TipoOT, { label: string; fg: string; bg: string }> = {

@@ -1,131 +1,65 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
+import { useState } from 'react'
 import { Kanban, dropHandler } from 'react-kanban-kit'
 import type { BoardData } from 'react-kanban-kit'
+import { useOrdenesKanban } from '@/features/panel/hooks/useOrdenesKanban'
 
-export const OrdenesKanban = () => {
-  const [dataSource, setDataSource] = useState<BoardData>({
-    root: {
-      id: "root",
-      title: "Root",
-      children: ["col-1", "col-2", "col-3", "col-4"],
-      totalChildrenCount: 3,
-      parentId: null,
-    },
-    "col-1": {
-      id: "col-1",
-      title: "To Do",
-      children: ["task-1", "task-2"],
-      totalChildrenCount: 2,
-      parentId: "root",
-    },
-    "col-2": {
-      id: "col-2",
-      title: "In Progress",
-      children: ["task-3"],
-      totalChildrenCount: 1,
-      parentId: "root",
-    },
-    "col-3": {
-      id: "col-3",
-      title: "Done",
-      children: ["task-4"],
-      totalChildrenCount: 1,
-      parentId: "root",
-    },
-    "col-4": {
-      id: "col-4",
-      title: "Archived",
-      children: ["task-5"],
-      totalChildrenCount: 1,
-      parentId: "root",
-    },
-    "task-1": {
-      id: "task-1",
-      title: "Design Homepage",
-      parentId: "col-1",
-      children: [],
-      totalChildrenCount: 0,
-      type: "card",
-      content: {
-        description: "Create wireframes and mockups for the homepage",
-        priority: "high",
-      },
-    },
-    "task-2": {
-      id: "task-2",
-      title: "Setup Database",
-      parentId: "col-1",
-      children: [],
-      totalChildrenCount: 0,
-      type: "card",
-    },
-    "task-3": {
-      id: "task-3",
-      title: "Build Auth Flow",
-      parentId: "col-2",
-      children: [],
-      totalChildrenCount: 0,
-      type: "card",
-    },
-    "task-4": {
-      id: "task-4",
-      title: "Deploy to Production",
-      parentId: "col-3",
-      children: [],
-      totalChildrenCount: 0,
-      type: "card",
-    },
-    "task-5": {
-      id: "task-5",
-      title: "Old Task",
-      parentId: "col-4",
-      children: [],
-      totalChildrenCount: 0,
-      type: "card",
-    },
-  });
+const PRIORIDAD_COLOR: Record<string, string> = {
+  Alta:  "#c85a2a",
+  Media: "#c99a2e",
+  Baja:  "#a59682",
+}
 
-const configMap = {
-  card: {
-    render: ({ data, column, index, isDraggable }: any) => (
-      <div className="task-card">
-        <h4>{data.title}</h4>
-        <p>{data.content?.description}</p>
-        <div className="card-footer">
-          <span className="assignee">{data.content?.assignee}</span>
-          <span className="due-date">{data.content?.dueDate}</span>
+export function OrdenesKanban() {
+  const { data: initialData, isLoading } = useOrdenesKanban()
+  const [dataSource, setDataSource] = useState<BoardData | null>(null)
+
+  const board = dataSource ?? initialData ?? null
+
+  if (isLoading || !board) {
+    return (
+      <div className="bg-vs-card border border-vs-line rounded-[24px] p-5 animate-pulse min-h-[300px]" />
+    )
+  }
+
+  const configMap = {
+    card: {
+      render: ({ data }: any) => (
+        <div className="bg-white border border-vs-line-2 rounded-[12px] p-3 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-mono font-semibold text-vs-ink">{data.title}</span>
+            {data.content?.prioridad && (
+              <span
+                className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full text-white"
+                style={{ background: PRIORIDAD_COLOR[data.content.prioridad] ?? "#a59682" }}
+              >
+                {data.content.prioridad}
+              </span>
+            )}
+          </div>
+          <div className="text-[11px] text-[#4a4438] font-medium truncate">{data.content?.cliente}</div>
+          <div className="text-[10px] text-[#8a7f70] truncate mt-0.5">{data.content?.bici}</div>
+          <div className="text-[10px] text-[#a59682] mt-1.5 truncate">{data.content?.mecanico}</div>
         </div>
-      </div>
-    ),
-    isDraggable: true,
-  },
+      ),
+      isDraggable: true,
+    },
+  }
 
-  divider: {
-    render: ({ data }: any) => (
-      <div className="divider">
-        <hr />
-        <span>{data.title}</span>
-      </div>
-    ),
-    isDraggable: false,
-  },
-
-  footer: {
-    render: ({ data, column }: any) => (
-      <button className="add-card-btn">+ Add card to {column.title}</button>
-    ),
-    isDraggable: false,
-  },
-};
   return (
-    <Kanban
-      dataSource={dataSource}
-      configMap={configMap}
-      onCardMove={(move) => {
-        setDataSource(dropHandler(move, dataSource, () => {}));
-      }}
-    />
-  );
-};
+    <div className="bg-vs-card border border-vs-line rounded-[24px] p-5">
+      <div className="mb-3">
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-[#a59682]">Pipeline</div>
+        <div className="text-[15px] font-semibold text-vs-ink">Órdenes de trabajo</div>
+      </div>
+      <Kanban
+        dataSource={board}
+        configMap={configMap}
+        onCardMove={(move) => {
+          setDataSource(dropHandler(move, board, () => {}))
+        }}
+      />
+    </div>
+  )
+}

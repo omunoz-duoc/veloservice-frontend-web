@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
-import { getOrdenesUrgentes } from "@/features/panel/services/dashboard.mock"
+import { ordenesService } from "@/features/panel/services/ordenes.provider"
 
 export function useOrdenesUrgentes() {
   return useQuery({
     queryKey: ["ordenes", "urgentes"],
-    queryFn: getOrdenesUrgentes,
+    queryFn: () => ordenesService.getOrdenesUrgentes(),
     staleTime: 60 * 1000,
   })
 }

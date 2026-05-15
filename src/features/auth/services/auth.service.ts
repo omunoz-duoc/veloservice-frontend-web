@@ -7,6 +7,7 @@ export interface User {
   email: string;
   rol: string;
   taller: string;
+  token?: string;
 }
 
 export interface RegisterPayload {
@@ -22,7 +23,6 @@ export interface RegisterPayload {
 
 export const authService: IAuthService = {
   async login(email, password) {
-    console.log("AuthService.login called with", { email, password });
     return httpClient.post<User>("auth/login", { email, password });
   },
 

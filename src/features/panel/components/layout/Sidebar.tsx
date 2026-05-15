@@ -24,20 +24,20 @@ const NAV_ADMIN: NavItem[] = [
   { key: "clientes",    label: "Clientes",             href: "/clientes",       icon: Users },
   { key: "servicios",   label: "Servicios",            href: "/servicios",      icon: Wrench },
   { key: "inventario",  label: "Inventario",           href: "/inventario",     icon: Package, badge: 5 },
-  { key: "proveedores", label: "Proveedores & compras",href: "/proveedores",    icon: Building2 },
-  { key: "finanzas",    label: "Finanzas",             href: "/finanzas",       icon: Landmark },
+  // { key: "proveedores", label: "Proveedores & compras",href: "/proveedores",    icon: Building2 },
+  // { key: "finanzas",    label: "Finanzas",             href: "/finanzas",       icon: Landmark },
 ]
 
 const NAV_SISTEMA: NavItem[] = [
   { key: "configuracion", label: "Configuraciones", href: "/configuracion", icon: Settings },
   { key: "roles",         label: "Roles",           href: "/roles",         icon: Shield },
-  { key: "archivos",      label: "Archivos",        href: "/archivos",      icon: Folder },
+  // { key: "archivos",      label: "Archivos",        href: "/archivos",      icon: Folder },
 ]
 
 const NAV_AYUDA: NavItem[] = [
   { key: "soporte",    label: "Soporte técnico", href: "/soporte",    icon: Headset },
-  { key: "docs",       label: "Documentación",   href: "/docs",       icon: FileText },
-  { key: "consultas",  label: "Consultas",       href: "/consultas",  icon: MessageCircle },
+  // { key: "docs",       label: "Documentación",   href: "/docs",       icon: FileText },
+  // { key: "consultas",  label: "Consultas",       href: "/consultas",  icon: MessageCircle },
 ]
 
 function NavGroup({

@@ -1,0 +1,9 @@
+{
+  "id": "U-001",
+  "nombre": "Andrés",
+  "apellido": "Muñoz",
+  "email": "admin@veloservice.cl",
+  "rol": "Jefe de Taller",
+  "taller": "VeloService Central",
+  "token": "mock-token-eyJhbGciOiJIUzI1NiJ9"
+}

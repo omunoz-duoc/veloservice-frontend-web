@@ -331,7 +331,7 @@ export function OTDrawer({
             </div>
 
             {/* History (view mode only) */}
-            {!isEdit && (
+            {/* {!isEdit && (
               <div className="pt-3 border-t border-vs-line-2">
                 <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-3">Historial</div>
                 <ul className="space-y-2.5 relative pl-5 before:absolute before:left-[6px] before:top-1 before:bottom-1 before:w-px before:bg-vs-line-2">
@@ -348,7 +348,7 @@ export function OTDrawer({
                   ))}
                 </ul>
               </div>
-            )}
+            )} */}
           </div>
         </div>
         <div className="h-5" />

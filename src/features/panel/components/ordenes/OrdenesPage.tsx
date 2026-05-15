@@ -43,8 +43,11 @@ export function EstadoChip({ estado }: { estado: EstadoOT }) {
 }
 
 export function MecPill({ mecanicoId }: { mecanicoId: string }) {
-  const mec = MECANICOS_MOCK.find(m => m.id === mecanicoId) ?? MECANICOS_MOCK[3]
-  const unassigned = mecanicoId === "--"
+  const mec = MECANICOS_MOCK.find(m => m.id === mecanicoId)
+  const unassigned = mecanicoId === "--" || !mecanicoId
+  const nombre   = mec?.nombre   ?? (unassigned ? "Sin asignar" : mecanicoId)
+  const iniciales = mec?.iniciales ?? mecanicoId.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
+  const color    = mec?.color    ?? "#6b5bd1"
   return (
     <div className="flex items-center gap-2 min-w-0">
       <div
@@ -54,15 +57,15 @@ export function MecPill({ mecanicoId }: { mecanicoId: string }) {
             ? "border border-dashed border-[#b8a88d] text-[#a59682]"
             : "text-white"
         )}
-        style={{ background: unassigned ? "transparent" : mec.color }}
+        style={{ background: unassigned ? "transparent" : color }}
       >
-        {unassigned ? "?" : mec.iniciales}
+        {unassigned ? "?" : iniciales}
       </div>
       <span className={cn(
         "text-[12px] truncate",
         unassigned ? "text-[#a59682] italic" : "text-[#2b2f36] font-medium"
       )}>
-        {mec.nombre}
+        {nombre}
       </span>
     </div>
   )
@@ -147,12 +150,12 @@ function OTRow({
           >
             <Pencil size={14} strokeWidth={1.6} />
           </button>
-          <button
+          {/* <button
             title="Más acciones"
             className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-[#2b2f36] transition-colors"
           >
             <MoreHorizontal size={14} strokeWidth={1.6} />
-          </button>
+          </button> */}
         </div>
       </td>
     </tr>
@@ -220,14 +223,14 @@ export function OrdenesPage() {
 
   const ACTIONS = (
     <>
-      <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] transition-colors">
+      {/* <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] transition-colors">
         <Calendar size={14} strokeWidth={1.6} />
         Este mes
         <ChevronDown size={14} strokeWidth={1.6} className="text-[#a59682]" />
-      </button>
-      <button className="bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] transition-colors">
+      </button> */}
+      {/* <button className="bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] transition-colors">
         Exportar CSV
-      </button>
+      </button> */}
       <button
         onClick={openNuevaOT}
         className="flex items-center gap-2 bg-vs-ink text-white px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#1e2228] transition-colors"

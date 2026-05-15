@@ -1,0 +1,56 @@
+{
+  "total": 3,
+  "mecanicos": [
+    {
+      "id": "m-munoz",
+      "nombre": "Rodrigo",
+      "apellido": "Muñoz",
+      "iniciales": "RM",
+      "color": "#6b5bd1",
+      "especialidad": "Frenos / Transmisión",
+      "bahia": "B-01",
+      "horas": "6.2h",
+      "estado": "activo",
+      "ordenesCursando": [
+        { "id": "OT-0330" },
+        { "id": "OT-0318" }
+      ],
+      "capacidad": 5
+    },
+    {
+      "id": "m-bravo",
+      "nombre": "Javier",
+      "apellido": "Bravo",
+      "iniciales": "JB",
+      "color": "#2f7d4f",
+      "especialidad": "Ruedas / Alineación",
+      "bahia": "B-02",
+      "horas": "5.8h",
+      "estado": "activo",
+      "ordenesCursando": [
+        { "id": "OT-0331" },
+        { "id": "OT-0315" }
+      ],
+      "capacidad": 5
+    },
+    {
+      "id": "m-herrera",
+      "nombre": "Pablo",
+      "apellido": "Herrera",
+      "iniciales": "PH",
+      "color": "#c85a2a",
+      "especialidad": "Suspensión / eBike",
+      "bahia": "B-03",
+      "horas": "7.1h",
+      "estado": "saturado",
+      "ordenesCursando": [
+        { "id": "OT-0333" },
+        { "id": "OT-0343" },
+        { "id": "OT-0342" },
+        { "id": "OT-0341" },
+        { "id": "OT-0338" }
+      ],
+      "capacidad": 5
+    }
+  ]
+}

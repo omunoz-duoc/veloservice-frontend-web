@@ -1,0 +1,77 @@
+{
+  "total": 6,
+  "clientes": [
+    {
+      "id": "CL-0001",
+      "nombre": "Pablo",
+      "apellido": "Mora",
+      "tipo": "frecuente",
+      "rut": "12.345.678-9",
+      "email": "pablo.mora@gmail.com",
+      "telefono": "+56912345678",
+      "bicicletasCount": 2,
+      "ordenesCount": 7,
+      "totalGastado": 380000
+    },
+    {
+      "id": "CL-0002",
+      "nombre": "Camila",
+      "apellido": "Reyes",
+      "tipo": "regular",
+      "rut": "15.678.901-2",
+      "email": "camila.reyes@hotmail.com",
+      "telefono": "+56923456789",
+      "bicicletasCount": 1,
+      "ordenesCount": 3,
+      "totalGastado": 145000
+    },
+    {
+      "id": "CL-0003",
+      "nombre": "Felipe",
+      "apellido": "Tapia",
+      "tipo": "VIP",
+      "rut": "11.222.333-4",
+      "email": "f.tapia@empresa.cl",
+      "telefono": "+56934567890",
+      "bicicletasCount": 3,
+      "ordenesCount": 15,
+      "totalGastado": 1250000
+    },
+    {
+      "id": "CL-0004",
+      "nombre": "Lorena",
+      "apellido": "Pinto",
+      "tipo": "regular",
+      "rut": "17.890.123-5",
+      "email": "lorena.pinto@gmail.com",
+      "telefono": "+56945678901",
+      "bicicletasCount": 1,
+      "ordenesCount": 4,
+      "totalGastado": 210000
+    },
+    {
+      "id": "CL-0005",
+      "nombre": "Sebastián",
+      "apellido": "Núñez",
+      "tipo": "nuevo",
+      "rut": "19.012.345-6",
+      "email": "snunez@outlook.com",
+      "telefono": "+56956789012",
+      "bicicletasCount": 1,
+      "ordenesCount": 1,
+      "totalGastado": 45000
+    },
+    {
+      "id": "CL-0006",
+      "nombre": "Ricardo",
+      "apellido": "Lagos",
+      "tipo": "frecuente",
+      "rut": "14.567.890-1",
+      "email": "rlagos@gmail.com",
+      "telefono": "+56967890123",
+      "bicicletasCount": 2,
+      "ordenesCount": 9,
+      "totalGastado": 620000
+    }
+  ]
+}

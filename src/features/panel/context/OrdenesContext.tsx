@@ -1,8 +1,10 @@
 "use client"
 
-import { createContext, useContext, useState, useMemo, type ReactNode } from "react"
-import { ORDENES_MOCK, type OrdenTrabajo } from "../components/ordenes/ordenes.mock"
+import { createContext, useContext, useState, useMemo, useEffect, type ReactNode } from "react"
+import { type OrdenTrabajo } from "../components/ordenes/ordenes.mock"
 import { NuevaOTModal } from "../components/ordenes/NuevaOTModal"
+import { mapApiOrden } from "../services/ordenes.service"
+import { ordenesService } from "../services/ordenes.provider"
 
 type OrdenesContextValue = {
   ordenes: OrdenTrabajo[]
@@ -14,8 +16,14 @@ type OrdenesContextValue = {
 const OrdenesContext = createContext<OrdenesContextValue | null>(null)
 
 export function OrdenesProvider({ children }: { children: ReactNode }) {
-  const [ordenes, setOrdenes] = useState<OrdenTrabajo[]>(ORDENES_MOCK)
+  const [ordenes, setOrdenes] = useState<OrdenTrabajo[]>([])
   const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    ordenesService.getOrdenes()
+      .then(({ ordenes }) => setOrdenes(ordenes.map(mapApiOrden)))
+      .catch(() => {})
+  }, [])
 
   const addOrden = (orden: OrdenTrabajo) => {
     setOrdenes(prev => [orden, ...prev])
@@ -26,8 +34,9 @@ export function OrdenesProvider({ children }: { children: ReactNode }) {
     setOrdenes(prev => prev.map(o => o.id === updated.id ? updated : o))
 
   const nextId = useMemo(() => {
-    const last = parseInt(ordenes[0]?.id?.split("-")[1] ?? "0343")
-    return `OT-0${(last + 1).toString().padStart(4, "0")}`
+    const nums = ordenes.map(o => parseInt(o.id.replace(/\D/g, ""))).filter(n => !isNaN(n) && n > 0)
+    const last = nums.length ? Math.max(...nums) : 343
+    return `OT-${(last + 1).toString().padStart(4, "0")}`
   }, [ordenes])
 
   return (

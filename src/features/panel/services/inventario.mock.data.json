@@ -1,0 +1,113 @@
+{
+  "total": 12,
+  "productos": [
+    {
+      "id": "P-0001",
+      "nombre": "Cadena Shimano HG701 11v",
+      "sku": "SH-CN-HG701",
+      "categoria": "transmision",
+      "costoUnitario": 18000,
+      "precioAsignado": 28000,
+      "stock": 8
+    },
+    {
+      "id": "P-0002",
+      "nombre": "Pastillas de freno Shimano B01S",
+      "sku": "SH-BP-B01S",
+      "categoria": "frenos",
+      "costoUnitario": 5500,
+      "precioAsignado": 9000,
+      "stock": 14
+    },
+    {
+      "id": "P-0003",
+      "nombre": "Cable de freno Jagwire 1.5mm",
+      "sku": "JW-CB-FR15",
+      "categoria": "frenos",
+      "costoUnitario": 2200,
+      "precioAsignado": 4000,
+      "stock": 20
+    },
+    {
+      "id": "P-0004",
+      "nombre": "Cassette Shimano CS-HG500 11-42T",
+      "sku": "SH-CS-HG500",
+      "categoria": "transmision",
+      "costoUnitario": 32000,
+      "precioAsignado": 50000,
+      "stock": 5
+    },
+    {
+      "id": "P-0005",
+      "nombre": "Aceite mineral Shimano 1L",
+      "sku": "SH-OIL-MIN1L",
+      "categoria": "lubricantes",
+      "costoUnitario": 8000,
+      "precioAsignado": 14000,
+      "stock": 6
+    },
+    {
+      "id": "P-0006",
+      "nombre": "Neumático Maxxis Minion DHF 29x2.5",
+      "sku": "MX-TI-MDHF29",
+      "categoria": "neumaticos",
+      "costoUnitario": 45000,
+      "precioAsignado": 68000,
+      "stock": 3
+    },
+    {
+      "id": "P-0007",
+      "nombre": "Cámara Schwalbe 29\" SV",
+      "sku": "SW-TB-29SV",
+      "categoria": "neumaticos",
+      "costoUnitario": 3500,
+      "precioAsignado": 6500,
+      "stock": 18
+    },
+    {
+      "id": "P-0008",
+      "nombre": "Manubrio Renthal Fatbar 35mm Rise 20",
+      "sku": "RT-HB-FB35R20",
+      "categoria": "cockpit",
+      "costoUnitario": 55000,
+      "precioAsignado": 85000,
+      "stock": 2
+    },
+    {
+      "id": "P-0009",
+      "nombre": "Grasa de litio Park Tool PolyLube 1000 500g",
+      "sku": "PT-GR-PL500",
+      "categoria": "lubricantes",
+      "costoUnitario": 9500,
+      "precioAsignado": 16000,
+      "stock": 4
+    },
+    {
+      "id": "P-0010",
+      "nombre": "Cable de cambios Shimano OT-SP41",
+      "sku": "SH-CB-OTSP41",
+      "categoria": "transmision",
+      "costoUnitario": 3800,
+      "precioAsignado": 6500,
+      "stock": 0
+    },
+    {
+      "id": "P-0011",
+      "nombre": "Pedales VP Components VP-536 plataforma",
+      "sku": "VP-PD-536",
+      "categoria": "cockpit",
+      "costoUnitario": 22000,
+      "precioAsignado": 35000,
+      "stock": 7
+    },
+    {
+      "id": "P-0012",
+      "nombre": "Cinta de manubrio Fizik Vento Microtex",
+      "sku": "FZ-BT-VMT",
+      "categoria": "cockpit",
+      "costoUnitario": 8500,
+      "precioAsignado": 14000,
+      "stock": 0
+    }
+  ]
+}

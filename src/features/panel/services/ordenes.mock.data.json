@@ -1,0 +1,103 @@
+{
+  "total": 8,
+  "ordenes": [
+    {
+      "externalId": "OT-0341",
+      "tipo": "mantencion",
+      "fechaIngreso": "2026-05-13T10:15:00.000Z",
+      "fechaEstimada": "2026-05-14T18:00:00.000Z",
+      "prioridad": "Media",
+      "nombreMecanico": "Rodrigo Soto",
+      "nombreCliente": "Pablo Mora",
+      "descripcion": "Cambio de cadena y ajuste de frenos delantero y trasero",
+      "bicicleta": { "marca": "Trek", "color": "Negro", "tipo": "MTB", "talla": "M" },
+      "estado": "recibido"
+    },
+    {
+      "externalId": "OT-0342",
+      "tipo": "mantencion",
+      "fechaIngreso": "2026-05-13T11:30:00.000Z",
+      "fechaEstimada": "2026-05-15T12:00:00.000Z",
+      "prioridad": "Baja",
+      "nombreMecanico": "Javier Bravo",
+      "nombreCliente": "Camila Reyes",
+      "descripcion": "Revisión general y ajuste de cambios Shimano",
+      "bicicleta": { "marca": "Giant", "color": "Blanco", "tipo": "Ruta", "talla": "S" },
+      "estado": "recibido"
+    },
+    {
+      "externalId": "OT-0343",
+      "tipo": "diagnostico",
+      "fechaIngreso": "2026-05-13T12:00:00.000Z",
+      "fechaEstimada": "2026-05-14T16:00:00.000Z",
+      "prioridad": "Alta",
+      "nombreMecanico": "Pablo Herrera",
+      "nombreCliente": "Martín Díaz",
+      "descripcion": "Ruido en pedalier al hacer fuerza",
+      "observacionesCliente": "El ruido aparece solo en subidas",
+      "bicicleta": { "marca": "Scott", "color": "Azul", "tipo": "MTB", "talla": "L" },
+      "estado": "recibido"
+    },
+    {
+      "externalId": "OT-0330",
+      "tipo": "reparacion",
+      "fechaIngreso": "2026-05-10T09:00:00.000Z",
+      "fechaEstimada": "2026-05-12T18:00:00.000Z",
+      "prioridad": "Alta",
+      "nombreMecanico": "Rodrigo Soto",
+      "nombreCliente": "Felipe Tapia",
+      "descripcion": "Cambio de horquilla delantera y bleeding de frenos",
+      "bicicleta": { "marca": "Specialized", "color": "Rojo", "tipo": "MTB", "talla": "M" },
+      "estado": "proceso"
+    },
+    {
+      "externalId": "OT-0331",
+      "tipo": "overhaul",
+      "fechaIngreso": "2026-05-09T14:00:00.000Z",
+      "fechaEstimada": "2026-05-13T18:00:00.000Z",
+      "prioridad": "Alta",
+      "nombreMecanico": "Javier Bravo",
+      "nombreCliente": "Lorena Pinto",
+      "descripcion": "Overhaul completo: limpieza, lubricación y ajuste de todos los componentes",
+      "bicicleta": { "marca": "Canyon", "color": "Gris", "tipo": "Gravel", "talla": "M" },
+      "estado": "proceso"
+    },
+    {
+      "externalId": "OT-0333",
+      "tipo": "reparacion",
+      "fechaIngreso": "2026-05-08T10:30:00.000Z",
+      "fechaEstimada": "2026-05-14T12:00:00.000Z",
+      "prioridad": "Media",
+      "nombreMecanico": "Pablo Herrera",
+      "nombreCliente": "Alejandro Vera",
+      "descripcion": "Revisión de motor y calibración de asistencia eléctrica",
+      "bicicleta": { "marca": "Orbea", "color": "Verde", "tipo": "eBike", "talla": "L" },
+      "estado": "proceso"
+    },
+    {
+      "externalId": "OT-0315",
+      "tipo": "mantencion",
+      "fechaIngreso": "2026-05-05T08:00:00.000Z",
+      "fechaEstimada": "2026-05-07T18:00:00.000Z",
+      "prioridad": "Baja",
+      "nombreMecanico": "Javier Bravo",
+      "nombreCliente": "Sebastián Núñez",
+      "descripcion": "Ajuste de frenos y centrado de ruedas",
+      "bicicleta": { "marca": "Haro", "color": "Negro", "tipo": "BMX", "talla": "Única" },
+      "estado": "listo"
+    },
+    {
+      "externalId": "OT-0318",
+      "tipo": "diagnostico",
+      "fechaIngreso": "2026-05-06T13:00:00.000Z",
+      "fechaEstimada": "2026-05-08T18:00:00.000Z",
+      "prioridad": "Media",
+      "nombreMecanico": "Rodrigo Soto",
+      "nombreCliente": "Ricardo Lagos",
+      "descripcion": "Revisión completa post-caída, chequeo de estructura y componentes",
+      "observacionesCliente": "Caída en bajada, quiero saber si la bici está bien",
+      "bicicleta": { "marca": "Cannondale", "color": "Naranja", "tipo": "Ruta", "talla": "M" },
+      "estado": "listo"
+    }
+  ]
+}

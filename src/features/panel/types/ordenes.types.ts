@@ -5,6 +5,7 @@ export interface IOrdenesService {
     createOrden(payload: CreateOrdenPayload): Promise<void>;
     getOrdenById(id: string): Promise<Orden>;
     updateOrden(id: string, payload: UpdateOrdenPayload): Promise<Orden>;
+    bulkUpdateOrdenes(payload: BulkUpdateOrdenPayload): Promise<void>;
     deleteOrden(id: string): Promise<void>;
 }
 
@@ -48,6 +49,12 @@ export type UpdateOrdenPayload = {
     descripcion?: string;
     estado?: EstadoOT;
     notasInternas?: string;
+}
+
+export type BulkUpdateOrdenPayload = {
+    ids: string[];
+    estado?: string;
+    mecanicoId?: string;
 }
 
 export type TipoOT = "Mantención" | "Diagnóstico" | "Garantía" | "Armado" | "Otro";

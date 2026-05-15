@@ -48,18 +48,28 @@ export function OrdenesKanban() {
   }
 
   return (
-    <div className="bg-vs-card border border-vs-line rounded-[24px] p-5">
+    <div className="bg-vs-card border border-vs-line rounded-[24px] p-4">
       <div className="mb-3">
         <div className="text-[10px] font-semibold uppercase tracking-widest text-[#a59682]">Pipeline</div>
         <div className="text-[15px] font-semibold text-vs-ink">Órdenes de trabajo</div>
       </div>
-      <Kanban
-        dataSource={board}
-        configMap={configMap}
-        onCardMove={(move) => {
-          setDataSource(dropHandler(move, board, () => {}))
-        }}
-      />
+      <div className="overflow-x-auto">
+        <Kanban
+          dataSource={board}
+          configMap={configMap}
+          cardsGap={6}
+          columnWrapperStyle={() => ({ width: '165px', minWidth: '165px', maxWidth: '165px' })}
+          onCardMove={(move) => {
+            setDataSource(dropHandler(
+              move,
+              board,
+              () => {},
+              (col) => ({ ...col, totalChildrenCount: col.totalChildrenCount + 1 }),
+              (col) => ({ ...col, totalChildrenCount: col.totalChildrenCount - 1 }),
+            ))
+          }}
+        />
+      </div>
     </div>
   )
 }

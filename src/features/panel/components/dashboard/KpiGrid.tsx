@@ -6,7 +6,7 @@ import {
 import type { LucideIcon } from "lucide-react"
 import { KpiCard } from "@/components/common/KpiCard"
 import { useDashboardKpis } from "@/features/panel/hooks/useDashboardKpis"
-import type { KpiIconKey } from "@/features/panel/services/dashboard.mock"
+import type { KpiIconKey } from "@/features/panel/types/dashboard.types"
 
 const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   ordenes: ClipboardList,

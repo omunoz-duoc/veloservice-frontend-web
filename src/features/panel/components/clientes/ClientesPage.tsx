@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, Plus, Filter, Star, ChevronLeft, ChevronRight, Mail, Bike, Settings, Pencil, MoreHorizontal } from "lucide-react"
+import { Search, Plus, Filter, ChevronLeft, ChevronRight, Mail, Bike, Settings, Pencil, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-  CLIENTES_MOCK, TIERS, fmtGasto, fmtGastoK, avatarInitials, avatarColor, nextClienteId,
+  TIERS, fmtGasto, avatarInitials, avatarColor, nextClienteId,
   type Cliente, type TierKey,
 } from "./clientes.mock"
 import { ClienteDrawer, TierChip, ClienteAvatar, type DrawerMode } from "./ClienteDrawer"
 import { NuevoClienteModal } from "./NuevoClienteModal"
+import { useClientes } from "../../hooks/useClientes"
 
 // ─── Table header cell ─────────────────────────────────────────────────────────
 
@@ -111,7 +112,7 @@ function ClienteRow({
           </button>
           <button
             title="Más acciones"
-            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-ink active:scale-90 transition-all duration-150"
+            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-ink active:scale-90 transition-all duration-150 hidden"
           >
             <MoreHorizontal size={13} strokeWidth={1.6} />
           </button>
@@ -124,7 +125,9 @@ function ClienteRow({
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export function ClientesPage() {
-  const [clientes, setClientes] = useState<Cliente[]>(CLIENTES_MOCK)
+  const { data: fetched = [], isLoading } = useClientes()
+  const [localClientes, setLocalClientes] = useState<Cliente[]>([])
+  const clientes = localClientes.length > 0 ? localClientes : fetched
   const [tab, setTab] = useState<"all" | TierKey>("all")
   const [query, setQuery] = useState("")
   const [sel, setSel] = useState<Set<string>>(new Set())
@@ -158,12 +161,14 @@ export function ClientesPage() {
   const allSelected = filtered.length > 0 && sel.size === filtered.length
 
   const addCliente = (c: Cliente) => {
-    setClientes(prev => [c, ...prev])
+    setLocalClientes(prev => [c, ...(prev.length > 0 ? prev : fetched)])
     setShowModal(false)
   }
 
   const updateCliente = (updated: Cliente) => {
-    setClientes(prev => prev.map(c => c.id === updated.id ? updated : c))
+    setLocalClientes(prev =>
+      (prev.length > 0 ? prev : fetched).map(c => c.id === updated.id ? updated : c)
+    )
     setDrawer(null)
   }
 
@@ -188,10 +193,10 @@ export function ClientesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+          <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
             Importar CSV
           </button>
-          <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+          <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
             Exportar
           </button>
           <button
@@ -236,11 +241,11 @@ export function ClientesPage() {
           />
         </div>
 
-        <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+        <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
           <Filter size={12} strokeWidth={1.6} />
           Ciudad
         </button>
-        <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+        <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
           Canal
         </button>
       </div>
@@ -258,6 +263,9 @@ export function ClientesPage() {
       )}
 
       {/* Table */}
+      {isLoading ? (
+        <div className="text-center py-8 text-[13px] text-[#a59682]">Cargando ciclistas…</div>
+      ) : (
       <div className="bg-vs-card border border-vs-line rounded-[20px] overflow-hidden">
         <table className="w-full text-left">
           <thead>
@@ -321,6 +329,7 @@ export function ClientesPage() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Footer note */}
       <div className="text-[11px] text-[#a59682] text-center py-4">

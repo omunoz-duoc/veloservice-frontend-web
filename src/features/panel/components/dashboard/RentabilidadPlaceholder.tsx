@@ -5,11 +5,12 @@ import { SectionHeader } from "@/components/common/SectionHeader"
 import { RENTAB_DATA } from "@/features/panel/services/dashboard.mock"
 
 const DISPLAY_SCALE = 25 // raw week-units → CLP thousands
-const RANGES = ["4s", "8s", "Trim."] as const
+// const RANGES = ["4s", "8s", "Trim."] as const
+const RANGES = ["4s"] as const
 type Range = (typeof RANGES)[number]
 
 export function RentabilidadPlaceholder() {
-  const [range, setRange] = useState<Range>("8s")
+  const [range, setRange] = useState<Range>("4s")
 
   // All ranges show same data until Chart.js replaces this
   const data = RENTAB_DATA

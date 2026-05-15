@@ -1,15 +1,22 @@
 "use client"
 
 import { createContext, useContext, useState, useMemo, useEffect, type ReactNode } from "react"
-import { type OrdenTrabajo } from "../components/ordenes/ordenes.mock"
+import { type OrdenTrabajo, type EstadoOT as FrontendEstadoOT } from "../components/ordenes/ordenes.mock"
 import { NuevaOTModal } from "../components/ordenes/NuevaOTModal"
-import { mapApiOrden } from "../services/ordenes.service"
+import { mapApiOrden, ESTADO_TO_API_MAP } from "../services/ordenes.service"
 import { ordenesService } from "../services/ordenes.provider"
+import type { BulkUpdateOrdenPayload } from "../types/ordenes.types"
+
+type BulkChanges = {
+  estado?: FrontendEstadoOT
+  mecanicoId?: string
+}
 
 type OrdenesContextValue = {
   ordenes: OrdenTrabajo[]
   addOrden: (orden: OrdenTrabajo) => void
   updateOrden: (orden: OrdenTrabajo) => void
+  bulkUpdateOrdenes: (ids: string[], changes: BulkChanges) => Promise<void>
   openNuevaOT: () => void
 }
 
@@ -33,6 +40,16 @@ export function OrdenesProvider({ children }: { children: ReactNode }) {
   const updateOrden = (updated: OrdenTrabajo) =>
     setOrdenes(prev => prev.map(o => o.id === updated.id ? updated : o))
 
+  const bulkUpdateOrdenes = async (ids: string[], changes: BulkChanges) => {
+    const payload: BulkUpdateOrdenPayload = { ids }
+    if (changes.estado !== undefined) payload.estado = ESTADO_TO_API_MAP[changes.estado]
+    if (changes.mecanicoId !== undefined) payload.mecanicoId = changes.mecanicoId
+    await ordenesService.bulkUpdateOrdenes(payload)
+    setOrdenes(prev => prev.map(o =>
+      ids.includes(o.id) ? { ...o, ...changes } : o
+    ))
+  }
+
   const nextId = useMemo(() => {
     const nums = ordenes.map(o => parseInt(o.id.replace(/\D/g, ""))).filter(n => !isNaN(n) && n > 0)
     const last = nums.length ? Math.max(...nums) : 343
@@ -40,7 +57,7 @@ export function OrdenesProvider({ children }: { children: ReactNode }) {
   }, [ordenes])
 
   return (
-    <OrdenesContext.Provider value={{ ordenes, addOrden, updateOrden, openNuevaOT: () => setIsOpen(true) }}>
+    <OrdenesContext.Provider value={{ ordenes, addOrden, updateOrden, bulkUpdateOrdenes, openNuevaOT: () => setIsOpen(true) }}>
       {children}
       {isOpen && (
         <NuevaOTModal

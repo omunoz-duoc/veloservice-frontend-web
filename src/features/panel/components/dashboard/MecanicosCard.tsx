@@ -37,7 +37,7 @@ export function MecanicosCard() {
               <span className="font-mono font-semibold text-vs-ink">{totalOTs}</span>
               {" OTs en curso"}
             </div>
-            <button className="bg-vs-chip text-vs-ink px-3.5 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] transition-colors flex items-center gap-1.5">
+            <button className="bg-vs-chip text-vs-ink px-3.5 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] transition-colors flex items-center gap-1.5 hidden">
               Reasignar <Route size={13} />
             </button>
           </div>

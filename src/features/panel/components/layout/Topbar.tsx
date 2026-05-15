@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState, useEffect } from "react"
-import { Bell, Settings, Search, Plus, ChevronDown, LogOut } from "lucide-react"
+import { Bell, Settings, Search, Plus, ChevronDown, LogOut, KeyRound, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useOrdenes } from "@/features/panel/context/OrdenesContext"
 import { useAuthStore } from "@/features/auth/store/auth.store"
@@ -11,6 +11,8 @@ export function Topbar() {
   const { user, logout } = useAuthStore()
   const router = useRouter()
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [sentOpen, setSentOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -28,7 +30,16 @@ export function Topbar() {
     router.push("/login")
   }
 
-  console.log("Current user in Topbar:", user)
+  function handleChangePassword() {
+    setDropdownOpen(false)
+    setConfirmOpen(true)
+  }
+
+  function handleConfirmChangePassword() {
+    setConfirmOpen(false)
+    setSentOpen(true)
+  }
+
   const initials = user
     ? `${user.nombre[0]}${user.apellido[0]}`.toUpperCase()
     : "MA"
@@ -36,9 +47,10 @@ export function Topbar() {
   const cargo = user?.rol ?? "Jefe de taller"
 
   return (
+    <>
     <div className="flex items-center gap-4 mb-6">
       {/* Search */}
-      <div className="flex-1 max-w-[420px] bg-vs-card border border-vs-line rounded-[24px] flex items-center gap-3 px-4 py-2.5">
+      <div className="flex-1 max-w-[420px] bg-vs-card border border-vs-line rounded-[24px] flex items-center gap-3 px-4 py-2.5 invisible">
         <Search size={16} className="text-[#a59682] shrink-0" />
         <input
           placeholder="Buscar OT, marca, ciclista…"
@@ -96,6 +108,14 @@ export function Topbar() {
         {dropdownOpen && (
           <div className="absolute right-0 top-full mt-2 w-48 bg-vs-card border border-vs-line rounded-2xl shadow-lg py-1 z-50">
             <button
+              onClick={handleChangePassword}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#2b2f36] hover:bg-vs-chip transition-colors rounded-xl mx-auto"
+            >
+              <KeyRound size={15} />
+              Cambiar contraseña
+            </button>
+            <div className="mx-3 my-1 border-t border-vs-line" />
+            <button
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors rounded-xl mx-auto"
             >
@@ -106,5 +126,61 @@ export function Topbar() {
         )}
       </div>
     </div>
+
+    {/* Confirm change password */}
+    {confirmOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="bg-vs-card border border-vs-line rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-[15px] font-semibold text-[#2b2f36]">¿Cambiar contraseña?</h2>
+            <p className="text-[13px] text-[#8a7f70] leading-relaxed">
+              Te enviaremos un enlace a tu correo para restablecer tu contraseña. ¿Deseas continuar?
+            </p>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => setConfirmOpen(false)}
+              className="px-4 py-2 text-sm rounded-xl border border-vs-line text-[#2b2f36] hover:bg-vs-chip transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleConfirmChangePassword}
+              className="px-4 py-2 text-sm rounded-xl bg-vs-ink text-white hover:bg-[#1e2228] transition-colors"
+            >
+              Confirmar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Link sent confirmation */}
+    {sentOpen && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="bg-vs-card border border-vs-line rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="w-11 h-11 rounded-full bg-vs-chip flex items-center justify-center">
+              <Mail size={20} className="text-[#2b2f36]" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <h2 className="text-[15px] font-semibold text-[#2b2f36]">Enlace enviado</h2>
+              <p className="text-[13px] text-[#8a7f70] leading-relaxed">
+                Hemos enviado un enlace a{" "}
+                <span className="font-medium text-[#2b2f36]">{user?.email ?? "tu correo registrado"}</span>{" "}
+                para restablecer tu contraseña.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setSentOpen(false)}
+            className="w-full px-4 py-2 text-sm rounded-xl bg-vs-ink text-white hover:bg-[#1e2228] transition-colors"
+          >
+            Entendido
+          </button>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

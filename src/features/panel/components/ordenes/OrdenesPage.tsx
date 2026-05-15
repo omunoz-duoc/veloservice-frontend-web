@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef, useEffect } from "react"
 import { PageHeader } from "@/components/common/PageHeader"
 import {
   Plus, Search, SlidersHorizontal, Wrench, Calendar,
   Eye, Pencil, MoreHorizontal, ChevronLeft, ChevronRight, ChevronDown,
+  Check, X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -13,6 +14,8 @@ import {
 } from "./ordenes.mock"
 import { OTDrawer } from "./OTDrawer"
 import { useOrdenes } from "@/features/panel/context/OrdenesContext"
+import { BulkReasignarModal } from "./BulkReasignarModal"
+import { BulkEstadoModal } from "./BulkEstadoModal"
 
 // ─── Small chips ───────────────────────────────────────────────────────────────
 
@@ -162,6 +165,189 @@ function OTRow({
   )
 }
 
+// ─── Filter helpers ────────────────────────────────────────────────────────────
+
+const MES_IDX: Record<string, number> = {
+  Ene:0,Feb:1,Mar:2,Abr:3,May:4,Jun:5,Jul:6,Ago:7,Sep:8,Oct:9,Nov:10,Dic:11,
+}
+
+function parseFechaIngreso(s: string): Date | null {
+  const m = s.match(/^(\d{1,2})\s+(\w{3})\s+·\s+(\d{2}):(\d{2})$/)
+  if (!m) return null
+  const month = MES_IDX[m[2]]
+  if (month === undefined) return null
+  const now = new Date()
+  const year = month > now.getMonth() + 1 ? now.getFullYear() - 1 : now.getFullYear()
+  return new Date(year, month, +m[1], +m[3], +m[4])
+}
+
+function FilterDropdown({ label, icon, options, selected, onChange }: {
+  label: string
+  icon: React.ReactNode
+  options: { value: string; label: string; color?: string }[]
+  selected: Set<string>
+  onChange: (next: Set<string>) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", h)
+    return () => document.removeEventListener("mousedown", h)
+  }, [])
+
+  const toggle = (v: string) => {
+    const next = new Set(selected)
+    next.has(v) ? next.delete(v) : next.add(v)
+    onChange(next)
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={cn(
+          "flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full transition-colors",
+          selected.size > 0
+            ? "bg-vs-ink text-white"
+            : "bg-vs-chip text-[#4a4438] hover:bg-[#ebe3d6]"
+        )}
+      >
+        {icon}
+        {label}
+        {selected.size > 0 && (
+          <span className="bg-white/25 text-[10px] font-mono px-1.5 rounded-full leading-5">
+            {selected.size}
+          </span>
+        )}
+        <ChevronDown size={12} strokeWidth={1.6} className={cn("transition-transform", open && "rotate-180")} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full mt-1.5 left-0 z-50 bg-white border border-vs-line rounded-[16px] shadow-lg min-w-[180px] p-1.5">
+          {options.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => toggle(opt.value)}
+              className="flex items-center gap-2 w-full px-3 py-1.5 rounded-[10px] hover:bg-vs-chip text-left transition-colors"
+            >
+              <div className={cn(
+                "w-4 h-4 rounded-[4px] border flex items-center justify-center shrink-0",
+                selected.has(opt.value) ? "bg-vs-ink border-vs-ink" : "border-[#c8bfb0]"
+              )}>
+                {selected.has(opt.value) && <Check size={10} strokeWidth={2.5} className="text-white" />}
+              </div>
+              {opt.color && (
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: opt.color }} />
+              )}
+              <span className="text-[12px] text-vs-ink">{opt.label}</span>
+            </button>
+          ))}
+          {selected.size > 0 && (
+            <button
+              onClick={() => onChange(new Set())}
+              className="flex items-center gap-1.5 w-full px-3 py-1.5 mt-0.5 rounded-[10px] text-[11.5px] text-[#a59682] hover:text-vs-ink hover:bg-vs-chip transition-colors"
+            >
+              <X size={11} strokeWidth={1.8} />
+              Limpiar filtro
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DateRangeFilter({ desde, hasta, onChange }: {
+  desde: string
+  hasta: string
+  onChange: (desde: string, hasta: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [localDesde, setLocalDesde] = useState(desde)
+  const [localHasta, setLocalHasta] = useState(hasta)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", h)
+    return () => document.removeEventListener("mousedown", h)
+  }, [])
+
+  const isActive = !!(desde || hasta)
+
+  const apply = () => { onChange(localDesde, localHasta); setOpen(false) }
+
+  const clear = () => {
+    setLocalDesde(""); setLocalHasta("")
+    onChange("", ""); setOpen(false)
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={cn(
+          "flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full transition-colors",
+          isActive ? "bg-vs-ink text-white" : "bg-vs-chip text-[#4a4438] hover:bg-[#ebe3d6]"
+        )}
+      >
+        <Calendar size={13} strokeWidth={1.6} />
+        Fecha
+        {isActive && <Check size={11} strokeWidth={2} className="ml-0.5" />}
+        <ChevronDown size={12} strokeWidth={1.6} className={cn("transition-transform", open && "rotate-180")} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full mt-1.5 left-0 z-50 bg-white border border-vs-line rounded-[16px] shadow-lg p-3 min-w-[210px]">
+          <div className="space-y-2.5">
+            <div>
+              <p className="text-[10.5px] text-[#a59682] uppercase tracking-wide font-medium mb-1">Desde</p>
+              <input
+                type="date"
+                value={localDesde}
+                onChange={e => setLocalDesde(e.target.value)}
+                className="block w-full text-[12px] bg-vs-chip rounded-[8px] px-2.5 py-1.5 outline-none"
+              />
+            </div>
+            <div>
+              <p className="text-[10.5px] text-[#a59682] uppercase tracking-wide font-medium mb-1">Hasta</p>
+              <input
+                type="date"
+                value={localHasta}
+                min={localDesde}
+                onChange={e => setLocalHasta(e.target.value)}
+                className="block w-full text-[12px] bg-vs-chip rounded-[8px] px-2.5 py-1.5 outline-none"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={apply}
+              className="flex-1 text-[12px] bg-vs-ink text-white rounded-[10px] py-1.5 hover:bg-[#1e2228] transition-colors"
+            >
+              Aplicar
+            </button>
+            {(localDesde || localHasta) && (
+              <button
+                onClick={clear}
+                className="text-[12px] px-3 bg-vs-chip text-vs-ink rounded-[10px] py-1.5 hover:bg-[#ebe3d6] transition-colors"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Tab bar ───────────────────────────────────────────────────────────────────
 
 type TabKey = "all" | EstadoOT
@@ -183,6 +369,11 @@ export function OrdenesPage() {
   const [query, setQuery] = useState("")
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [drawer, setDrawer] = useState<{ orden: OrdenTrabajo; mode: "view" | "edit" } | null>(null)
+  const [filterTipos, setFilterTipos] = useState<Set<string>>(new Set())
+  const [filterMecanicos, setFilterMecanicos] = useState<Set<string>>(new Set())
+  const [filterDesde, setFilterDesde] = useState("")
+  const [filterHasta, setFilterHasta] = useState("")
+  const [bulkModal, setBulkModal] = useState<"reasignar" | "estado" | null>(null)
 
   const counts = useMemo(() => {
     const c = { all: ordenes.length, recibido: 0, proceso: 0, espera: 0, listo: 0, entregado: 0 }
@@ -198,9 +389,22 @@ export function OrdenesPage() {
         const hay = [o.id, o.clienteNombre, o.biciMarca, o.descripcion].join(" ").toLowerCase()
         if (!hay.includes(q)) return false
       }
+      if (filterTipos.size > 0 && !filterTipos.has(o.tipo)) return false
+      if (filterMecanicos.size > 0 && !filterMecanicos.has(o.mecanicoId)) return false
+      if (filterDesde || filterHasta) {
+        const fecha = parseFechaIngreso(o.fechaIngreso)
+        if (fecha) {
+          if (filterDesde && fecha < new Date(filterDesde)) return false
+          if (filterHasta) {
+            const hasta = new Date(filterHasta)
+            hasta.setHours(23, 59, 59)
+            if (fecha > hasta) return false
+          }
+        }
+      }
       return true
     })
-  }, [ordenes, activeTab, query])
+  }, [ordenes, activeTab, query, filterTipos, filterMecanicos, filterDesde, filterHasta])
 
   const toggleSelect = (id: string) =>
     setSelected(prev => {
@@ -223,14 +427,14 @@ export function OrdenesPage() {
 
   const ACTIONS = (
     <>
-      {/* <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] transition-colors">
+      <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] transition-colors hidden">
         <Calendar size={14} strokeWidth={1.6} />
         Este mes
         <ChevronDown size={14} strokeWidth={1.6} className="text-[#a59682]" />
-      </button> */}
-      {/* <button className="bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] transition-colors">
+      </button>
+      <button className="bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] transition-colors hidden">
         Exportar CSV
-      </button> */}
+      </button>
       <button
         onClick={openNuevaOT}
         className="flex items-center gap-2 bg-vs-ink text-white px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#1e2228] transition-colors"
@@ -251,54 +455,63 @@ export function OrdenesPage() {
       />
 
       {/* Tab bar + search + filters */}
-      <div className="bg-vs-card border border-vs-line rounded-[24px] p-3 mb-4 flex items-center gap-2 flex-wrap">
-        <div className="flex gap-1 bg-vs-chip p-1 rounded-full overflow-x-auto shrink-0">
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={cn(
-                "text-[12px] px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 whitespace-nowrap transition-colors",
-                activeTab === tab.key
-                  ? "bg-white shadow-sm text-vs-ink"
-                  : "text-[#8a7f70] hover:text-vs-ink"
-              )}
-            >
-              {tab.label}
-              <span className={cn(
-                "text-[10.5px] font-mono px-1.5 rounded-md",
-                activeTab === tab.key ? "bg-[#ece7de]" : "bg-white/60"
-              )}>
-                {String(counts[tab.key]).padStart(2, "0")}
-              </span>
-            </button>
-          ))}
+      <div className="bg-vs-card border border-vs-line rounded-[24px] p-3 mb-4  items-center gap-2 flex-wrap">
+        <div className="flex mb-4">
+          <div className="flex gap-1 bg-vs-chip p-1 rounded-full overflow-x-auto shrink-0">
+            {TABS.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  "text-[12px] px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 whitespace-nowrap transition-colors",
+                  activeTab === tab.key
+                    ? "bg-white shadow-sm text-vs-ink"
+                    : "text-[#8a7f70] hover:text-vs-ink"
+                )}
+              >
+                {tab.label}
+                <span className={cn(
+                  "text-[10.5px] font-mono px-1.5 rounded-md",
+                  activeTab === tab.key ? "bg-[#ece7de]" : "bg-white/60"
+                )}>
+                  {String(counts[tab.key]).padStart(2, "0")}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="flex-1" />
+          <div className="flex items-center gap-2 bg-vs-chip px-3 py-1.5 rounded-full min-w-[220px]">
+            <Search size={14} strokeWidth={1.6} className="text-[#a59682] shrink-0" />
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Buscar ID, cliente, marca…"
+              className="bg-transparent outline-none text-[12.5px] flex-1 placeholder:text-[#a59682]"
+            />
+          </div>
         </div>
 
-        <div className="flex-1" />
-
-        <div className="flex items-center gap-2 bg-vs-chip px-3 py-1.5 rounded-full min-w-[220px]">
-          <Search size={14} strokeWidth={1.6} className="text-[#a59682] shrink-0" />
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Buscar ID, cliente, marca…"
-            className="bg-transparent outline-none text-[12.5px] flex-1 placeholder:text-[#a59682]"
+        <div className="flex gap-3">
+          <FilterDropdown
+            label="Tipo"
+            icon={<SlidersHorizontal size={13} strokeWidth={1.6} />}
+            options={Object.entries(TIPO_CONFIG).map(([v, cfg]) => ({ value: v, label: cfg.label, color: cfg.fg }))}
+            selected={filterTipos}
+            onChange={setFilterTipos}
+          />
+          <FilterDropdown
+            label="Mecánico"
+            icon={<Wrench size={13} strokeWidth={1.6} />}
+            options={MECANICOS_MOCK.map(m => ({ value: m.id, label: m.nombre, color: m.color }))}
+            selected={filterMecanicos}
+            onChange={setFilterMecanicos}
+          />
+          <DateRangeFilter
+            desde={filterDesde}
+            hasta={filterHasta}
+            onChange={(d, h) => { setFilterDesde(d); setFilterHasta(h) }}
           />
         </div>
-
-        <button className="flex items-center gap-1.5 text-[12px] bg-vs-chip px-3 py-1.5 rounded-full text-[#4a4438] hover:bg-[#ebe3d6] transition-colors">
-          <SlidersHorizontal size={13} strokeWidth={1.6} />
-          Tipo
-        </button>
-        <button className="flex items-center gap-1.5 text-[12px] bg-vs-chip px-3 py-1.5 rounded-full text-[#4a4438] hover:bg-[#ebe3d6] transition-colors">
-          <Wrench size={13} strokeWidth={1.6} />
-          Mecánico
-        </button>
-        <button className="flex items-center gap-1.5 text-[12px] bg-vs-chip px-3 py-1.5 rounded-full text-[#4a4438] hover:bg-[#ebe3d6] transition-colors">
-          <Calendar size={13} strokeWidth={1.6} />
-          Fecha
-        </button>
       </div>
 
       {/* Bulk selection bar */}
@@ -308,13 +521,19 @@ export function OrdenesPage() {
             {selected.size} seleccionada{selected.size > 1 ? "s" : ""}
           </span>
           <div className="flex-1" />
-          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+          <button
+            onClick={() => setBulkModal("reasignar")}
+            className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          >
             Reasignar
           </button>
-          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+          <button
+            onClick={() => setBulkModal("estado")}
+            className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+          >
             Cambiar estado
           </button>
-          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors hidden">
             Exportar
           </button>
           <button
@@ -411,6 +630,21 @@ export function OrdenesPage() {
           mode={drawer.mode}
           onClose={() => setDrawer(null)}
           onSave={handleSaveEdit}
+        />
+      )}
+
+      {bulkModal === "reasignar" && (
+        <BulkReasignarModal
+          ids={[...selected]}
+          onClose={() => setBulkModal(null)}
+          onSuccess={() => { setBulkModal(null); setSelected(new Set()) }}
+        />
+      )}
+      {bulkModal === "estado" && (
+        <BulkEstadoModal
+          ids={[...selected]}
+          onClose={() => setBulkModal(null)}
+          onSuccess={() => { setBulkModal(null); setSelected(new Set()) }}
         />
       )}
 

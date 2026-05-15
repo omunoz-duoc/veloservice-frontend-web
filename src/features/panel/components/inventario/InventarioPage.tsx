@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useInventarioProductos } from "../../hooks/useInventarioProductos"
 import { Search, Plus, Filter, Package, Bell, TrendingUp, ChevronLeft, ChevronRight, Barcode, Building2, Eye, Pencil, PlusCircle, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-  PRODUCTOS_MOCK, CATEGORIAS, fmt, margen, stockEstado, nextProductoId,
+  CATEGORIAS, fmt, margen, stockEstado, nextProductoId,
   type Producto,
 } from "./inventario.mock"
 import { ProductoDrawer, CatChip, StockBadge, type DrawerMode } from "./ProductoDrawer"
@@ -132,7 +133,7 @@ function ProductoRow({
           </button>
           <button
             title="Más"
-            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-ink active:scale-90 transition-all duration-150"
+            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-ink active:scale-90 transition-all duration-150 hidden"
           >
             <MoreHorizontal size={13} strokeWidth={1.6} />
           </button>
@@ -145,7 +146,9 @@ function ProductoRow({
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export function InventarioPage() {
-  const [productos, setProductos] = useState<Producto[]>(PRODUCTOS_MOCK)
+  const { data: fetched = [], isLoading } = useInventarioProductos()
+  const [localProductos, setLocalProductos] = useState<Producto[]>([])
+  const productos = localProductos.length > 0 ? localProductos : fetched
   const [tab, setTab] = useState<"all" | "ok" | "low" | "out">("all")
   const [query, setQuery] = useState("")
   const [sel, setSel] = useState<Set<string>>(new Set())
@@ -189,12 +192,14 @@ export function InventarioPage() {
   const allSelected = filtered.length > 0 && sel.size === filtered.length
 
   const addProducto = (p: Producto) => {
-    setProductos(prev => [p, ...prev])
+    setLocalProductos(prev => [p, ...(prev.length > 0 ? prev : fetched)])
     setShowModal(false)
   }
 
   const updateProducto = (updated: Producto) => {
-    setProductos(prev => prev.map(p => p.id === updated.id ? updated : p))
+    setLocalProductos(prev =>
+      (prev.length > 0 ? prev : fetched).map(p => p.id === updated.id ? updated : p)
+    )
     setDrawer(null)
   }
 
@@ -216,10 +221,10 @@ export function InventarioPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+          <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
             Importar CSV
           </button>
-          <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+          <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
             Exportar
           </button>
           <button
@@ -276,7 +281,7 @@ export function InventarioPage() {
           <Filter size={12} strokeWidth={1.6} />
           Categoría
         </button>
-        <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+        <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
           <Building2 size={12} strokeWidth={1.6} />
           Proveedor
         </button>

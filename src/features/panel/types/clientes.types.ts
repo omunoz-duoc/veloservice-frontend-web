@@ -1,9 +1,11 @@
+export type TipoCliente = "nuevo" | "regular" | "frecuente" | "VIP"
+export type CanalKey = "WhatsApp" | "Email" | "Llamada" | "SMS"
+export type IdType = "RUT" | "Pasaporte" | "DNI"
+
 export interface IClientesService {
   getClientes(): Promise<ClientesListResponse>
   createCliente(payload: CreateClientePayload): Promise<void>
 }
-
-export type TipoCliente = "nuevo" | "regular" | "frecuente" | "VIP"
 
 export type Cliente = {
   id: string
@@ -16,6 +18,15 @@ export type Cliente = {
   bicicletasCount: number
   ordenesCount: number
   totalGastado: number
+  // Extended UI fields — present in mock, optional for real API
+  ciudad?: string
+  fechaReg?: string
+  ultimaVisita?: string
+  canal?: CanalKey
+  notas?: string
+  consentEmail?: boolean
+  consentWhatsApp?: boolean
+  consentMarketing?: boolean
 }
 
 export type ClientesListResponse = { total: number; clientes: Cliente[] }

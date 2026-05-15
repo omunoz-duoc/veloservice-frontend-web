@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
 import { SectionHeader } from "@/components/common/SectionHeader"
 import { StatusBadge } from "@/components/common/StatusBadge"
@@ -86,9 +87,12 @@ export function UrgentesCard() {
         ))}
       </div>
 
-      <button className="mt-3 flex items-center justify-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] transition-colors">
+      <Link
+        href="/ordenes"
+        className="mt-3 flex items-center justify-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] transition-colors"
+      >
         Ver todas <ArrowUpRight size={14} />
-      </button>
+      </Link>
     </div>
   )
 }

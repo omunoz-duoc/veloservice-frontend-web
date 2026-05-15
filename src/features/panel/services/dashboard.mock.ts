@@ -1,21 +1,5 @@
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type KpiAccent = "violet" | "good" | "info" | "warn"
-export type KpiIconKey = "ordenes" | "listas" | "cobros" | "stock"
-
-export type DashboardKpi = {
-  id: string
-  title: string
-  value: string
-  delta: string
-  trend: "up" | "down" | "warn"
-  sub: string
-  accent: KpiAccent
-  iconKey: KpiIconKey
-  spark?: number[]
-  progress?: number
-}
-
 export type PipelineItem = {
   ot: string
   tipo: string
@@ -77,143 +61,7 @@ async function mockFetch<T>(data: T, delayMs = 250): Promise<T> {
 
 // ─── Mock data ─────────────────────────────────────────────────────────────────
 
-const KPI_DATA: DashboardKpi[] = [
-  {
-    id: "ordenes-activas",
-    title: "Órdenes activas",
-    value: "14",
-    delta: "+3",
-    trend: "up",
-    sub: "vs. ayer 11",
-    accent: "violet",
-    iconKey: "ordenes",
-    spark: [4, 5, 5, 6, 8, 7, 9, 10, 11, 12, 13, 14],
-  },
-  {
-    id: "bicis-listas",
-    title: "Bicis listas para retiro",
-    value: "06",
-    delta: "+2",
-    trend: "up",
-    sub: "2 sin retirar > 48h",
-    accent: "good",
-    iconKey: "listas",
-    spark: [1, 2, 2, 3, 4, 4, 5, 5, 6, 6, 6, 6],
-  },
-  {
-    id: "cobros-dia",
-    title: "Cobros del día",
-    value: "$ 842.300",
-    delta: "+24%",
-    trend: "up",
-    sub: "meta $ 1.100.000",
-    accent: "info",
-    iconKey: "cobros",
-    progress: 0.76,
-  },
-  {
-    id: "stock-bajo",
-    title: "Stock bajo mínimo",
-    value: "05",
-    delta: "2 críticos",
-    trend: "warn",
-    sub: "cadenas, pastillas disco",
-    accent: "warn",
-    iconKey: "stock",
-    spark: [1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 5],
-  },
-]
 
-const PIPELINE_DATA: PipelineColumn[] = [
-  {
-    key: "recibido",
-    label: "Recibido",
-    count: 5,
-    color: "#a59682",
-    items: [
-      { ot: "OT-0341", tipo: "MTB · Trek", modelo: "Marlin 7 2024", cliente: "P. Mora" },
-      { ot: "OT-0342", tipo: "Ruta · Giant", modelo: "Contend AR 3", cliente: "C. Reyes" },
-      { ot: "OT-0343", tipo: "Urbana · Scott", modelo: "Sub Cross 40", cliente: "M. Díaz" },
-    ],
-  },
-  {
-    key: "proceso",
-    label: "En proceso",
-    count: 6,
-    color: "#6b5bd1",
-    items: [
-      { ot: "OT-0330", tipo: "MTB · Specialized", modelo: "Rockhopper Comp", cliente: "F. Tapia", pct: 0.62 },
-      { ot: "OT-0331", tipo: "Gravel · Canyon", modelo: "Grail CF SL 7", cliente: "L. Pinto", pct: 0.35 },
-      { ot: "OT-0333", tipo: "eBike · Orbea", modelo: "Rise H30", cliente: "A. Vera", pct: 0.88 },
-    ],
-  },
-  {
-    key: "listo",
-    label: "Listo",
-    count: 3,
-    color: "#2f7d4f",
-    items: [
-      { ot: "OT-0315", tipo: "BMX · Haro", modelo: "Downtown DLX", cliente: "S. Núñez" },
-      { ot: "OT-0318", tipo: "Ruta · Cannondale", modelo: "CAAD13 Disc 105", cliente: "R. Lagos" },
-    ],
-  },
-  {
-    key: "entregado",
-    label: "Entregado",
-    count: 4,
-    color: "#3a6ea5",
-    items: [
-      { ot: "OT-0301", tipo: "MTB · Trek", modelo: "Fuel EX 7", cliente: "I. Soto" },
-      { ot: "OT-0303", tipo: "Urbana · Kona", modelo: "Dew Plus", cliente: "T. Álvarez" },
-    ],
-  },
-]
-
-const URGENTES_DATA: OrdenUrgente[] = [
-  { ot: "OT-0299", cliente: "Paulina Mora", bici: "Trek Marlin 7 · MTB", due: "Vencida 2d", level: "crit", mecanico: "R. Soto" },
-  { ot: "OT-0304", cliente: "José Contreras", bici: "Specialized Allez · Ruta", due: "Vencida 1d", level: "crit", mecanico: "J. Bravo" },
-  { ot: "OT-0312", cliente: "Fernanda Díaz", bici: "Giant Talon 1 · MTB", due: "Hoy 18:00", level: "warn", mecanico: "P. Herrera" },
-  { ot: "OT-0320", cliente: "Rodrigo Vidal", bici: "Cannondale Topstone · Gravel", due: "Hoy 19:30", level: "warn", mecanico: "R. Soto" },
-]
-
-const MECANICOS_DATA: MecanicoActivo[] = [
-  {
-    id: "m-soto",
-    nombre: "Rodrigo Soto",
-    iniciales: "RS",
-    color: "#6b5bd1",
-    especialidad: "Frenos / Transmisión",
-    bahia: "B-01",
-    horas: "6.2h",
-    estado: "activo",
-    otsCursando: ["OT-0330", "OT-0299", "OT-0320", "OT-0312"],
-    capacidad: 5,
-  },
-  {
-    id: "m-bravo",
-    nombre: "Javier Bravo",
-    iniciales: "JB",
-    color: "#2f7d4f",
-    especialidad: "Ruedas / Alineación",
-    bahia: "B-02",
-    horas: "5.8h",
-    estado: "activo",
-    otsCursando: ["OT-0331", "OT-0304", "OT-0315"],
-    capacidad: 5,
-  },
-  {
-    id: "m-herrera",
-    nombre: "Pablo Herrera",
-    iniciales: "PH",
-    color: "#c85a2a",
-    especialidad: "Suspensión / eBike",
-    bahia: "B-03",
-    horas: "7.1h",
-    estado: "saturado",
-    otsCursando: ["OT-0333", "OT-0318", "OT-0341", "OT-0342", "OT-0343"],
-    capacidad: 5,
-  },
-]
 
 const ACTIVIDAD_DATA: ActividadItem[] = [
   { id: "a1", texto: "R. Soto terminó sangrado de frenos en OT-0333", tiempo: "hace 2 min", tone: "violet", iconKey: "wrench" },
@@ -238,21 +86,6 @@ export const RENTAB_DATA: RentabRow[] = [
 
 // ─── Service functions ─────────────────────────────────────────────────────────
 
-export async function getDashboardKpis(): Promise<DashboardKpi[]> {
-  return mockFetch(KPI_DATA)
-}
-
-export async function getPipelineSummary(): Promise<PipelineColumn[]> {
-  return mockFetch(PIPELINE_DATA)
-}
-
-export async function getOrdenesUrgentes(): Promise<OrdenUrgente[]> {
-  return mockFetch(URGENTES_DATA)
-}
-
-export async function getMecanicosActivos(): Promise<MecanicoActivo[]> {
-  return mockFetch(MECANICOS_DATA)
-}
 
 export async function getActividadReciente(): Promise<ActividadItem[]> {
   return mockFetch(ACTIVIDAD_DATA, 150)

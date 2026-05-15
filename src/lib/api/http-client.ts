@@ -45,6 +45,19 @@ export const httpClient = {
     }
     return res.json() as Promise<T>;
   },
+  patch: async <T>(endpoint: string, body: unknown): Promise<T> => {
+    const res = await fetch(`${apiUrl}${endpoint}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...authHeader(endpoint) },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const errorBody = await res.json().catch(() => null);
+      throw { status: res.status, message: `PATCH ${endpoint} failed`, body: errorBody };
+    }
+    const text = await res.text();
+    return (text ? JSON.parse(text) : undefined) as T;
+  },
   delete: async (endpoint: string): Promise<void> => {
     const res = await fetch(`${apiUrl}${endpoint}`, {
       method: "DELETE",

@@ -30,4 +30,7 @@ export const ordenesMock: IOrdenesService = {
   async deleteOrden(_id) {
     return mockFetch(undefined as void)
   },
+  async bulkUpdateOrdenes(_payload) {
+    return mockFetch(undefined as void)
+  },
 }

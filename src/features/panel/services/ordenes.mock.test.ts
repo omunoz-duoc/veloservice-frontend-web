@@ -32,6 +32,18 @@ describe("ordenesMock", () => {
       })
     ).resolves.toBeUndefined()
   })
+
+  it("bulkUpdateOrdenes resolves without error", async () => {
+    await expect(
+      ordenesMock.bulkUpdateOrdenes({ ids: ["OT-0001"], estado: "Recibido" })
+    ).resolves.toBeUndefined()
+  })
+
+  it("bulkUpdateOrdenes with mecanicoId resolves without error", async () => {
+    await expect(
+      ordenesMock.bulkUpdateOrdenes({ ids: ["OT-0001", "OT-0002"], mecanicoId: "m-001" })
+    ).resolves.toBeUndefined()
+  })
 })
 
 describe("ordenesService provider", () => {

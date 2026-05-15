@@ -1,8 +1,8 @@
 import { httpClient } from "@/lib/api/http-client";
-import { CreateOrdenPayload, IOrdenesService, Orden, OrdenesListResponse, OrdenesMetricas, UpdateOrdenPayload } from "../types/ordenes.types";
-import { type OrdenTrabajo, type EstadoOT, type TipoOT } from "../components/ordenes/ordenes.mock";
+import { CreateOrdenPayload, IOrdenesService, Orden, OrdenesListResponse, OrdenesMetricas, UpdateOrdenPayload, BulkUpdateOrdenPayload } from "../types/ordenes.types";
+import { type OrdenTrabajo, type EstadoOT as FrontendEstadoOT, type TipoOT } from "../components/ordenes/ordenes.mock";
 
-const ESTADO_MAP: Record<string, EstadoOT> = {
+const ESTADO_MAP: Record<string, FrontendEstadoOT> = {
     pendiente:           "recibido",
     recibido:            "recibido",
     en_diagnostico:      "proceso",
@@ -12,6 +12,14 @@ const ESTADO_MAP: Record<string, EstadoOT> = {
     espera_repuesto:     "espera",
     listo:               "listo",
     entregado:           "entregado",
+}
+
+export const ESTADO_TO_API_MAP: Record<FrontendEstadoOT, string> = {
+    recibido:  "Recibido",
+    proceso:   "En Proceso",
+    espera:    "espera_repuesto",
+    listo:     "Listo",
+    entregado: "Entregado",
 }
 
 const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
@@ -65,7 +73,11 @@ export const ordenesService: IOrdenesService = {
     async updateOrden(id: string, payload: UpdateOrdenPayload) {
         return httpClient.put<Orden>(`ordenes/${id}`, payload);
     },
-    
+
+    async bulkUpdateOrdenes(payload: BulkUpdateOrdenPayload) {
+        return httpClient.patch<void>("ordenes/bulk", payload);
+    },
+
     async deleteOrden(id: string) {
         return httpClient.delete(`ordenes/${id}`);
     }

@@ -12,8 +12,8 @@ describe("serviciosMock", () => {
   it("createServicio resolves without error", async () => {
     await expect(
       serviciosMock.createServicio({
-        nombre: "Ajuste suspensión", descripcion: "Revisión de horquilla",
-        precioBase: 10000, tiempoEstimado: "20min"
+        cat: "rapidos", nombre: "Ajuste suspensión", desc: "Revisión de horquilla",
+        precio: 10000, dur: 20, incluye: [], skills: [], activo: true,
       })
     ).resolves.toBeUndefined()
   })

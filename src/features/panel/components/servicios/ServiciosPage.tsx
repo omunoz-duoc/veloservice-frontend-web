@@ -1,17 +1,18 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Plus, Search, LayoutGrid, List, ChevronDown,
-  Eye, Pencil, Copy, MoreHorizontal, Check, Sparkles,
+  Eye, Pencil, Copy, MoreHorizontal, Sparkles,
   Wrench, Circle, Flame, Smile, Package, type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PageHeader } from "@/components/common/PageHeader"
 import {
-  CATEGORIAS, SERVICIOS_MOCK, fmt, nextServicioId,
+  CATEGORIAS, fmt, nextServicioId,
   type CatKey, type Servicio,
 } from "./servicios.mock"
+import { serviciosService } from "../../services/servicios.provider"
 import { ServicioDrawer } from "./ServicioDrawer"
 import { NuevoServicioModal } from "./NuevoServicioModal"
 
@@ -301,7 +302,11 @@ type DrawerState = { servicio: Servicio; mode: "view" | "edit" } | null
 type ModalState = { defaultCat?: CatKey } | null
 
 export function ServiciosPage() {
-  const [servicios, setServicios] = useState<Servicio[]>(SERVICIOS_MOCK)
+  const [servicios, setServicios] = useState<Servicio[]>([])
+
+  useEffect(() => {
+    serviciosService.getServicios().then(r => setServicios(r.servicios))
+  }, [])
   const [view, setView] = useState<"grid" | "list">("grid")
   const [activeTab, setActiveTab] = useState<"all" | CatKey>("all")
   const [query, setQuery] = useState("")

@@ -27,17 +27,29 @@ export function DashboardPage() {
   const userName = user?.nombre ?? "Usuario"
   const sucursalName = user?.taller?.trim() || "Sucursal por confirmar"
 
-  const now = Temporal.Now.zonedDateTimeISO("America/Santiago")
-  const today = now.toPlainDate().toLocaleString("es-CL", {
+  const now = new Date()
+  
+  // Get current time in Santiago timezone
+  const dateFormatter = new Intl.DateTimeFormat("es-CL", {
+    timeZone: "America/Santiago",
     weekday: "long",
     day: "numeric",
     month: "long",
   })
+  const today = dateFormatter.format(now)
   const formattedToday = today.charAt(0).toUpperCase() + today.slice(1)
 
-  const greeting = now.hour < 12
+  // Get hour in Santiago timezone for greeting
+  const hourFormatter = new Intl.DateTimeFormat("es-CL", {
+    timeZone: "America/Santiago",
+    hour: "2-digit",
+    hour12: false,
+  })
+  const hour = parseInt(hourFormatter.format(now), 10)
+
+  const greeting = hour < 12
     ? "Buenos días"
-    : now.hour < 20
+    : hour < 20
       ? "Buenas tardes"
       : "Buenas noches"
 

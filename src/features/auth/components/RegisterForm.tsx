@@ -8,7 +8,7 @@ import { StepIndicator } from "./shared/StepIndicator";
 import { useRegister } from "@/features/auth/hooks/useAuth";
 import type { RegisterPayload } from "@/features/auth/services/auth.service";
 import { cn } from "@/lib/utils";
-import { useRut } from "react-rut-formatter";
+import { removeSeparators, useRut } from "react-rut-formatter";
 import { PhoneField } from "@/components/common/PhoneField";
 
 const CARGOS_MAP: Record<string, string> = {
@@ -55,6 +55,7 @@ type FormErrors = Partial<Record<"nombre" | "apellido" | "rut" | "telefono" | "e
 
 const LETTERS_RE = /^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s'-]+$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_RUT_LENGTH = 9;
 
 export function RegisterForm({ onBack }: RegisterFormProps) {
   const { rut, updateRut, isValid: rutIsValid } = useRut();
@@ -79,6 +80,13 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
     setErrors((prev) => ({ ...prev, [k]: undefined }));
   };
 
+  const handleRutChange = (value: string) => {
+    const nextRut = removeSeparators(value).slice(0, MAX_RUT_LENGTH);
+
+    updateRut(nextRut);
+    setErrors((prev) => ({ ...prev, rut: undefined }));
+  };
+
   const validateStep1 = (): boolean => {
     const e: FormErrors = {};
     if (!data.nombre.trim()) e.nombre = "Ingresa tu nombre";
@@ -94,7 +102,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
 
     const phoneDigits = data.telefono.replace(/^\+56/, "").replace(/\D/g, "");
     if (!data.telefono) e.telefono = "Ingresa tu teléfono";
-    else if (phoneDigits.length !== 9) e.telefono = "Debe tener 9 dígitos (sin +56)";
+    else if (phoneDigits.length < 9) e.telefono = "Debe tener 9 dígitos (sin +56)";
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -165,7 +173,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
             icon={<CreditCard size={18} />}
             placeholder="RUT (12.345.678-9)"
             value={rut.formatted}
-            onChange={(v) => { updateRut(v); setErrors((prev) => ({ ...prev, rut: undefined })); }}
+            onChange={handleRutChange}
             hint="Sólo se usa para validación de identidad."
             error={errors.rut}
           />
@@ -203,7 +211,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
             hint="Te enviaremos el código de verificación a este correo."
             error={errors.email}
           />
-          <div>
+          <div className="mb-5">
             <div className="text-[11px] text-[#8a7f70] mb-1.5 ml-1">
               Cargo solicitado
             </div>
@@ -225,7 +233,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
               ))}
             </div>
           </div>
-          <div>
+          {/* <div>
             <div className="text-[11px] text-[#8a7f70] mb-1.5 ml-1">
               Sucursal asignada
             </div>
@@ -245,7 +253,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
                 ))}
               </select>
             </div>
-          </div>
+          </div> */}
           <div className="flex gap-2">
             <button
               onClick={() => setStep(1)}
@@ -375,9 +383,10 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
             <p className="text-[13px] text-[#8a7f70] mt-2 leading-relaxed">
               Hola <b className="text-vs-ink">{data.nombre || "—"}</b>, recibimos
               tu solicitud para el rol{" "}
-              <b className="text-vs-ink">{CARGOS_MAP[data.rol] || data.rol}</b> en{" "}
-              <b className="text-vs-ink">{TALLERES_MAP[data.sucursalId] || "—"}</b>.<br />
-              El administrador del taller revisará y activará tu cuenta. Te
+              <b className="text-vs-ink">{CARGOS_MAP[data.rol] || data.rol}</b> 
+              {/* en{" "} */}
+              {/* <b className="text-vs-ink">{TALLERES_MAP[data.sucursalId] || "—"}</b>.<br /> */}
+              .El administrador del taller revisará y activará tu cuenta. Te
               avisaremos a{" "}
               <b className="text-vs-ink">{data.email || "tu correo"}</b>.
             </p>
@@ -387,7 +396,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
             <Summary k="RUT" v={rut.formatted || "—"} mono />
             <Summary k="Correo" v={data.email || "—"} />
             <Summary k="Rol" v={CARGOS_MAP[data.rol] || data.rol} />
-            <Summary k="Sucursal" v={TALLERES_MAP[data.sucursalId] || "—"} />
+            {/* <Summary k="Sucursal" v={TALLERES_MAP[data.sucursalId] || "—"} /> */}
           </div>
           <button
             onClick={onBack}

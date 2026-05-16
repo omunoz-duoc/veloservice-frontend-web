@@ -76,13 +76,13 @@ export function Topbar() {
       </button>
 
       {/* Bell */}
-      <button className="relative w-10 h-10 rounded-full bg-vs-card border border-vs-line flex items-center justify-center text-[#2b2f36]">
+      <button className="relative w-10 h-10 rounded-full bg-vs-card border border-vs-line flex items-center justify-center text-[#2b2f36] hidden">
         <Bell size={18} strokeWidth={1.6} />
         <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-vs-warn" />
       </button>
 
       {/* Settings */}
-      <button className="w-10 h-10 rounded-full bg-vs-card border border-vs-line flex items-center justify-center text-[#2b2f36]">
+      <button className="w-10 h-10 rounded-full bg-vs-card border border-vs-line flex items-center justify-center text-[#2b2f36] hidden">
         <Settings size={18} strokeWidth={1.6} />
       </button>
 

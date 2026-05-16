@@ -30,7 +30,7 @@ const NAV_ADMIN: NavItem[] = [
 
 const NAV_SISTEMA: NavItem[] = [
   { key: "configuracion", label: "Configuraciones", href: "/configuracion", icon: Settings },
-  { key: "roles",         label: "Roles",           href: "/roles",         icon: Shield },
+  // { key: "roles",         label: "Roles",           href: "/roles",         icon: Shield },
   // { key: "archivos",      label: "Archivos",        href: "/archivos",      icon: Folder },
 ]
 

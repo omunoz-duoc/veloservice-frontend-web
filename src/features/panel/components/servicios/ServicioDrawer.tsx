@@ -334,7 +334,7 @@ export function ServicioDrawer({
               <div className="pt-3 border-t border-vs-line-2 flex gap-2">
                 <button
                   onClick={onNuevaOT}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-vs-ink text-white px-4 py-2.5 rounded-full text-[12.5px] font-medium hover:bg-[#1e2228] active:scale-[0.98] transition-all duration-150"
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-vs-ink text-white px-4 py-2.5 rounded-full text-[12.5px] font-medium hover:bg-[#1e2228] active:scale-[0.98] transition-all duration-150 hidden"
                 >
                   <Plus size={14} strokeWidth={2} />
                   Crear OT con este servicio

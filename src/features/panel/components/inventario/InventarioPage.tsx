@@ -301,7 +301,8 @@ export function InventarioPage() {
 
       {/* Table */}
       <div className="bg-vs-card border border-vs-line rounded-[20px] overflow-hidden">
-        <table className="w-full text-left">
+        <div className="overflow-x-auto">
+        <table className="w-full text-left min-w-[860px]">
           <thead>
             <tr className="bg-[#faf6f0] border-b border-vs-line">
               <th className="px-4 py-3 w-10">
@@ -337,6 +338,7 @@ export function InventarioPage() {
             )}
           </tbody>
         </table>
+        </div>
 
         {/* Footer */}
         <div className="flex items-center gap-3 px-4 py-3 border-t border-vs-line-2 bg-[#faf6f0]">

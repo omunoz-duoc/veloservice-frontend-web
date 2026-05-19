@@ -24,7 +24,7 @@ function FInput({
   value, onChange, placeholder, type = "text", mono, error, inputMode,
 }: {
   value: string; onChange: (v: string) => void
-  placeholder?: string; type?: string; mono?: boolean; error?: boolean; inputMode?: string
+  placeholder?: string; type?: string; mono?: boolean; error?: boolean; inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"]
 }) {
   return (
     <input

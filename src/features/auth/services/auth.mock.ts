@@ -1,5 +1,7 @@
 import type { IAuthService, RegisterPayload, User } from "./auth.service"
-import userData from "./auth.mock.data.json"
+import usersData from "./auth.mock.data.json"
+
+const MOCK_USERS: User[] = usersData as unknown as User[]
 
 async function mockFetch<T>(data: T, delayMs = 250): Promise<T> {
   await new Promise(r => setTimeout(r, delayMs))
@@ -7,8 +9,15 @@ async function mockFetch<T>(data: T, delayMs = 250): Promise<T> {
 }
 
 export const authMock: IAuthService = {
-  async login(_email, _password) {
-    return mockFetch(userData as User)
+  async login(email, _password) {
+    const normalizedEmail = email.toLowerCase().trim()
+    const user = MOCK_USERS.find((u) => u.email.toLowerCase() === normalizedEmail)
+    if (!user) {
+      const error = new Error("USER_NOT_FOUND")
+      ;(error as any).body = { message: "USER_NOT_FOUND" }
+      throw error
+    }
+    return mockFetch(user)
   },
   async logout() {
     return mockFetch(undefined as void)

@@ -289,11 +289,11 @@ export function InventarioPage() {
 
       {/* Bulk bar */}
       {sel.size > 0 && (
-        <div className="bg-vs-ink text-white border border-vs-ink rounded-[16px] px-4 py-2.5 mb-3 flex items-center gap-3 vs-scale-in">
+        <div className="bg-vs-ink text-white border border-vs-ink rounded-[16px] px-4 py-2.5 mb-3 flex items-center gap-3 vs-scale-in hidden">
           <span className="text-[12.5px] font-semibold">{sel.size} seleccionado{sel.size > 1 ? "s" : ""}</span>
           <div className="flex-1" />
-          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Generar OC</button>
-          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Ajustar precios</button>
+          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors hidden">Generar OC</button>
+          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors hidden">Ajustar precios</button>
           <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Exportar</button>
           <button onClick={() => setSel(new Set())} className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Cancelar</button>
         </div>

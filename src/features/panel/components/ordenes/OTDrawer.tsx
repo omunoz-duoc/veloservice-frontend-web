@@ -110,7 +110,7 @@ export function OTDrawer({
   const mecOptions = MECANICOS_MOCK.map(m => ({ value: m.id, label: m.nombre }))
 
   const isEdit = mode === "edit"
-  const cfg = TIPO_CONFIG[draft.tipo]
+  const cfg = TIPO_CONFIG[draft.tipo ?? "mantencion"]
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -172,7 +172,7 @@ export function OTDrawer({
             <div className="grid grid-cols-2 gap-4">
               <Field label="Tipo de orden" required={isEdit}>
                 {isEdit
-                  ? <FieldSelect value={draft.tipo} onChange={v => set("tipo", v as TipoOT)} options={tipoOptions} />
+                  ? <FieldSelect value={draft.tipo ?? ""} onChange={v => set("tipo", v as TipoOT)} options={tipoOptions} />
                   : <TipoChip tipo={draft.tipo} />
                 }
               </Field>
@@ -266,7 +266,7 @@ export function OTDrawer({
                   </Field>
                   <Field label="Talla" required={isEdit}>
                     {isEdit
-                      ? <FieldInput value={draft.biciTalla} onChange={v => set("biciTalla", v)} />
+                      ? <FieldInput value={draft.biciTalla ?? ""} onChange={v => set("biciTalla", v)} />
                       : <div className="text-[13px]">{draft.biciTalla}</div>
                     }
                   </Field>

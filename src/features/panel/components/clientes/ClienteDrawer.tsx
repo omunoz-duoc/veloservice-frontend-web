@@ -1,12 +1,16 @@
 "use client"
 
-import { useState } from "react"
-import { X, Check, Plus, Mail, Phone, MapPin, User, Pencil, Bike, Trash2, Star } from "lucide-react"
+import { useState, useMemo } from "react"
+import { X, Check, Plus, Mail, Phone, MapPin, User, Pencil, Bike, Trash2, Star, Copy, CheckCheck, ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   TIERS, CANALES, ID_TYPES, BICIS_MOCK, fmtGasto, fmtGastoK, avatarInitials, avatarColor,
   type Cliente, type Bicicleta, type TierKey, type CanalKey, type IdType,
 } from "./clientes.mock"
+import { NuevaOTModal } from "../ordenes/NuevaOTModal"
+import { useOrdenes } from "../../context/OrdenesContext"
+import type { ClienteResult } from "../ordenes/ordenes.mock"
+import { TIPOS_BICI } from "../ordenes/ordenes.mock"
 
 // ─── Shared ────────────────────────────────────────────────────────────────────
 
@@ -121,7 +125,17 @@ export function ClienteAvatar({ nombre, tier, size = 36 }: { nombre: string; tie
 
 // ─── Bike Card ─────────────────────────────────────────────────────────────────
 
-function BikeCard({ b, expanded }: { b: Bicicleta; expanded?: boolean }) {
+function BikeCard({
+  b,
+  expanded,
+  onEdit,
+  onDelete,
+}: {
+  b: Bicicleta
+  expanded?: boolean
+  onEdit?: () => void
+  onDelete?: () => void
+}) {
   return (
     <div className="bg-vs-card border border-vs-line rounded-[18px] p-4 hover:border-vs-violet transition-colors vs-scale-in">
       <div className="flex items-start gap-3">
@@ -145,11 +159,126 @@ function BikeCard({ b, expanded }: { b: Bicicleta; expanded?: boolean }) {
           )}
         </div>
         <div className="flex gap-1 shrink-0">
-          <button className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center active:scale-90 transition-all duration-150">
+          <button
+            onClick={onEdit}
+            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center active:scale-90 transition-all duration-150"
+          >
             <Pencil size={12} strokeWidth={1.6} />
           </button>
-          <button className="w-8 h-8 rounded-full bg-vs-chip hover:bg-vs-warn-bg hover:text-vs-warn flex items-center justify-center active:scale-90 transition-all duration-150">
+          <button
+            onClick={onDelete}
+            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-vs-warn-bg hover:text-vs-warn flex items-center justify-center active:scale-90 transition-all duration-150"
+          >
             <Trash2 size={12} strokeWidth={1.6} />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Contact Alert ─────────────────────────────────────────────────────────────
+
+function ContactAlert({
+  type,
+  value,
+  onClose,
+}: {
+  type: "phone" | "email"
+  value: string
+  onClose: () => void
+}) {
+  const [copied, setCopied] = useState(false)
+
+  const formatted =
+    type === "phone"
+      ? (() => {
+          const digits = value.replace(/\D/g, "")
+          if (digits.length === 11 && digits.startsWith("56")) {
+            return `(+56) ${digits.slice(2, 3)} ${digits.slice(3, 7)} ${digits.slice(7, 11)}`
+          }
+          return value
+        })()
+      : value
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {}
+  }
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center vs-fade-in">
+      <div onClick={onClose} className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+      <div className="relative bg-vs-card border border-vs-line rounded-[24px] p-6 w-[340px] shadow-xl vs-scale-in">
+        <div className="text-[13px] font-semibold text-vs-ink mb-1">
+          {type === "phone" ? "Contactar por teléfono" : "Contactar por email"}
+        </div>
+        <div className="text-[12px] text-[#8a7f70] mb-4">Canal preferido del cliente</div>
+
+        <div className="bg-vs-chip rounded-xl px-4 py-3 border border-vs-line-2 text-[14px] font-mono font-semibold text-center mb-4 break-all">
+          {formatted}
+        </div>
+
+        <div className="flex gap-2">
+          {type === "email" && (
+            <button
+              onClick={handleCopy}
+              className="flex-1 flex items-center justify-center gap-1.5 bg-vs-violet-bg text-vs-violet px-4 py-2.5 rounded-full text-[12.5px] font-medium hover:bg-[#e0d9f8] active:scale-95 transition-all duration-150"
+            >
+              {copied ? <CheckCheck size={13} strokeWidth={2} /> : <Copy size={13} strokeWidth={2} />}
+              {copied ? "Copiado" : "Copiar"}
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className={cn(
+              "flex items-center justify-center gap-1.5 bg-vs-ink text-white px-4 py-2.5 rounded-full text-[12.5px] font-medium hover:bg-[#1e2228] active:scale-95 transition-all duration-150",
+              type === "email" ? "flex-1" : "w-full"
+            )}
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Delete Confirm Alert ──────────────────────────────────────────────────────
+
+function DeleteConfirmAlert({
+  itemName,
+  onConfirm,
+  onCancel,
+}: {
+  itemName: string
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center vs-fade-in">
+      <div onClick={onCancel} className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+      <div className="relative bg-vs-card border border-vs-line rounded-[24px] p-6 w-[340px] shadow-xl vs-scale-in">
+        <div className="text-[13px] font-semibold text-vs-ink mb-1">¿Eliminar bicicleta?</div>
+        <div className="text-[12px] text-[#8a7f70] mb-4">
+          Estás a punto de eliminar <span className="font-semibold text-vs-ink">{itemName}</span>. Esta acción no se puede deshacer.
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={onCancel}
+            className="flex-1 px-4 py-2.5 rounded-full bg-vs-chip text-vs-ink text-[12.5px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 flex items-center justify-center gap-1.5 bg-vs-warn text-white px-4 py-2.5 rounded-full text-[12.5px] font-medium hover:bg-[#b94a1f] active:scale-95 transition-all duration-150"
+          >
+            <Trash2 size={13} strokeWidth={2} />
+            Eliminar
           </button>
         </div>
       </div>
@@ -159,12 +288,27 @@ function BikeCard({ b, expanded }: { b: Bicicleta; expanded?: boolean }) {
 
 // ─── Manage View ───────────────────────────────────────────────────────────────
 
-function ManageView({ client }: { client: Cliente }) {
-  const bicis = BICIS_MOCK[client.id] ?? []
+function ManageView({
+  client,
+  bicis,
+  onCrearOT,
+  onContactar,
+  onAddBici,
+  onEditBici,
+  onDeleteBici,
+}: {
+  client: Cliente
+  bicis: Bicicleta[]
+  onCrearOT: () => void
+  onContactar: () => void
+  onAddBici: () => void
+  onEditBici: (b: Bicicleta) => void
+  onDeleteBici: (b: Bicicleta) => void
+}) {
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-3">
-        <StatBox label="Bicicletas" value={client.bicis} sub="registradas" />
+        <StatBox label="Bicicletas" value={bicis.length} sub="registradas" />
         <StatBox label="OTs históricas" value={client.ots} sub="desde el inicio" />
         <StatBox label="Gasto total" value={fmtGastoK(client.gasto)} sub={`últ. ${client.ultima}`} />
       </div>
@@ -195,13 +339,20 @@ function ManageView({ client }: { client: Cliente }) {
       <div>
         <div className="flex items-center justify-between mb-2.5">
           <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">Bicicletas ({bicis.length})</div>
-          <button className="text-[11px] text-vs-violet font-semibold hover:underline">+ Añadir</button>
+          <button onClick={onAddBici} className="text-[11px] text-vs-violet font-semibold hover:underline">+ Añadir</button>
         </div>
         {bicis.length === 0 ? (
           <div className="text-[12px] text-[#8a7f70] italic">Sin bicicletas registradas.</div>
         ) : (
           <div className="space-y-2">
-            {bicis.slice(0, 3).map(b => <BikeCard key={b.id} b={b} />)}
+            {bicis.slice(0, 3).map(b => (
+              <BikeCard
+                key={b.id}
+                b={b}
+                onEdit={() => onEditBici(b)}
+                onDelete={() => onDeleteBici(b)}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -226,11 +377,17 @@ function ManageView({ client }: { client: Cliente }) {
       </div>
 
       <div className="pt-3 border-t border-vs-line-2 flex gap-2">
-        <button className="flex-1 flex items-center justify-center gap-1.5 bg-vs-ink text-white px-4 py-2.5 rounded-full text-[12.5px] font-medium hover:bg-[#1e2228] active:scale-[0.98] transition-all duration-150">
+        <button
+          onClick={onCrearOT}
+          className="flex-1 flex items-center justify-center gap-1.5 bg-vs-ink text-white px-4 py-2.5 rounded-full text-[12.5px] font-medium hover:bg-[#1e2228] active:scale-[0.98] transition-all duration-150"
+        >
           <Plus size={14} strokeWidth={2} />
           Crear OT para este cliente
         </button>
-        <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+        <button
+          onClick={onContactar}
+          className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150"
+        >
           <Mail size={13} strokeWidth={1.6} />
           Contactar
         </button>
@@ -342,8 +499,19 @@ function EditView({ draft, set }: { draft: Cliente; set: <K extends keyof Client
 
 // ─── Bikes View ────────────────────────────────────────────────────────────────
 
-function BikesView({ clientId }: { clientId: string }) {
-  const bicis = BICIS_MOCK[clientId] ?? []
+function BikesView({
+  clientId,
+  bicis,
+  onAddBici,
+  onEditBici,
+  onDeleteBici,
+}: {
+  clientId: string
+  bicis: Bicicleta[]
+  onAddBici: () => void
+  onEditBici: (b: Bicicleta) => void
+  onDeleteBici: (b: Bicicleta) => void
+}) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -351,7 +519,10 @@ function BikesView({ clientId }: { clientId: string }) {
           {bicis.length} bicicleta{bicis.length !== 1 ? "s" : ""} asociada{bicis.length !== 1 ? "s" : ""} a{" "}
           <span className="font-mono font-semibold text-vs-ink">{clientId}</span>
         </div>
-        <button className="flex items-center gap-1.5 bg-vs-ink text-white px-3 py-1.5 rounded-full text-[11.5px] font-medium hover:bg-[#1e2228] active:scale-95 transition-all duration-150">
+        <button
+          onClick={onAddBici}
+          className="flex items-center gap-1.5 bg-vs-ink text-white px-3 py-1.5 rounded-full text-[11.5px] font-medium hover:bg-[#1e2228] active:scale-95 transition-all duration-150"
+        >
           <Plus size={12} strokeWidth={2} />
           Registrar bici
         </button>
@@ -360,16 +531,251 @@ function BikesView({ clientId }: { clientId: string }) {
       {bicis.length === 0 ? (
         <div className="bg-vs-card border-2 border-dashed border-vs-line rounded-[18px] p-8 text-center">
           <div className="text-[13px] text-[#8a7f70]">Este cliente no tiene bicicletas registradas.</div>
-          <button className="mt-3 flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 mx-auto">
+          <button
+            onClick={onAddBici}
+            className="mt-3 flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 mx-auto"
+          >
             <Plus size={12} strokeWidth={2} />
             Añadir la primera
           </button>
         </div>
       ) : (
         <div className="space-y-2.5">
-          {bicis.map(b => <BikeCard key={b.id} b={b} expanded />)}
+          {bicis.map(b => (
+            <BikeCard
+              key={b.id}
+              b={b}
+              expanded
+              onEdit={() => onEditBici(b)}
+              onDelete={() => onDeleteBici(b)}
+            />
+          ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Bicicleta Form Drawer ─────────────────────────────────────────────────────
+
+type BiciFormData = {
+  marca: string
+  modelo: string
+  tipo: string
+  talla: string
+  color: string
+  serial: string
+  añoCompra: string
+  notas: string
+}
+
+const EMPTY_BICI_FORM: BiciFormData = {
+  marca: "",
+  modelo: "",
+  tipo: TIPOS_BICI[0],
+  talla: "",
+  color: "",
+  serial: "",
+  añoCompra: "",
+  notas: "",
+}
+
+function parseMarcaModelo(marcaFull: string): { marca: string; modelo: string } {
+  const parts = marcaFull.trim().split(" ")
+  if (parts.length <= 1) return { marca: marcaFull, modelo: "" }
+  return { marca: parts[0], modelo: parts.slice(1).join(" ") }
+}
+
+function BicicletaFormDrawer({
+  bici,
+  onClose,
+  onSave,
+}: {
+  bici: Bicicleta | null
+  onClose: () => void
+  onSave: (bici: Bicicleta) => void
+}) {
+  const initial = useMemo<BiciFormData>(() => {
+    if (!bici) return EMPTY_BICI_FORM
+    const { marca, modelo } = parseMarcaModelo(bici.marca)
+    return {
+      marca,
+      modelo,
+      tipo: bici.tipo,
+      talla: bici.talla,
+      color: bici.color,
+      serial: bici.serial,
+      añoCompra: bici.añoCompra ? String(bici.añoCompra) : "",
+      notas: bici.notas,
+    }
+  }, [bici])
+
+  const [form, setForm] = useState<BiciFormData>(initial)
+  const [errors, setErrors] = useState<Partial<Record<keyof BiciFormData, boolean>>>({})
+  const isEditing = bici !== null
+
+  const setField = <K extends keyof BiciFormData>(key: K, val: BiciFormData[K]) => {
+    setForm(prev => ({ ...prev, [key]: val }))
+    setErrors(prev => ({ ...prev, [key]: false }))
+  }
+
+  const validate = (): boolean => {
+    const next: Partial<Record<keyof BiciFormData, boolean>> = {}
+    let valid = true
+    const required: (keyof BiciFormData)[] = ["marca", "tipo", "talla", "color"]
+    for (const k of required) {
+      if (!form[k].trim()) {
+        next[k] = true
+        valid = false
+      }
+    }
+    setErrors(next)
+    return valid
+  }
+
+  const handleSubmit = () => {
+    if (!validate()) return
+    const marcaFull = `${form.marca} ${form.modelo}`.trim()
+    onSave({
+      id: bici?.id ?? "",
+      marca: marcaFull,
+      tipo: form.tipo,
+      talla: form.talla,
+      color: form.color,
+      serial: form.serial,
+      añoCompra: form.añoCompra ? parseInt(form.añoCompra) : 0,
+      notas: form.notas,
+    })
+  }
+
+  const tipoOptions = TIPOS_BICI.map(t => ({ value: t, label: t }))
+
+  return (
+    <div className="fixed inset-0 z-[60] flex vs-fade-in">
+      <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
+      <div className="w-[480px] bg-vs-bg h-full overflow-y-auto flex flex-col vs-slide-in-right">
+        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col">
+          {/* Header */}
+          <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
+            <button
+              onClick={onClose}
+              className="w-9 h-9 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center active:scale-90 transition-all duration-150 shrink-0"
+            >
+              <ChevronLeft size={16} strokeWidth={1.6} />
+            </button>
+            <div className="flex-1">
+              <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">
+                {isEditing ? "Editar bicicleta" : "Nueva bicicleta"}
+              </div>
+              <div className="text-[16px] font-semibold">
+                {isEditing ? bici!.marca : "Registrar bici"}
+              </div>
+            </div>
+          </div>
+
+          {/* Form */}
+          <div className="p-5 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <FLabel required>Marca</FLabel>
+                <FInput
+                  value={form.marca}
+                  onChange={v => setField("marca", v)}
+                  placeholder="ej. Trek"
+                  error={errors.marca}
+                />
+                {errors.marca && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
+              </div>
+              <div>
+                <FLabel>Modelo</FLabel>
+                <FInput
+                  value={form.modelo}
+                  onChange={v => setField("modelo", v)}
+                  placeholder="ej. Marlin 7 2024"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <FLabel required>Tipo</FLabel>
+                <FSelect value={form.tipo} onChange={v => setField("tipo", v)} options={tipoOptions} />
+              </div>
+              <div>
+                <FLabel required>Talla</FLabel>
+                <FInput
+                  value={form.talla}
+                  onChange={v => setField("talla", v)}
+                  placeholder="ej. M"
+                  error={errors.talla}
+                />
+                {errors.talla && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
+              </div>
+            </div>
+
+            <div>
+              <FLabel required>Color</FLabel>
+              <FInput
+                value={form.color}
+                onChange={v => setField("color", v)}
+                placeholder="ej. Rojo Volcán"
+                error={errors.color}
+              />
+              {errors.color && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <FLabel>Número de serie</FLabel>
+                <FInput
+                  value={form.serial}
+                  onChange={v => setField("serial", v)}
+                  placeholder="Opcional"
+                />
+              </div>
+              <div>
+                <FLabel>Año compra</FLabel>
+                <FInput
+                  value={form.añoCompra}
+                  onChange={v => setField("añoCompra", v)}
+                  placeholder="ej. 2024"
+                  type="number"
+                />
+              </div>
+            </div>
+
+            <div>
+              <FLabel>Notas</FLabel>
+              <textarea
+                value={form.notas}
+                onChange={e => setField("notas", e.target.value)}
+                rows={3}
+                placeholder="Detalles adicionales de la bicicleta…"
+                className="w-full bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border border-vs-line-2 focus:border-[#a59682] transition-colors leading-relaxed resize-none placeholder:text-[#b8a88d]"
+              />
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center gap-3 p-5 border-t border-vs-line-2 bg-[#faf6f0] rounded-b-[24px]">
+            <div className="flex-1" />
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-full bg-vs-chip text-vs-ink text-[13px] font-medium hover:bg-[#ebe3d6] transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="flex items-center gap-2 px-5 py-2 rounded-full bg-vs-ink text-white text-[13px] font-medium hover:bg-[#1e2228] transition-colors"
+            >
+              <Check size={15} strokeWidth={2} />
+              {isEditing ? "Guardar cambios" : "Registrar bicicleta"}
+            </button>
+          </div>
+        </div>
+        <div className="h-5" />
+      </div>
     </div>
   )
 }
@@ -391,11 +797,82 @@ export function ClienteDrawer({
 }) {
   const [mode, setMode] = useState<DrawerMode>(initialMode)
   const [draft, setDraft] = useState<Cliente>({ ...initial })
+  const [bicis, setBicis] = useState<Bicicleta[]>(BICIS_MOCK[initial.id] ?? [])
+  const [showNuevaOT, setShowNuevaOT] = useState(false)
+  const [contactAlert, setContactAlert] = useState<{ type: "phone" | "email"; value: string } | null>(null)
+
+  // Bike form drawer state
+  const [showBiciDrawer, setShowBiciDrawer] = useState(false)
+  const [editingBici, setEditingBici] = useState<Bicicleta | null>(null)
+
+  // Delete confirmation state
+  const [deleteBici, setDeleteBici] = useState<Bicicleta | null>(null)
+
+  const { ordenes, addOrden } = useOrdenes()
+  const nextId = useMemo(() => {
+    const nums = ordenes.map(o => parseInt(o.id.replace(/\D/g, ""))).filter(n => !isNaN(n) && n > 0)
+    const last = nums.length ? Math.max(...nums) : 343
+    return `OT-${(last + 1).toString().padStart(4, "0")}`
+  }, [ordenes])
+
+  const prefillCliente: ClienteResult = useMemo(() => ({
+    id: draft.id,
+    nombre: draft.nombre,
+    rut: draft.idNum,
+    bicicletas: bicis.map(b => {
+      const { marca, modelo } = parseMarcaModelo(b.marca)
+      return {
+        id: b.id,
+        marca,
+        modelo,
+        tipo: b.tipo,
+        color: b.color,
+        numSerie: b.serial,
+        anio: b.añoCompra,
+      }
+    }),
+  }), [draft.id, draft.nombre, draft.idNum, bicis])
 
   const set = <K extends keyof Cliente>(key: K, val: Cliente[K]) =>
     setDraft(prev => ({ ...prev, [key]: val }))
 
   const modeLabel = mode === "edit" ? "Editar datos" : mode === "bikes" ? "Bicicletas" : "Gestionar cliente"
+
+  const handleAddBici = () => {
+    setEditingBici(null)
+    setShowBiciDrawer(true)
+  }
+
+  const handleEditBici = (b: Bicicleta) => {
+    setEditingBici(b)
+    setShowBiciDrawer(true)
+  }
+
+  const handleDeleteBici = (b: Bicicleta) => {
+    setDeleteBici(b)
+  }
+
+  const handleSaveBici = (bici: Bicicleta) => {
+    if (editingBici) {
+      // Update existing
+      setBicis(prev => prev.map(b => (b.id === editingBici.id ? { ...bici, id: editingBici.id } : b)))
+    } else {
+      // Create new - generate ID
+      const nums = bicis.map(b => parseInt(b.id.replace(/\D/g, ""))).filter(n => !isNaN(n))
+      const nextNum = nums.length ? Math.max(...nums) + 1 : 501
+      const newId = `BC-${nextNum.toString().padStart(4, "0")}`
+      setBicis(prev => [...prev, { ...bici, id: newId }])
+    }
+    setShowBiciDrawer(false)
+    setEditingBici(null)
+  }
+
+  const handleConfirmDelete = () => {
+    if (deleteBici) {
+      setBicis(prev => prev.filter(b => b.id !== deleteBici.id))
+      setDeleteBici(null)
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex vs-fade-in">
@@ -448,13 +925,80 @@ export function ClienteDrawer({
           </div>
 
           <div className="p-5">
-            {mode === "manage" && <ManageView client={draft} />}
+            {mode === "manage" && (
+              <ManageView
+                client={draft}
+                bicis={bicis}
+                onCrearOT={() => setShowNuevaOT(true)}
+                onContactar={() => {
+                  const c = draft.canal
+                  if (c === "WhatsApp") {
+                    const digits = draft.tel.replace(/\D/g, "")
+                    window.open(`https://wa.me/${digits}`, "_blank", "noopener,noreferrer")
+                  } else if (c === "Email") {
+                    setContactAlert({ type: "email", value: draft.email })
+                  } else {
+                    setContactAlert({ type: "phone", value: draft.tel })
+                  }
+                }}
+                onAddBici={handleAddBici}
+                onEditBici={handleEditBici}
+                onDeleteBici={handleDeleteBici}
+              />
+            )}
             {mode === "edit" && <EditView draft={draft} set={set} />}
-            {mode === "bikes" && <BikesView clientId={draft.id} />}
+            {mode === "bikes" && (
+              <BikesView
+                clientId={draft.id}
+                bicis={bicis}
+                onAddBici={handleAddBici}
+                onEditBici={handleEditBici}
+                onDeleteBici={handleDeleteBici}
+              />
+            )}
           </div>
         </div>
         <div className="h-5" />
       </div>
+
+      {showNuevaOT && (
+        <NuevaOTModal
+          nextId={nextId}
+          onClose={() => setShowNuevaOT(false)}
+          onCreate={(orden) => {
+            addOrden(orden)
+            setShowNuevaOT(false)
+          }}
+          prefillCliente={prefillCliente}
+        />
+      )}
+
+      {contactAlert && (
+        <ContactAlert
+          type={contactAlert.type}
+          value={contactAlert.value}
+          onClose={() => setContactAlert(null)}
+        />
+      )}
+
+      {showBiciDrawer && (
+        <BicicletaFormDrawer
+          bici={editingBici}
+          onClose={() => {
+            setShowBiciDrawer(false)
+            setEditingBici(null)
+          }}
+          onSave={handleSaveBici}
+        />
+      )}
+
+      {deleteBici && (
+        <DeleteConfirmAlert
+          itemName={deleteBici.marca}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeleteBici(null)}
+        />
+      )}
     </div>
   )
 }

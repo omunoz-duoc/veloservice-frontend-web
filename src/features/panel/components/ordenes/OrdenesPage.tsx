@@ -19,8 +19,8 @@ import { BulkEstadoModal } from "./BulkEstadoModal"
 
 // ─── Small chips ───────────────────────────────────────────────────────────────
 
-export function TipoChip({ tipo }: { tipo: TipoOT }) {
-  const cfg = TIPO_CONFIG[tipo]
+export function TipoChip({ tipo }: { tipo: TipoOT | undefined }) {
+  const cfg = TIPO_CONFIG[tipo ?? "mantencion"]
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
@@ -46,8 +46,12 @@ export function EstadoChip({ estado }: { estado: EstadoOT }) {
 }
 
 export function MecPill({ mecanicoId }: { mecanicoId: string }) {
-  const mec = MECANICOS_MOCK.find(m => m.id === mecanicoId)
-  const unassigned = mecanicoId === "--" || !mecanicoId
+  const normalizedMecanico = mecanicoId.trim().toLowerCase()
+  const mec = MECANICOS_MOCK.find(m =>
+    m.id.toLowerCase() === normalizedMecanico ||
+    m.nombre.toLowerCase() === normalizedMecanico
+  )
+  const unassigned = normalizedMecanico === "--" || !normalizedMecanico
   const nombre   = mec?.nombre   ?? (unassigned ? "Sin asignar" : mecanicoId)
   const iniciales = mec?.iniciales ?? mecanicoId.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
   const color    = mec?.color    ?? "#6b5bd1"
@@ -181,12 +185,21 @@ function parseFechaIngreso(s: string): Date | null {
   return new Date(year, month, +m[1], +m[3], +m[4])
 }
 
+function normalizeMecanicoId(value: string) {
+  const normalized = value.trim().toLowerCase()
+  const mec = MECANICOS_MOCK.find(m =>
+    m.id.toLowerCase() === normalized ||
+    m.nombre.toLowerCase() === normalized
+  )
+  return mec?.id ?? value
+}
+
 function FilterDropdown({ label, icon, options, selected, onChange }: {
   label: string
   icon: React.ReactNode
   options: { value: string; label: string; color?: string }[]
-  selected: Set<string>
-  onChange: (next: Set<string>) => void
+  selected: string[]
+  onChange: (next: string[]) => void
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -200,8 +213,7 @@ function FilterDropdown({ label, icon, options, selected, onChange }: {
   }, [])
 
   const toggle = (v: string) => {
-    const next = new Set(selected)
-    next.has(v) ? next.delete(v) : next.add(v)
+    const next = selected.includes(v) ? selected.filter(x => x !== v) : [...selected, v]
     onChange(next)
   }
 
@@ -211,16 +223,16 @@ function FilterDropdown({ label, icon, options, selected, onChange }: {
         onClick={() => setOpen(o => !o)}
         className={cn(
           "flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full transition-colors",
-          selected.size > 0
+          selected.length > 0
             ? "bg-vs-ink text-white"
             : "bg-vs-chip text-[#4a4438] hover:bg-[#ebe3d6]"
         )}
       >
         {icon}
         {label}
-        {selected.size > 0 && (
+        {selected.length > 0 && (
           <span className="bg-white/25 text-[10px] font-mono px-1.5 rounded-full leading-5">
-            {selected.size}
+            {selected.length}
           </span>
         )}
         <ChevronDown size={12} strokeWidth={1.6} className={cn("transition-transform", open && "rotate-180")} />
@@ -236,9 +248,9 @@ function FilterDropdown({ label, icon, options, selected, onChange }: {
             >
               <div className={cn(
                 "w-4 h-4 rounded-[4px] border flex items-center justify-center shrink-0",
-                selected.has(opt.value) ? "bg-vs-ink border-vs-ink" : "border-[#c8bfb0]"
+                selected.includes(opt.value) ? "bg-vs-ink border-vs-ink" : "border-[#c8bfb0]"
               )}>
-                {selected.has(opt.value) && <Check size={10} strokeWidth={2.5} className="text-white" />}
+                {selected.includes(opt.value) && <Check size={10} strokeWidth={2.5} className="text-white" />}
               </div>
               {opt.color && (
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ background: opt.color }} />
@@ -246,9 +258,9 @@ function FilterDropdown({ label, icon, options, selected, onChange }: {
               <span className="text-[12px] text-vs-ink">{opt.label}</span>
             </button>
           ))}
-          {selected.size > 0 && (
+          {selected.length > 0 && (
             <button
-              onClick={() => onChange(new Set())}
+              onClick={() => onChange([])}
               className="flex items-center gap-1.5 w-full px-3 py-1.5 mt-0.5 rounded-[10px] text-[11.5px] text-[#a59682] hover:text-vs-ink hover:bg-vs-chip transition-colors"
             >
               <X size={11} strokeWidth={1.8} />
@@ -369,8 +381,8 @@ export function OrdenesPage() {
   const [query, setQuery] = useState("")
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [drawer, setDrawer] = useState<{ orden: OrdenTrabajo; mode: "view" | "edit" } | null>(null)
-  const [filterTipos, setFilterTipos] = useState<Set<string>>(new Set())
-  const [filterMecanicos, setFilterMecanicos] = useState<Set<string>>(new Set())
+  const [filterTipos, setFilterTipos] = useState<string[]>([])
+  const [filterMecanicos, setFilterMecanicos] = useState<string[]>([])
   const [filterDesde, setFilterDesde] = useState("")
   const [filterHasta, setFilterHasta] = useState("")
   const [bulkModal, setBulkModal] = useState<"reasignar" | "estado" | null>(null)
@@ -389,8 +401,8 @@ export function OrdenesPage() {
         const hay = [o.id, o.clienteNombre, o.biciMarca, o.descripcion].join(" ").toLowerCase()
         if (!hay.includes(q)) return false
       }
-      if (filterTipos.size > 0 && !filterTipos.has(o.tipo)) return false
-      if (filterMecanicos.size > 0 && !filterMecanicos.has(o.mecanicoId)) return false
+      if (filterTipos.length > 0 && (!o.tipo || !filterTipos.includes(o.tipo))) return false
+      if (filterMecanicos.length > 0 && !filterMecanicos.includes(normalizeMecanicoId(o.mecanicoId))) return false
       if (filterDesde || filterHasta) {
         const fecha = parseFechaIngreso(o.fechaIngreso)
         if (fecha) {

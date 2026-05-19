@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { X, Plus, Bike, Wrench, Search, User, ChevronLeft, Loader2 } from "lucide-react"
+import { X, Plus, Bike, Wrench, Search, User, ChevronLeft, Loader2, ChevronDown } from "lucide-react"
 import {
-  TIPO_CONFIG, MECANICOS_MOCK, TIPOS_BICI,
-  type OrdenTrabajo, type TipoOT, type Prioridad,
+  MECANICOS_MOCK, TIPOS_BICI,
+  type OrdenTrabajo, type Prioridad,
   type ClienteResult, type BicicletaResult,
 } from "./ordenes.mock"
 import { useNuevaOT, type NuevoClienteForm, type NuevaBiciForm } from "@/features/panel/hooks/useNuevaOT"
+import type { Servicio } from "@/features/panel/types/servicios.types"
 
 // ─── Primitive form components ─────────────────────────────────────────────────
 
@@ -96,12 +97,136 @@ function BackLink({ onClick, label }: { onClick: () => void; label: string }) {
   )
 }
 
+// ─── ServiciosMultiSelect ─────────────────────────────────────────────────────
+
+function ServiciosMultiSelect({
+  servicios, loading,
+  selectedIds, onAdd, onRemove,
+  error, onFirstFocus,
+}: {
+  servicios: Servicio[]
+  loading: boolean
+  selectedIds: string[]
+  onAdd: (id: string) => void
+  onRemove: (id: string) => void
+  error?: boolean
+  onFirstFocus: () => void
+}) {
+  const [query, setQuery] = useState("")
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
+
+  const filtered = query.trim()
+    ? servicios.filter(s => s.nombre.toLowerCase().includes(query.toLowerCase()))
+    : servicios
+
+  const selectedServicios = servicios.filter(s => selectedIds.includes(s.id))
+
+  return (
+    <div className="space-y-2">
+      <div ref={containerRef} className="relative">
+        <div
+          className={`flex items-center gap-2 bg-vs-chip rounded-xl px-3 py-2 border transition-colors cursor-text ${
+            error ? "border-vs-warn ring-2 ring-vs-warn/30" : open ? "border-[#a59682]" : "border-vs-line-2"
+          }`}
+          onClick={() => setOpen(true)}
+        >
+          <Search size={13} strokeWidth={1.8} className="text-[#8a7f70] shrink-0" />
+          <input
+            value={query}
+            onChange={e => { setQuery(e.target.value); setOpen(true) }}
+            onFocus={() => { setOpen(true); onFirstFocus() }}
+            placeholder={loading ? "Cargando servicios…" : "Buscar y agregar servicio…"}
+            disabled={loading}
+            className="flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-[#b8a88d]"
+          />
+          {loading
+            ? <Loader2 size={13} strokeWidth={2} className="text-[#8a7f70] animate-spin shrink-0" />
+            : <ChevronDown size={13} strokeWidth={2} className="text-[#8a7f70] shrink-0" />
+          }
+        </div>
+
+        {open && !loading && (
+          <div className="absolute z-10 mt-1 w-full bg-vs-card border border-vs-line rounded-2xl shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-3 text-[12px] text-[#8a7f70]">Sin resultados para "{query}"</div>
+            ) : filtered.map(s => {
+              const selected = selectedIds.includes(s.id)
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onMouseDown={() => {
+                    if (selected) {
+                      onRemove(s.id)
+                    } else {
+                      onAdd(s.id)
+                    }
+                  }}
+                  className={`w-full text-left px-3 py-2.5 flex items-center justify-between border-b border-vs-line-2 last:border-0 transition-colors ${
+                    selected ? "bg-[#ebe7fa] hover:bg-[#e0d9f8]" : "hover:bg-vs-chip"
+                  }`}
+                >
+                  <div>
+                    <div className="text-[12.5px] font-medium text-vs-ink">{s.nombre}</div>
+                    <div className="text-[11px] text-[#8a7f70]">${s.precio.toLocaleString("es-CL")} · {s.dur} min</div>
+                  </div>
+                  {selected && (
+                    <div className="w-4 h-4 rounded-full bg-[#6b5bd1] flex items-center justify-center shrink-0">
+                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                        <path d="M2 6l3 3 5-5" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Pills */}
+      {selectedServicios.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selectedServicios.map(s => (
+            <span
+              key={s.id}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#ebe7fa] text-[#6b5bd1] text-[11.5px] font-medium"
+            >
+              {s.nombre}
+              <button
+                type="button"
+                onClick={() => onRemove(s.id)}
+                className="ml-0.5 hover:text-[#4a3bad] transition-colors"
+                aria-label={`Quitar ${s.nombre}`}
+              >
+                <X size={11} strokeWidth={2.5} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── ClienteCombobox ──────────────────────────────────────────────────────────
 
 function ClienteCombobox({
   query, onQueryChange,
   results, loading,
   onSelect, onCreateNew,
+  onFirstFocus,
   error,
 }: {
   query: string
@@ -110,6 +235,7 @@ function ClienteCombobox({
   loading: boolean
   onSelect: (c: ClienteResult) => void
   onCreateNew: () => void
+  onFirstFocus: () => void
   error?: boolean
 }) {
   const [open, setOpen] = useState(false)
@@ -136,7 +262,7 @@ function ClienteCombobox({
         <input
           value={query}
           onChange={e => { onQueryChange(e.target.value); setOpen(true) }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => { setOpen(true); onFirstFocus() }}
           placeholder="Buscar cliente por nombre o RUT…"
           className="flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-[#b8a88d]"
         />
@@ -158,8 +284,8 @@ function ClienteCombobox({
               onMouseDown={() => { onSelect(c); setOpen(false) }}
               className="w-full text-left px-3 py-2.5 hover:bg-vs-chip transition-colors border-b border-vs-line-2 last:border-0"
             >
-              <div className="text-[12.5px] font-medium text-vs-ink">{c.nombre} {c.apellido}</div>
-              <div className="text-[11px] text-[#8a7f70]">{c.rut} · {c.telefono}</div>
+              <div className="text-[12.5px] font-medium text-vs-ink">{c.nombre}</div>
+              <div className="text-[11px] text-[#8a7f70]">{c.rut}</div>
             </button>
           ))}
           <button
@@ -324,11 +450,12 @@ function BicicletaForm({
 // ─── Modal ─────────────────────────────────────────────────────────────────────
 
 export function NuevaOTModal({
-  nextId, onClose, onCreate,
+  nextId, onClose, onCreate, prefillCliente,
 }: {
   nextId: string
   onClose: () => void
   onCreate: (orden: OrdenTrabajo) => void
+  prefillCliente?: ClienteResult
 }) {
   const {
     clienteQuery, setClienteQuery,
@@ -340,18 +467,21 @@ export function NuevaOTModal({
     switchToSearchCliente,
     selectCliente,
     setClienteField,
-    bicicletas, biciLoading,
+    loadClientes,
+    bicicletas,
     biciMode, setBiciMode,
     selectedBicicleta, setSelectedBicicleta,
     newBiciForm, setBiciField,
+    servicios, serviciosLoading,
+    addServicio, removeServicio,
+    loadServicios,
     otForm, setOTField,
     errors, submitting, submitError,
     submit,
-  } = useNuevaOT({ nextId, onClose, onCreate })
+  } = useNuevaOT({ nextId, onClose, onCreate, prefillCliente })
 
   const clienteResolved = selectedCliente !== null || clienteMode === "new"
 
-  const tipoOptions = Object.entries(TIPO_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))
   const mecOptions = MECANICOS_MOCK.map(m => ({ value: m.id, label: m.nombre }))
   const prioOptions = [
     { value: "baja",  label: "Baja" },
@@ -399,6 +529,7 @@ export function NuevaOTModal({
                     loading={clienteLoading}
                     onSelect={selectCliente}
                     onCreateNew={switchToNewCliente}
+                    onFirstFocus={loadClientes}
                     error={errors["clienteQuery"]}
                   />
                   {errors["clienteQuery"] && (
@@ -420,7 +551,7 @@ export function NuevaOTModal({
               <Section icon={<Bike size={14} strokeWidth={1.6} />} title="Bicicleta">
                 {biciMode === "select" ? (
                   <BicicletaSelect
-                    loading={biciLoading}
+                    loading={false}
                     bicicletas={bicicletas}
                     selected={selectedBicicleta}
                     onSelect={setSelectedBicicleta}
@@ -441,15 +572,26 @@ export function NuevaOTModal({
 
             {/* Section: Orden de trabajo */}
             <Section icon={<Wrench size={14} strokeWidth={1.6} />} title="Orden de trabajo">
+
+              {/* Servicios multi-select */}
+              <div>
+                <Label required>Servicios</Label>
+                <ServiciosMultiSelect
+                  servicios={servicios}
+                  loading={serviciosLoading}
+                  selectedIds={otForm.servicioIds}
+                  onAdd={addServicio}
+                  onRemove={removeServicio}
+                  onFirstFocus={loadServicios}
+                  error={errors["servicioIds"]}
+                />
+                {errors["servicioIds"] && (
+                  <p className="text-[11px] text-vs-warn mt-1">Agrega al menos un servicio</p>
+                )}
+              </div>
+
+              {/* Prioridad + Fecha */}
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label required>Tipo de trabajo</Label>
-                  <Select
-                    value={otForm.tipo}
-                    onChange={v => setOTField("tipo", v as TipoOT)}
-                    options={tipoOptions}
-                  />
-                </div>
                 <div>
                   <Label required>Prioridad</Label>
                   <Select
@@ -458,29 +600,31 @@ export function NuevaOTModal({
                     options={prioOptions}
                   />
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label required>Fecha estimada entrega</Label>
                   <Input
+                    type="date"
                     value={otForm.fechaEstimada}
                     onChange={v => setOTField("fechaEstimada", v)}
-                    placeholder="ej. 28 Abr"
                     error={errors["fechaEstimada"]}
                   />
                   {errors["fechaEstimada"] && (
                     <p className="text-[11px] text-vs-warn mt-1">Campo requerido</p>
                   )}
                 </div>
-                <div>
-                  <Label>Mecánico asignado</Label>
-                  <Select
-                    value={otForm.mecanicoId}
-                    onChange={v => setOTField("mecanicoId", v)}
-                    options={mecOptions}
-                  />
-                </div>
               </div>
+
+              {/* Mecánico */}
+              <div>
+                <Label>Mecánico asignado</Label>
+                <Select
+                  value={otForm.mecanicoId}
+                  onChange={v => setOTField("mecanicoId", v)}
+                  options={mecOptions}
+                />
+              </div>
+
+              {/* Descripción */}
               <div>
                 <Label required>Descripción del trabajo</Label>
                 <textarea
@@ -496,6 +640,8 @@ export function NuevaOTModal({
                   <p className="text-[11px] text-vs-warn mt-1">Campo requerido</p>
                 )}
               </div>
+
+              {/* Notas internas */}
               <div>
                 <Label>Notas internas</Label>
                 <textarea

@@ -52,8 +52,12 @@ export function LoginForm({ onRecover, onRegister }: LoginFormProps) {
     e.preventDefault();
     if (!validateFields()) return;
     try {
-      await loginAsync({ email, password });
-      router.push("/dashboard");
+      const user = await loginAsync({ email, password });
+      if (user.rol === "sysadmin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err: any) {
       console.error("Login error:", err);
       if (err.body?.message) {

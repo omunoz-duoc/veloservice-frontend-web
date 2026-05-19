@@ -30,7 +30,7 @@ export type Orden = {
 
 
 export type CreateOrdenPayload = {
-    tipo: TipoOT;
+    servicioIds: string[];
     prioridad: Prioridad;
     fechaEstimada: string;
     mecanicoId: string;

@@ -14,7 +14,8 @@ export type Mecanico = {
 
 export type OrdenTrabajo = {
   id: string
-  tipo: TipoOT
+  tipo?: TipoOT
+  servicioIds?: string[]
   estado: EstadoOT
   prioridad: Prioridad
   fechaIngreso: string
@@ -27,7 +28,7 @@ export type OrdenTrabajo = {
   // Bicicleta
   biciMarca: string
   biciTipo: TipoBici | string
-  biciTalla: string
+  biciTalla?: string
   biciColor: string
   biciNumSerie?: string
   // Trabajo
@@ -35,39 +36,26 @@ export type OrdenTrabajo = {
   notasInternas?: string
 }
 
-export type NuevaOTPayload = {
-  tipo: TipoOT
-  prioridad: Prioridad
-  fechaEstimada: string
-  mecanicoId: string
-  clienteNombre: string
-  clienteTelefono: string
-  clienteEmail: string
-  biciMarca: string
-  biciTipo: TipoBici | string
-  biciTalla: string
-  biciColor: string
-  biciNumSerie: string
-  descripcion: string
-  notasInternas: string
-}
 
 export type ClienteResult = {
   id: string
-  nombre: string
-  apellido: string
+  nombre: string   // full name: "Andrés Muñoz"
   rut: string
-  telefono: string
-  email: string
+  bicicletas: BicicletaResult[]
+}
+
+export type ClienteNuevaOTResponse = {
+  total: number
+  clientes: ClienteResult[]
 }
 
 export type BicicletaResult = {
   id: string
-  clienteId: string
   marca: string
   modelo: string
   tipo: string
   color: string
+  clienteId?: string
   numSerie?: string
   anio?: number
 }
@@ -75,7 +63,7 @@ export type BicicletaResult = {
 export type NuevaOTApiPayload = {
   clienteId: string
   bicicletaId: string
-  tipo: TipoOT
+  servicioIds: string[]
   prioridad: Prioridad
   fechaEstimada: string
   mecanicoId: string

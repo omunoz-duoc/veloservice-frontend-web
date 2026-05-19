@@ -26,7 +26,7 @@ describe("ordenesMock", () => {
   it("createOrden resolves without error", async () => {
     await expect(
       ordenesMock.createOrden({
-        tipo: "Mantención", prioridad: "Media",
+        servicioIds: ["s-001"], prioridad: "Media",
         fechaEstimada: "2026-05-20", mecanicoId: "m-001",
         bicicletaId: "b-001", descripcion: "Test", estado: "Recibido"
       })

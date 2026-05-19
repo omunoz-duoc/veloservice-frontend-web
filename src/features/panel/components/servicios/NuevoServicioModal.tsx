@@ -21,10 +21,10 @@ function Label({ children, required }: { children: React.ReactNode; required?: b
 }
 
 function FInput({
-  value, onChange, placeholder, type = "text", mono, error,
+  value, onChange, placeholder, type = "text", mono, error, inputMode,
 }: {
   value: string; onChange: (v: string) => void
-  placeholder?: string; type?: string; mono?: boolean; error?: boolean
+  placeholder?: string; type?: string; mono?: boolean; error?: boolean; inputMode?: string
 }) {
   return (
     <input
@@ -32,6 +32,7 @@ function FInput({
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
+      inputMode={inputMode}
       className={cn(
         "w-full bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border placeholder:text-[#b8a88d] focus:border-[#a59682] transition-colors",
         mono && "font-mono",
@@ -227,10 +228,11 @@ export function NuevoServicioModal({
                 <Label required>Precio (CLP)</Label>
                 <FInput
                   value={form.precio}
-                  onChange={v => set("precio", v)}
+                  onChange={v => set("precio", v.replace(/\D/g, ""))}
                   placeholder="ej. 35000"
                   mono
                   error={errors.has("precio")}
+                  inputMode="numeric"
                 />
                 {errors.has("precio") && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
               </div>
@@ -238,19 +240,21 @@ export function NuevoServicioModal({
                 <Label>Precio alterno</Label>
                 <FInput
                   value={form.precio2}
-                  onChange={v => set("precio2", v)}
+                  onChange={v => set("precio2", v.replace(/\D/g, ""))}
                   placeholder="Opcional"
                   mono
+                  inputMode="numeric"
                 />
               </div>
               <div>
                 <Label required>Duración (min)</Label>
                 <FInput
                   value={form.dur}
-                  onChange={v => set("dur", v)}
+                  onChange={v => set("dur", v.replace(/\D/g, ""))}
                   placeholder="ej. 90"
                   mono
                   error={errors.has("dur")}
+                  inputMode="numeric"
                 />
                 {errors.has("dur") && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
               </div>

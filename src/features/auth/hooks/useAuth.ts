@@ -4,11 +4,11 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import type { RegisterPayload } from "@/features/auth/services/auth.service";
 
 export function useLogin() {
-  const { setUser, setError } = useAuthStore();
+  const { setSession, setError } = useAuthStore();
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       authService.login(email, password),
-    onSuccess: (user) => setUser(user),
+    onSuccess: ({ token, ...user }) => setSession(user, token),
     onError: (err: Error) => setError(err.message),
   });
 }

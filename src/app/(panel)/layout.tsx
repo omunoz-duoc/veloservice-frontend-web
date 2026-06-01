@@ -1,10 +1,13 @@
 import { PanelShell } from "@/features/panel/components/layout/PanelShell"
 import { OrdenesProvider } from "@/features/panel/context/OrdenesContext"
+import { AuthGuard } from "@/features/auth/guards/AuthGuard"
 
 export default function PanelLayout({ children }: { children: React.ReactNode }) {
   return (
-    <OrdenesProvider>
-      <PanelShell>{children}</PanelShell>
-    </OrdenesProvider>
+    <AuthGuard>
+      <OrdenesProvider>
+        <PanelShell>{children}</PanelShell>
+      </OrdenesProvider>
+    </AuthGuard>
   )
 }

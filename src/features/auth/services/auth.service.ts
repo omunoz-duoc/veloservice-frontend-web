@@ -1,12 +1,13 @@
 import { httpClient } from "@/lib/api/http-client";
 
 export interface User {
-  id: string;
   nombre: string;
   apellido: string;
-  email: string;
   rol: string;
-  taller: string;
+}
+
+export interface LoginResponse extends User {
+  token: string;
 }
 
 export interface RegisterPayload {
@@ -22,8 +23,7 @@ export interface RegisterPayload {
 
 export const authService: IAuthService = {
   async login(email, password) {
-    console.log("AuthService.login called with", { email, password });
-    return httpClient.post<User>("auth/login", { email, password });
+    return httpClient.post<LoginResponse>("auth/login", { email, password });
   },
 
   async logout() {
@@ -48,7 +48,7 @@ export const authService: IAuthService = {
 };
 
 export interface IAuthService {
-  login(email: string, password: string): Promise<User>;
+  login(email: string, password: string): Promise<LoginResponse>;
   logout(): Promise<void>;
   recoverPassword(email: string): Promise<void>;
   verifyCode(code: string): Promise<boolean>;

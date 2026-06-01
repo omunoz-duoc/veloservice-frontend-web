@@ -1,9 +1,10 @@
-import type { IAuthService, RegisterPayload, User } from "./auth.service";
+import type { IAuthService, LoginResponse, RegisterPayload, User } from "./auth.service";
 
 const MOCK_DELAY = 800;
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export interface MockUser extends User {
+  email: string;
   password: string;
 }
 
@@ -17,13 +18,13 @@ export class MockAuthService implements IAuthService {
     }
   }
 
-  async login(email: string, password: string): Promise<User> {
+  async login(email: string, password: string): Promise<LoginResponse> {
     await delay(MOCK_DELAY);
     const record = this.users.get(email.toLowerCase());
     if (!record) throw new Error("USER_NOT_FOUND");
     if (record.password !== password) throw new Error("INVALID_CREDENTIALS");
-    const { password: _, ...user } = record;
-    return user;
+    const { email: _, password: __, ...user } = record;
+    return { ...user, token: `mock-token-${record.email}` };
   }
 
   async logout(): Promise<void> {

@@ -6,18 +6,18 @@ const MOCK_USERS: MockUser[] = [
   {
     id: "u1",
     nombre: "Carlos",
-    apellido: "Rodríguez",
+    apellido: "Rodriguez",
     email: "jefe@veloservice.cl",
-    cargo: "Jefe de taller",
+    rol: "Jefe de taller",
     taller: "VeloService Providencia",
     password: "jefe123",
   },
   {
     id: "u2",
     nombre: "Ana",
-    apellido: "López",
+    apellido: "Lopez",
     email: "mecanico@veloservice.cl",
-    cargo: "Mecánico",
+    rol: "Mecanico",
     taller: "VeloService Providencia",
     password: "mec123",
   },
@@ -31,10 +31,11 @@ beforeEach(() => {
 });
 
 describe("MockAuthService.login", () => {
-  it("resolves with User (no password) for valid credentials", async () => {
+  it("resolves with LoginResponse for valid credentials", async () => {
     const user = await service.login("jefe@veloservice.cl", "jefe123");
     expect(user.email).toBe("jefe@veloservice.cl");
     expect(user.nombre).toBe("Carlos");
+    expect(user.token).toBe("mock-token-jefe@veloservice.cl");
     expect("password" in user).toBe(false);
   });
 
@@ -80,12 +81,12 @@ describe("MockAuthService other methods", () => {
     await expect(
       service.register({
         nombre: "Ana",
-        apellido: "López",
+        apellido: "Lopez",
         rut: "12.345.678-9",
         telefono: "+56912345678",
         email: "ana@veloservice.cl",
-        cargo: "Mecánico Sr",
-        taller: "VeloService Providencia",
+        rol: "Mecanico Sr",
+        sucursalId: "sucursal-1",
         password: "Password123!",
       })
     ).resolves.toBeUndefined();

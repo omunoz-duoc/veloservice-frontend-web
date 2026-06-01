@@ -14,6 +14,7 @@ export type Mecanico = {
 
 export type OrdenTrabajo = {
   id: string
+  backendId?: string
   tipo: TipoOT
   estado: EstadoOT
   prioridad: Prioridad

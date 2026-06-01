@@ -43,8 +43,9 @@ export function EstadoChip({ estado }: { estado: EstadoOT }) {
 }
 
 export function MecPill({ mecanicoId }: { mecanicoId: string }) {
-  const mec = MECANICOS_MOCK.find(m => m.id === mecanicoId) ?? MECANICOS_MOCK[3]
-  const unassigned = mecanicoId === "--"
+  const found = MECANICOS_MOCK.find(m => m.id === mecanicoId)
+  const mec = found ?? MECANICOS_MOCK[3]
+  const unassigned = mecanicoId === "--" || !found
   return (
     <div className="flex items-center gap-2 min-w-0">
       <div
@@ -83,7 +84,7 @@ function OTRow({
   onView: () => void
   onEdit: () => void
 }) {
-  const [fecha, hora] = orden.fechaIngreso.split(" · ")
+  const [fecha, hora = ""] = orden.fechaIngreso.split(/\s(?:Â·|·)\s/)
   return (
     <tr className="border-b border-vs-line-2 hover:bg-[#faf6f0] transition-colors group">
       <td className="px-4 py-3.5 align-middle">
@@ -175,7 +176,7 @@ const TABS: { key: TabKey; label: string }[] = [
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export function OrdenesPage() {
-  const { ordenes, updateOrden, openNuevaOT } = useOrdenes()
+  const { ordenes, isLoading, isError, error, updateOrden, openNuevaOT } = useOrdenes()
   const [activeTab, setActiveTab] = useState<TabKey>("all")
   const [query, setQuery] = useState("")
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -347,9 +348,23 @@ export function OrdenesPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(orden => (
+            {isLoading && (
+              <tr>
+                <td colSpan={9} className="text-center py-12 text-[#8a7f70] text-[13px]">
+                  Cargando ordenes...
+                </td>
+              </tr>
+            )}
+            {isError && (
+              <tr>
+                <td colSpan={9} className="text-center py-12 text-vs-warn text-[13px]">
+                  No se pudieron cargar las ordenes. {error?.message ?? "Intenta nuevamente."}
+                </td>
+              </tr>
+            )}
+            {!isLoading && !isError && filtered.map(orden => (
               <OTRow
-                key={orden.id}
+                key={orden.backendId ?? orden.id}
                 orden={orden}
                 selected={selected.has(orden.id)}
                 onSelect={() => toggleSelect(orden.id)}
@@ -357,7 +372,7 @@ export function OrdenesPage() {
                 onEdit={() => setDrawer({ orden, mode: "edit" })}
               />
             ))}
-            {filtered.length === 0 && (
+            {!isLoading && !isError && filtered.length === 0 && (
               <tr>
                 <td colSpan={9} className="text-center py-12 text-[#8a7f70] text-[13px]">
                   Sin resultados para los filtros actuales.

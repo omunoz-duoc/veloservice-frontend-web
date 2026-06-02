@@ -1,39 +1,29 @@
-import { useMockServices } from "@/lib/api/service-mode"
 import type { IOrdenesService } from "../types/ordenes.types"
-
-async function loadOrdenesService(): Promise<IOrdenesService> {
-  if (useMockServices) {
-    const { ordenesMock } = await import("./ordenes.mock")
-    return ordenesMock
-  }
-
-  const { ordenesService } = await import("./ordenes.service")
-  return ordenesService
-}
+import { ordenesService as realOrdenesService } from "./ordenes.service"
 
 export const ordenesService: IOrdenesService = {
   async getOrdenes() {
-    return (await loadOrdenesService()).getOrdenes()
+    return realOrdenesService.getOrdenes()
   },
   async getOrdenesUrgentes() {
-    return (await loadOrdenesService()).getOrdenesUrgentes()
+    return realOrdenesService.getOrdenesUrgentes()
   },
   async getOrdenesMetricas() {
-    return (await loadOrdenesService()).getOrdenesMetricas()
+    return realOrdenesService.getOrdenesMetricas()
   },
   async createOrden(payload) {
-    return (await loadOrdenesService()).createOrden(payload)
+    return realOrdenesService.createOrden(payload)
   },
   async getOrdenById(id) {
-    return (await loadOrdenesService()).getOrdenById(id)
+    return realOrdenesService.getOrdenById(id)
   },
   async updateOrden(id, payload) {
-    return (await loadOrdenesService()).updateOrden(id, payload)
+    return realOrdenesService.updateOrden(id, payload)
   },
   async bulkUpdateOrdenes(payload) {
-    return (await loadOrdenesService()).bulkUpdateOrdenes(payload)
+    return realOrdenesService.bulkUpdateOrdenes(payload)
   },
   async deleteOrden(id) {
-    return (await loadOrdenesService()).deleteOrden(id)
+    return realOrdenesService.deleteOrden(id)
   },
 }

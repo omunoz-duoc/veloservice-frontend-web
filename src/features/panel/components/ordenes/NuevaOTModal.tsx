@@ -2,11 +2,16 @@
 
 import { useState, useRef, useEffect } from "react"
 import { X, Plus, Bike, Wrench, Search, User, ChevronLeft, Loader2, ChevronDown } from "lucide-react"
-import { MECANICOS_MOCK } from "./ordenes.mock"
 import { TIPOS_BICI } from "./ordenes.constants"
 import type { OrdenTrabajo, Prioridad, ClienteResult, BicicletaResult } from "./ordenes.types"
 import { useNuevaOT, type NuevoClienteForm, type NuevaBiciForm } from "@/features/panel/hooks/useNuevaOT"
 import type { Servicio } from "@/features/panel/types/servicios.types"
+
+const MECANICOS_MOCK = [
+  { id: "m-001", nombre: "Javier Bravo" },
+  { id: "m-002", nombre: "Rodrigo Soto" },
+  { id: "m-003", nombre: "Pablo Herrera" },
+]
 
 // ─── Primitive form components ─────────────────────────────────────────────────
 

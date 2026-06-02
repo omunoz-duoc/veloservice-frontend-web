@@ -1,0 +1,8 @@
+▲ Next.js 16.2.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.100.36:3000
+- Environments: .env.local
+✓ Ready in 610ms
+Creating turbopack project { dir: 'C:\\Users\\majoc\\veloservice-frontend-web', testMode: true }
+
+ GET /dashboard 200 in 1178ms (next.js: 941ms, application-code: 237ms)

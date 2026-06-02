@@ -16,6 +16,8 @@
   --vs-info-bg:    #e4eaf2;
   --vs-violet:     #6b5bd1;
   --vs-violet-bg:  #ebe7fa;
+  --font-inter: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-jetbrains-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
   --background:             var(--vs-bg);
   --foreground:             var(--vs-ink);

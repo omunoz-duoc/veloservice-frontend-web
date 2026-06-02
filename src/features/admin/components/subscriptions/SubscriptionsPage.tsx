@@ -1,16 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { CreditCard, Calendar, Pencil, Save, X } from "lucide-react"
+import { CreditCard, Pencil, Save, X } from "lucide-react"
 import { PageHeader } from "@/components/common/PageHeader"
 import { useAdminSuscripciones, useUpdateSuscripcion } from "@/features/admin/hooks/useAdmin"
 import { StatusBadge } from "@/components/common/StatusBadge"
 import type { SuscripcionTaller, PlanSaaS, EstadoSuscripcion } from "@/features/admin/services/admin.types"
 import { cn } from "@/lib/utils"
-
-function planLabel(plan: PlanSaaS) {
-  return plan.charAt(0).toUpperCase() + plan.slice(1)
-}
 
 function estadoTone(estado: EstadoSuscripcion) {
   switch (estado) {

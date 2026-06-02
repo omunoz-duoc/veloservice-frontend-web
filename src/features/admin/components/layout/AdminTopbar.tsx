@@ -1,9 +1,10 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState } from "react"
 import { Search, ChevronDown, LogOut, KeyRound, ShieldCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/features/auth/store/auth.store"
+import { useClickOutside } from "@/lib/hooks/use-click-outside"
 
 export function AdminTopbar() {
   const { user, logout } = useAuthStore()
@@ -11,15 +12,7 @@ export function AdminTopbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  useClickOutside(dropdownRef, () => setDropdownOpen(false), dropdownOpen)
 
   function handleLogout() {
     logout()

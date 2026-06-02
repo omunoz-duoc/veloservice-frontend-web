@@ -5,7 +5,7 @@ import { X, Check, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Mecanico } from "@/features/panel/types/mecanicos.types"
 import { mecanicosService } from "@/features/panel/services/mecanicos.provider"
-import { useOrdenes } from "@/features/panel/context/OrdenesContext"
+import { useBulkUpdateOrdenesMutation } from "@/features/panel/hooks/useOrdenes"
 
 export function BulkReasignarModal({
   ids,
@@ -16,7 +16,7 @@ export function BulkReasignarModal({
   onClose: () => void
   onSuccess: () => void
 }) {
-  const { bulkUpdateOrdenes } = useOrdenes()
+  const bulkUpdateOrdenes = useBulkUpdateOrdenesMutation()
   const [mecanicos, setMecanicos] = useState<Mecanico[]>([])
   const [fetchLoading, setFetchLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -37,7 +37,7 @@ export function BulkReasignarModal({
     setSubmitLoading(true)
     setSubmitError(null)
     try {
-      await bulkUpdateOrdenes(ids, { mecanicoId: selected.id })
+      await bulkUpdateOrdenes.mutateAsync({ ids, changes: { mecanicoId: selected.id } })
       onSuccess()
     } catch {
       setSubmitError("Error al reasignar. Intenta de nuevo.")

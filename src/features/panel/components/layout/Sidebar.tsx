@@ -4,8 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   Home, ClipboardList, Users, Wrench, Package,
-  Building2, Landmark, Settings, Shield, Folder,
-  Headset, FileText, MessageCircle,
+  Settings, Headset,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"

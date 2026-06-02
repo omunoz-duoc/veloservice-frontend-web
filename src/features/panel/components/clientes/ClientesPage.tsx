@@ -4,12 +4,12 @@ import { useState, useMemo } from "react"
 import { Search, Plus, Filter, ChevronLeft, ChevronRight, Mail, Bike, Settings, Pencil, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-  TIERS, fmtGasto, avatarInitials, avatarColor, nextClienteId,
+  fmtGasto, nextClienteId,
   type Cliente, type TierKey,
 } from "./clientes.mock"
 import { ClienteDrawer, TierChip, ClienteAvatar, type DrawerMode } from "./ClienteDrawer"
 import { NuevoClienteModal } from "./NuevoClienteModal"
-import { useClientes } from "../../hooks/useClientes"
+import { useClientes, useCreateClienteMutation, useUpdateClienteCacheMutation } from "../../hooks/useClientes"
 
 // ─── Table header cell ─────────────────────────────────────────────────────────
 
@@ -125,9 +125,9 @@ function ClienteRow({
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export function ClientesPage() {
-  const { data: fetched = [], isLoading } = useClientes()
-  const [localClientes, setLocalClientes] = useState<Cliente[]>([])
-  const clientes = localClientes.length > 0 ? localClientes : fetched
+  const { data: clientes = [], isLoading, isError, error } = useClientes()
+  const createCliente = useCreateClienteMutation()
+  const updateClienteMutation = useUpdateClienteCacheMutation()
   const [tab, setTab] = useState<"all" | TierKey>("all")
   const [query, setQuery] = useState("")
   const [sel, setSel] = useState<Set<string>>(new Set())
@@ -153,22 +153,32 @@ export function ClientesPage() {
   }, [clientes, tab, query])
 
   const toggleSel = (id: string) =>
-    setSel(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+    setSel(prev => {
+      const n = new Set(prev)
+      if (n.has(id)) {
+        n.delete(id)
+      } else {
+        n.add(id)
+      }
+      return n
+    })
 
   const toggleAll = () =>
     setSel(prev => prev.size === filtered.length ? new Set() : new Set(filtered.map(c => c.id)))
 
   const allSelected = filtered.length > 0 && sel.size === filtered.length
 
-  const addCliente = (c: Cliente) => {
-    setLocalClientes(prev => [c, ...(prev.length > 0 ? prev : fetched)])
-    setShowModal(false)
+  const addCliente = async (c: Cliente) => {
+    try {
+      await createCliente.mutateAsync(c)
+      setShowModal(false)
+    } catch {
+      // Error is rendered below the filter bar.
+    }
   }
 
   const updateCliente = (updated: Cliente) => {
-    setLocalClientes(prev =>
-      (prev.length > 0 ? prev : fetched).map(c => c.id === updated.id ? updated : c)
-    )
+    updateClienteMutation.mutate(updated)
     setDrawer(null)
   }
 
@@ -249,6 +259,14 @@ export function ClientesPage() {
           Canal
         </button>
       </div>
+
+      {(isError || createCliente.isError) && (
+        <div className="bg-vs-warn-bg border border-vs-warn/20 text-vs-warn rounded-[16px] px-4 py-3 mb-4 text-[13px]">
+          {isError && error instanceof Error
+            ? error.message
+            : "No se pudo guardar el ciclista. Intenta nuevamente."}
+        </div>
+      )}
 
       {/* Bulk selection bar */}
       {sel.size > 0 && (

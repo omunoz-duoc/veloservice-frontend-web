@@ -133,7 +133,6 @@ export function NuevoServicioModal({
   const handleSubmit = () => {
     if (!validate()) return
 
-    const now = new Date()
     const servicio: Servicio = {
       id: nextId,
       cat: form.cat,

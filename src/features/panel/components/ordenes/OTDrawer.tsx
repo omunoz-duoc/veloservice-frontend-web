@@ -1,358 +1,380 @@
 "use client"
 
-import { useState } from "react"
-import { X, Eye, Pencil, Check } from "lucide-react"
-import { cn } from "@/lib/utils"
-import {
-  TIPO_CONFIG, ESTADO_CONFIG, PRIORIDAD_CONFIG, MECANICOS_MOCK,
-  type OrdenTrabajo, type TipoOT, type EstadoOT, type Prioridad,
-} from "./ordenes.mock"
-import { TipoChip, EstadoChip, MecPill } from "./OrdenesPage"
+import { FileText, Pencil, X } from "lucide-react"
+import { useOrdenDetalleQuery } from "@/features/panel/hooks/useOrdenes"
+import type { OrdenTrabajoDetalle } from "@/features/panel/types/ordenes.types"
 
-// ─── Field wrapper ─────────────────────────────────────────────────────────────
+const TIPO_COLORS: Record<string, { fg: string; bg: string }> = {
+  diagnostico: { fg: "#3a6ea5", bg: "#e4eaf2" },
+  mantencion: { fg: "#6b5bd1", bg: "#ebe7fa" },
+  reparacion: { fg: "#c85a2a", bg: "#fbeadd" },
+  overhaul: { fg: "#111418", bg: "#ece7de" },
+  garantia: { fg: "#2f7d4f", bg: "#e4f1e8" },
+  armado: { fg: "#4a7c59", bg: "#e8f0ea" },
+}
+
+const ESTADO_COLORS: Record<string, { fg: string; bg: string; dot: string }> = {
+  recibido: { fg: "#6b5d46", bg: "#efe9df", dot: "#a59682" },
+  en_reparacion: { fg: "#6b5bd1", bg: "#ebe7fa", dot: "#6b5bd1" },
+  en_espera: { fg: "#c85a2a", bg: "#fbeadd", dot: "#c85a2a" },
+  listo: { fg: "#2f7d4f", bg: "#e4f1e8", dot: "#2f7d4f" },
+  entregado: { fg: "#3a6ea5", bg: "#e4eaf2", dot: "#3a6ea5" },
+}
+
+const PRIORIDAD_COLORS: Record<string, { fg: string; bg: string }> = {
+  baja: { fg: "#6b5d46", bg: "#efe9df" },
+  media: { fg: "#3a6ea5", bg: "#e4eaf2" },
+  alta: { fg: "#c85a2a", bg: "#fbeadd" },
+}
+
+const NEUTRAL = { fg: "#6b5d46", bg: "#efe9df" }
+const NEUTRAL_STATUS = { ...NEUTRAL, dot: "#a59682" }
+const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+
+function formatFecha(iso: string | null): string {
+  if (!iso) return "—"
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return "—"
+  return `${d.getUTCDate()} ${MESES[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+}
+
+function formatPeso(n: number): string {
+  return `$${n.toLocaleString("es-CL")}`
+}
+
+function capitalize(s: string) {
+  return s ? `${s.charAt(0).toUpperCase()}${s.slice(1).toLowerCase()}` : "—"
+}
+
+function fullName(person: { nombre: string; apellido: string }) {
+  return [person.nombre, person.apellido].filter(Boolean).join(" ") || "—"
+}
+
+function initials(person: { nombre: string; apellido: string }) {
+  const first = person.nombre.charAt(0)
+  const second = person.apellido.charAt(0)
+  return `${first}${second}`.toUpperCase() || "?"
+}
 
 function Field({
   label,
-  required,
-  children,
+  value,
+  mono = false,
 }: {
   label: string
-  required?: boolean
-  children: React.ReactNode
+  value: React.ReactNode
+  mono?: boolean
 }) {
   return (
-    <div>
-      <div className="text-[11px] text-[#8a7f70] mb-1.5 uppercase tracking-wider">
-        {label}
-        {required && <span className="text-vs-warn ml-0.5">*</span>}
+    <div className="min-w-0">
+      <div className="text-[11px] text-[#8a7f70] mb-1.5 uppercase tracking-wider">{label}</div>
+      <div className={mono ? "text-[13px] text-[#4a4438] font-mono break-words" : "text-[13px] text-[#2b2f36] font-medium break-words"}>
+        {value}
       </div>
+    </div>
+  )
+}
+
+function ReadBox({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="text-[13px] leading-relaxed text-[#2b2f36] bg-vs-chip rounded-xl p-3 border border-vs-line-2 whitespace-pre-wrap">
       {children}
     </div>
   )
 }
 
-// ─── Select input ──────────────────────────────────────────────────────────────
-
-function FieldSelect({
-  value,
-  onChange,
-  options,
-}: {
-  value: string
-  onChange: (v: string) => void
-  options: { value: string; label: string }[]
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="relative">
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="w-full appearance-none bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border border-vs-line-2 pr-8 text-vs-ink"
-      >
-        {options.map(o => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8a7f70] pointer-events-none">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="m6 9 6 6 6-6" />
-        </svg>
-      </span>
+    <div className="pt-4 border-t border-vs-line-2">
+      <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-3">{title}</div>
+      {children}
     </div>
   )
 }
 
-// ─── Text input ────────────────────────────────────────────────────────────────
-
-function FieldInput({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: string
-  onChange: (v: string) => void
-  placeholder?: string
-}) {
+function StatusChip({ orden }: { orden: OrdenTrabajoDetalle }) {
+  const cfg = ESTADO_COLORS[orden.estado.codigo] ?? NEUTRAL_STATUS
   return (
-    <input
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      placeholder={placeholder}
-      className="w-full bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border border-vs-line-2 placeholder:text-[#b8a88d]"
-    />
+    <span
+      className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full"
+      style={{ background: cfg.bg, color: cfg.fg }}
+    >
+      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cfg.dot }} />
+      {orden.estado.nombre}
+    </span>
   )
 }
 
-// ─── Drawer ────────────────────────────────────────────────────────────────────
+function PriorityBadge({ prioridad }: { prioridad: string }) {
+  const cfg = PRIORIDAD_COLORS[prioridad] ?? NEUTRAL
+  return (
+    <span
+      className="inline-flex items-center text-[11px] font-semibold px-2.5 py-1 rounded-full"
+      style={{ background: cfg.bg, color: cfg.fg }}
+    >
+      {capitalize(prioridad)}
+    </span>
+  )
+}
 
-export function OTDrawer({
-  orden: initial,
-  mode: initialMode,
-  onClose,
-  onSave,
-}: {
-  orden: OrdenTrabajo
-  mode: "view" | "edit"
-  onClose: () => void
-  onSave: (updated: OrdenTrabajo) => void
-}) {
-  const [mode, setMode] = useState<"view" | "edit">(initialMode)
-  const [draft, setDraft] = useState<OrdenTrabajo>({ ...initial })
+function MechanicPill({ mecanico }: { mecanico: OrdenTrabajoDetalle["mecanico"] }) {
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      <div className="w-7 h-7 rounded-full bg-vs-violet text-white flex items-center justify-center text-[10px] font-semibold shrink-0">
+        {initials(mecanico)}
+      </div>
+      <span className="text-[12px] text-[#2b2f36] font-medium truncate">{fullName(mecanico)}</span>
+    </div>
+  )
+}
 
-  const set = <K extends keyof OrdenTrabajo>(key: K, val: OrdenTrabajo[K]) =>
-    setDraft(prev => ({ ...prev, [key]: val }))
-
-  const handleSave = () => onSave(draft)
-
-  const tipoOptions = Object.entries(TIPO_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))
-  const estadoOptions = Object.entries(ESTADO_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))
-  const prioOptions = Object.entries(PRIORIDAD_CONFIG).map(([k, v]) => ({ value: k, label: v.label }))
-  const mecOptions = MECANICOS_MOCK.map(m => ({ value: m.id, label: m.nombre }))
-
-  const isEdit = mode === "edit"
-  const cfg = TIPO_CONFIG[draft.tipo ?? "mantencion"]
+function DrawerSkeleton({ onClose }: { onClose: () => void }) {
+  const bar = "h-4 rounded-full bg-[#e7ded1] animate-pulse"
 
   return (
+    <DrawerFrame onClose={onClose}>
+      <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
+        <div className="w-10 h-10 rounded-full bg-[#e7ded1] animate-pulse shrink-0" />
+        <div className="flex-1 min-w-0 space-y-2">
+          <div className={`${bar} w-32`} />
+          <div className={`${bar} w-24`} />
+        </div>
+        <div className="w-20 h-8 rounded-full bg-[#e7ded1] animate-pulse" />
+      </div>
+      <div className="p-5 space-y-5">
+        <div className="grid grid-cols-2 gap-4">
+          <div className={`${bar} w-28`} />
+          <div className={`${bar} w-20`} />
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className={`${bar} w-full`} />
+          <div className={`${bar} w-full`} />
+          <div className={`${bar} w-full`} />
+        </div>
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="pt-4 border-t border-vs-line-2 space-y-3">
+            <div className={`${bar} w-24`} />
+            <div className="grid grid-cols-2 gap-4">
+              <div className={`${bar} w-full`} />
+              <div className={`${bar} w-full`} />
+            </div>
+            <div className="h-20 rounded-xl bg-[#e7ded1] animate-pulse" />
+          </div>
+        ))}
+      </div>
+    </DrawerFrame>
+  )
+}
+
+function DrawerFrame({
+  children,
+  onClose,
+}: {
+  children: React.ReactNode
+  onClose: () => void
+}) {
+  return (
     <div className="fixed inset-0 z-50 flex">
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        className="flex-1 bg-black/30 backdrop-blur-sm"
-      />
-
-      {/* Panel */}
-      <div className="w-[520px] bg-vs-bg h-full overflow-y-auto flex flex-col">
-        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col">
-          {/* Header */}
-          <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-              style={{ background: cfg.bg, color: cfg.fg }}
-            >
-              {isEdit
-                ? <Pencil size={16} strokeWidth={1.6} />
-                : <Eye size={16} strokeWidth={1.6} />
-              }
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">
-                {isEdit ? "Editando orden" : "Detalle de orden"}
-              </div>
-              <div className="text-[16px] font-semibold font-mono">{draft.id}</div>
-            </div>
-            {!isEdit && (
-              <button
-                onClick={() => setMode("edit")}
-                className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] transition-colors"
-              >
-                <Pencil size={13} strokeWidth={1.6} />
-                Editar
-              </button>
-            )}
-            {isEdit && (
-              <button
-                onClick={handleSave}
-                className="flex items-center gap-1.5 bg-vs-ink text-white px-4 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#1e2228] transition-colors"
-              >
-                <Check size={13} strokeWidth={2} />
-                Guardar
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="w-9 h-9 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center transition-colors shrink-0"
-            >
-              <X size={16} strokeWidth={1.6} />
-            </button>
-          </div>
-
-          {/* Body */}
-          <div className="p-5 space-y-5">
-            {/* Tipo + Estado */}
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Tipo de orden" required={isEdit}>
-                {isEdit
-                  ? <FieldSelect value={draft.tipo ?? ""} onChange={v => set("tipo", v as TipoOT)} options={tipoOptions} />
-                  : <TipoChip tipo={draft.tipo} />
-                }
-              </Field>
-              <Field label="Estado" required={isEdit}>
-                {isEdit
-                  ? <FieldSelect value={draft.estado} onChange={v => set("estado", v as EstadoOT)} options={estadoOptions} />
-                  : <EstadoChip estado={draft.estado} />
-                }
-              </Field>
-            </div>
-
-            {/* Fecha + Prioridad */}
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Fecha estimada entrega" required={isEdit}>
-                {isEdit
-                  ? <FieldInput value={draft.fechaEstimada} onChange={v => set("fechaEstimada", v)} placeholder="ej. 25 Abr" />
-                  : <div className="text-[13px] font-medium">{draft.fechaEstimada}</div>
-                }
-              </Field>
-              <Field label="Prioridad" required={isEdit}>
-                {isEdit
-                  ? <FieldSelect value={draft.prioridad} onChange={v => set("prioridad", v as Prioridad)} options={prioOptions} />
-                  : (
-                    <span
-                      className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full"
-                      style={{ background: PRIORIDAD_CONFIG[draft.prioridad].bg, color: PRIORIDAD_CONFIG[draft.prioridad].fg }}
-                    >
-                      {PRIORIDAD_CONFIG[draft.prioridad].label}
-                    </span>
-                  )
-                }
-              </Field>
-            </div>
-
-            {/* Fecha ingreso (read-only) */}
-            <Field label="Fecha de ingreso">
-              <div className="text-[13px] font-medium text-[#4a4438]">{draft.fechaIngreso}</div>
-            </Field>
-
-            {/* Mecánico */}
-            <Field label="Mecánico responsable" required={isEdit}>
-              {isEdit
-                ? <FieldSelect value={draft.mecanicoId} onChange={v => set("mecanicoId", v)} options={mecOptions} />
-                : <MecPill mecanicoId={draft.mecanicoId} />
-              }
-            </Field>
-
-            {/* Cliente */}
-            <div className="pt-3 border-t border-vs-line-2">
-              <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-3">Cliente</div>
-              <div className="space-y-4">
-                <Field label="Nombre" required={isEdit}>
-                  {isEdit
-                    ? <FieldInput value={draft.clienteNombre} onChange={v => set("clienteNombre", v)} />
-                    : <div className="text-[13px] font-medium">{draft.clienteNombre}</div>
-                  }
-                </Field>
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Teléfono">
-                    {isEdit
-                      ? <FieldInput value={draft.clienteTelefono ?? ""} onChange={v => set("clienteTelefono", v)} placeholder="+56 9…" />
-                      : <div className="text-[13px] text-[#4a4438]">{draft.clienteTelefono ?? "—"}</div>
-                    }
-                  </Field>
-                  <Field label="Email">
-                    {isEdit
-                      ? <FieldInput value={draft.clienteEmail ?? ""} onChange={v => set("clienteEmail", v)} placeholder="email@ejemplo.com" />
-                      : <div className="text-[13px] text-[#4a4438]">{draft.clienteEmail ?? "—"}</div>
-                    }
-                  </Field>
-                </div>
-              </div>
-            </div>
-
-            {/* Bicicleta */}
-            <div className="pt-3 border-t border-vs-line-2">
-              <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-3">Bicicleta</div>
-              <div className="space-y-4">
-                <Field label="Marca / Modelo" required={isEdit}>
-                  {isEdit
-                    ? <FieldInput value={draft.biciMarca} onChange={v => set("biciMarca", v)} />
-                    : <div className="text-[13px] font-medium">{draft.biciMarca}</div>
-                  }
-                </Field>
-                <div className="grid grid-cols-3 gap-3">
-                  <Field label="Tipo" required={isEdit}>
-                    {isEdit
-                      ? <FieldInput value={draft.biciTipo} onChange={v => set("biciTipo", v)} />
-                      : <div className="text-[13px]">{draft.biciTipo}</div>
-                    }
-                  </Field>
-                  <Field label="Talla" required={isEdit}>
-                    {isEdit
-                      ? <FieldInput value={draft.biciTalla ?? ""} onChange={v => set("biciTalla", v)} />
-                      : <div className="text-[13px]">{draft.biciTalla}</div>
-                    }
-                  </Field>
-                  <Field label="Color" required={isEdit}>
-                    {isEdit
-                      ? <FieldInput value={draft.biciColor} onChange={v => set("biciColor", v)} />
-                      : <div className="text-[13px]">{draft.biciColor}</div>
-                    }
-                  </Field>
-                </div>
-                <Field label="N° de serie">
-                  {isEdit
-                    ? <FieldInput value={draft.biciNumSerie ?? ""} onChange={v => set("biciNumSerie", v)} placeholder="Opcional" />
-                    : <div className="text-[13px] text-[#4a4438] font-mono">{draft.biciNumSerie ?? "—"}</div>
-                  }
-                </Field>
-              </div>
-            </div>
-
-            {/* Trabajo */}
-            <div className="pt-3 border-t border-vs-line-2">
-              <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-3">Trabajo</div>
-              <div className="space-y-4">
-                <Field label="Descripción" required={isEdit}>
-                  {isEdit
-                    ? (
-                      <textarea
-                        value={draft.descripcion}
-                        onChange={e => set("descripcion", e.target.value)}
-                        rows={4}
-                        className="w-full bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border border-vs-line-2 leading-relaxed resize-none"
-                      />
-                    )
-                    : (
-                      <div className="text-[13px] leading-relaxed text-[#2b2f36] bg-vs-chip rounded-xl p-3 border border-vs-line-2">
-                        {draft.descripcion}
-                      </div>
-                    )
-                  }
-                </Field>
-                <Field label="Notas internas">
-                  {isEdit
-                    ? (
-                      <textarea
-                        value={draft.notasInternas ?? ""}
-                        onChange={e => set("notasInternas", e.target.value)}
-                        rows={3}
-                        placeholder="Notas visibles solo para el equipo…"
-                        className="w-full bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border border-vs-line-2 leading-relaxed resize-none placeholder:text-[#b8a88d]"
-                      />
-                    )
-                    : draft.notasInternas
-                      ? (
-                        <div className="text-[13px] leading-relaxed text-[#2b2f36] bg-vs-chip rounded-xl p-3 border border-vs-line-2">
-                          {draft.notasInternas}
-                        </div>
-                      )
-                      : <div className="text-[13px] text-[#a59682]">—</div>
-                  }
-                </Field>
-              </div>
-            </div>
-
-            {/* History (view mode only) */}
-            {/* {!isEdit && (
-              <div className="pt-3 border-t border-vs-line-2">
-                <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-3">Historial</div>
-                <ul className="space-y-2.5 relative pl-5 before:absolute before:left-[6px] before:top-1 before:bottom-1 before:w-px before:bg-vs-line-2">
-                  {[
-                    { t: draft.fechaIngreso, text: "OT creada por recepción" },
-                    { t: draft.fechaIngreso, text: `Asignada a ${MECANICOS_MOCK.find(m => m.id === draft.mecanicoId)?.nombre ?? "Sin asignar"}` },
-                    { t: "Pendiente", text: `Estado actual: ${ESTADO_CONFIG[draft.estado].label}` },
-                  ].map((h, i) => (
-                    <li key={i} className="relative">
-                      <span className="absolute -left-5 top-1 w-3 h-3 rounded-full bg-vs-violet-bg border-2 border-white" />
-                      <div className="text-[12px] text-[#2b2f36]">{h.text}</div>
-                      <div className="text-[10.5px] text-[#a59682] font-mono">{h.t}</div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )} */}
-          </div>
+      <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
+      <div className="w-full max-w-[560px] bg-vs-bg h-full overflow-y-auto flex flex-col">
+        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col ">
+          {children}
         </div>
         <div className="h-5" />
       </div>
     </div>
+  )
+}
+
+export function OTDrawer({
+  ordenId,
+  onClose,
+  onEdit,
+}: {
+  ordenId: string
+  onClose: () => void
+  onEdit: () => void
+}) {
+  const query = useOrdenDetalleQuery(ordenId)
+  const orden = query.data
+
+  if (query.isLoading) {
+    return <DrawerSkeleton onClose={onClose} />
+  }
+
+  if (query.isError || !orden) {
+    return (
+      <DrawerFrame onClose={onClose}>
+        <div className="flex items-center justify-end p-4 border-b border-vs-line-2">
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center transition-colors shrink-0"
+          >
+            <X size={16} strokeWidth={1.6} />
+          </button>
+        </div>
+        <div className="flex-1 min-h-[360px] flex flex-col items-center justify-center gap-3 p-5 text-center">
+          <div className="text-[13px] text-[#4a4438]">No se pudo cargar la orden.</div>
+          <button
+            onClick={() => void query.refetch()}
+            className="bg-vs-ink text-white px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#1e2228] transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </DrawerFrame>
+    )
+  }
+
+  const tipoCfg = TIPO_COLORS[orden.tipo.codigo] ?? NEUTRAL
+  const serviciosTotal = orden.servicios.reduce((sum, s) => sum + s.precioBase, 0)
+  const productosTotal = orden.productos.reduce((sum, p) => sum + p.precioVenta * p.cantidad, 0)
+  const total = serviciosTotal + productosTotal
+  const hasLineItems = orden.servicios.length > 0 || orden.productos.length > 0
+  const bikeName = [orden.bicicleta.marca, orden.bicicleta.modelo].filter(Boolean).join(" ") || "—"
+
+  return (
+    <DrawerFrame onClose={onClose}>
+      <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+          style={{ background: tipoCfg.bg, color: tipoCfg.fg }}
+        >
+          <FileText size={16} strokeWidth={1.6} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">Detalle de orden</div>
+          <div className="text-[16px] font-semibold font-mono">{orden.numeroOrden}</div>
+        </div>
+        <button
+          onClick={onEdit}
+          className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] transition-colors"
+        >
+          <Pencil size={13} strokeWidth={1.6} />
+          Editar
+        </button>
+        <button
+          onClick={onClose}
+          className="w-9 h-9 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center transition-colors shrink-0"
+        >
+          <X size={16} strokeWidth={1.6} />
+        </button>
+      </div>
+
+      <div className="p-5 space-y-5">
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Estado" value={<StatusChip orden={orden} />} />
+          <Field label="Prioridad" value={<PriorityBadge prioridad={orden.prioridad} />} />
+        </div>
+
+        <Section title="Fechas">
+          <div className="grid grid-cols-3 gap-4">
+            <Field label="Fecha de ingreso" value={formatFecha(orden.fechaIngreso)} />
+            <Field label="Fecha prometida" value={formatFecha(orden.fechaPrometida)} />
+            <Field label="Fecha de entrega" value={formatFecha(orden.fechaEntrega)} />
+          </div>
+        </Section>
+
+        <Section title="Mecánico">
+          <MechanicPill mecanico={orden.mecanico} />
+        </Section>
+
+        <Section title="Cliente">
+          <div className="space-y-4">
+            <Field label="Nombre" value={fullName(orden.cliente)} />
+            <Field label="RUT" value={orden.cliente.rut || "—"} mono />
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Teléfono" value={orden.cliente.telefono || "—"} />
+              <Field label="Email" value={orden.cliente.email || "—"} />
+            </div>
+          </div>
+        </Section>
+
+        <Section title="Bicicleta">
+          <div className="space-y-4">
+            <Field label="Marca / Modelo" value={bikeName} />
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Tipo" value={orden.bicicleta.tipo || "—"} />
+              <Field label="Color" value={orden.bicicleta.color || "—"} />
+            </div>
+            <Field label="N° de serie" value={orden.bicicleta.numeroSerie || "—"} mono />
+          </div>
+        </Section>
+
+        <Section title="Trabajo">
+          <div className="space-y-4">
+            <Field label="Diagnóstico inicial" value={<ReadBox>{orden.diagnosticoInicial}</ReadBox>} />
+            <Field label="Diagnóstico final" value={<ReadBox>{orden.diagnosticoFinal || "—"}</ReadBox>} />
+            <Field label="Obs. del cliente" value={<ReadBox>{orden.observacionesCliente}</ReadBox>} />
+          </div>
+        </Section>
+
+        {orden.servicios.length > 0 && (
+          <Section title="Servicios">
+            <div className="divide-y divide-vs-line-2">
+              {orden.servicios.map(servicio => (
+                <div key={servicio.id} className="flex items-center justify-between gap-4 py-2 first:pt-0">
+                  <div className="text-[13px] text-[#2b2f36] font-medium">{servicio.nombre}</div>
+                  <div className="text-[13px] text-[#2b2f36] font-mono shrink-0">{formatPeso(servicio.precioBase)}</div>
+                </div>
+              ))}
+              {orden.servicios.length > 1 && (
+                <div className="flex items-center justify-between gap-4 pt-3 text-[13px] font-semibold">
+                  <span>Total servicios</span>
+                  <span className="font-mono">{formatPeso(serviciosTotal)}</span>
+                </div>
+              )}
+            </div>
+          </Section>
+        )}
+
+        {orden.productos.length > 0 && (
+          <Section title="Productos">
+            <div className="divide-y divide-vs-line-2">
+              {orden.productos.map(producto => (
+                <div key={producto.id} className="py-2 first:pt-0">
+                  <div className="text-[13px] text-[#2b2f36] font-medium">{producto.nombre}</div>
+                  <div className="flex items-center justify-between gap-4 mt-1">
+                    <div className="text-[11.5px] text-[#8a7f70] font-mono">
+                      {producto.sku || "S/SKU"} ×{producto.cantidad}
+                    </div>
+                    <div className="text-[13px] text-[#2b2f36] font-mono">
+                      {formatPeso(producto.precioVenta * producto.cantidad)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center justify-between gap-4 pt-3 text-[13px] font-semibold">
+                <span>Total productos</span>
+                <span className="font-mono">{formatPeso(productosTotal)}</span>
+              </div>
+            </div>
+          </Section>
+        )}
+
+        {hasLineItems && (
+          <div className="border-t border-vs-line-2 pt-4 flex items-center justify-between gap-4">
+            <div className="text-[14px] font-semibold text-[#2b2f36]">Total</div>
+            <div className="text-[15px] font-semibold text-[#2b2f36] font-mono">{formatPeso(total)}</div>
+          </div>
+        )}
+
+        {orden.comentarios.length > 0 && (
+          <Section title="Comentarios">
+            <ul className="space-y-4 relative pl-5 before:absolute before:left-[6px] before:top-1 before:bottom-1 before:w-px before:bg-vs-line-2">
+              {orden.comentarios.map((comentario, i) => (
+                <li key={`${comentario.createdAt}-${i}`} className="relative">
+                  <span className="absolute -left-5 top-1.5 w-3 h-3 rounded-full bg-vs-violet-bg border-2 border-white" />
+                  <div className="text-[11.5px] text-[#8a7f70]">
+                    {comentario.usuario} · {formatFecha(comentario.createdAt)}
+                  </div>
+                  <div className="text-[13px] leading-relaxed text-[#2b2f36] mt-1">{comentario.texto}</div>
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )}
+      </div>
+    </DrawerFrame>
   )
 }

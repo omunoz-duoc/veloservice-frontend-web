@@ -1,6 +1,6 @@
 "use client"
 
-import { X, Building2, MapPin, Phone, Mail, Calendar, Users, Wrench, CheckCircle2 } from "lucide-react"
+import { X, MapPin, Phone, Mail, Calendar, Users, Wrench, CheckCircle2 } from "lucide-react"
 import type { TallerAdmin } from "@/features/admin/services/admin.types"
 import { StatusBadge } from "@/components/common/StatusBadge"
 import { useAdminModulos } from "@/features/admin/hooks/useAdmin"

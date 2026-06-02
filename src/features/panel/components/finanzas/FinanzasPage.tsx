@@ -132,10 +132,9 @@ function FlowChart({ showPrev }: { showPrev: boolean }) {
 
 function Donut({ data, total }: { data: CatPie[]; total: number }) {
   const R = 68, r = 44, cx = 80, cy = 80
-  let acc = 0
-  const segs = data.map(d => {
-    const start = acc; acc += d.val
-    const end = acc
+  const segs = data.reduce<{ path: string; color: string; acc: number }[]>((segments, d) => {
+    const start = segments.at(-1)?.acc ?? 0
+    const end = start + d.val
     const a1 = start * 2 * Math.PI - Math.PI / 2
     const a2 = end * 2 * Math.PI - Math.PI / 2
     const x1 = cx + R * Math.cos(a1), y1 = cy + R * Math.sin(a1)
@@ -144,8 +143,8 @@ function Donut({ data, total }: { data: CatPie[]; total: number }) {
     const x4 = cx + r * Math.cos(a1), y4 = cy + r * Math.sin(a1)
     const large = (end - start) > 0.5 ? 1 : 0
     const path = `M${x1} ${y1} A${R} ${R} 0 ${large} 1 ${x2} ${y2} L${x3} ${y3} A${r} ${r} 0 ${large} 0 ${x4} ${y4} Z`
-    return { path, color: d.color }
-  })
+    return [...segments, { path, color: d.color, acc: end }]
+  }, [])
   return (
     <svg viewBox="0 0 160 160" width="160" height="160" className="shrink-0">
       {segs.map((s, i) => <path key={i} d={s.path} fill={s.color} />)}

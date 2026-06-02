@@ -1,6 +1,6 @@
 import { httpClient } from "@/lib/api/http-client";
-import { CreateOrdenPayload, IOrdenesService, Orden, OrdenesListResponse, OrdenesMetricas, UpdateOrdenPayload, BulkUpdateOrdenPayload } from "../types/ordenes.types";
-import { type OrdenTrabajo, type EstadoOT as FrontendEstadoOT, type TipoOT } from "../components/ordenes/ordenes.mock";
+import { CreateOrdenPayload, IOrdenesService, OrdenTrabajo as ApiOrdenTrabajo, OrdenTrabajoDetalle, OrdenesListResponse, OrdenesMetricas, UpdateOrdenPayload, BulkUpdateOrdenPayload } from "../types/ordenes.types";
+import { type OrdenTrabajo, type EstadoOT as FrontendEstadoOT, type Prioridad as FrontendPrioridad, type TipoOT } from "../components/ordenes/ordenes.types";
 
 const ESTADO_MAP: Record<string, FrontendEstadoOT> = {
     pendiente:           "recibido",
@@ -24,7 +24,7 @@ export const ESTADO_TO_API_MAP: Record<FrontendEstadoOT, string> = {
 
 const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
 
-export function mapApiOrden(orden: Orden, idx: number): OrdenTrabajo {
+export function mapApiOrden(orden: ApiOrdenTrabajo, idx: number): OrdenTrabajo {
     const fecha = new Date(orden.fechaIngreso)
     const day   = fecha.getUTCDate().toString().padStart(2, "0")
     const month = MONTHS[fecha.getUTCMonth()]
@@ -32,26 +32,28 @@ export function mapApiOrden(orden: Orden, idx: number): OrdenTrabajo {
     const mm    = fecha.getUTCMinutes().toString().padStart(2, "0")
 
     return {
-        id:           orden.externalId ?? `OT-${String(idx + 1).padStart(4, "0")}`,
-        tipo:         orden.tipo as TipoOT,
+        id:           orden.numeroOrden ?? `OT-${String(idx + 1).padStart(4, "0")}`,
+        tipo:         {
+            id: "",
+            codigo: orden.tipo.toLowerCase(),
+            nombre: orden.tipo,
+        },
         estado:       ESTADO_MAP[orden.estado] ?? "recibido",
-        prioridad:    "media",
+        prioridad:    (orden.prioridad?.toLowerCase() as FrontendPrioridad) ?? "media",
         fechaIngreso: `${day} ${month} · ${hh}:${mm}`,
         fechaEstimada: "",
-        mecanicoId:   orden.nombreMecanico,
-        clienteNombre: orden.nombreCliente,
-        biciMarca:    orden.bicicleta.marca,
+        mecanicoId:   orden.mecanico,
+        clienteNombre: orden.cliente,
+        biciMarca:    `${orden.bicicleta.marca} ${orden.bicicleta.modelo}`.trim(),
         biciTipo:     orden.bicicleta.tipo,
-        biciTalla:    orden.bicicleta.talla,
         biciColor:    orden.bicicleta.color,
-        descripcion:  orden.descripcion,
-        notasInternas: orden.observacionesCliente,
+        descripcion:  orden.diagnosticoInicial,
     }
 }
 
 export const ordenesService: IOrdenesService = {
     async getOrdenes() {
-        return httpClient.get<OrdenesListResponse>("ordenes");
+        return httpClient.get<OrdenesListResponse>("ordenes/resumen");
     },
 
     async getOrdenesUrgentes() {
@@ -63,7 +65,7 @@ export const ordenesService: IOrdenesService = {
     },
 
     async getOrdenById(id: string) {
-        return httpClient.get<Orden>(`ordenes/${id}`);
+        return httpClient.get<OrdenTrabajoDetalle>(`ordenes/${id}`);
     },
 
     async createOrden(payload: CreateOrdenPayload) {
@@ -71,7 +73,7 @@ export const ordenesService: IOrdenesService = {
     },
 
     async updateOrden(id: string, payload: UpdateOrdenPayload) {
-        return httpClient.put<Orden>(`ordenes/${id}`, payload);
+        return httpClient.put<ApiOrdenTrabajo>(`ordenes/${id}`, payload);
     },
 
     async bulkUpdateOrdenes(payload: BulkUpdateOrdenPayload) {

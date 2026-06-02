@@ -1,6 +1,5 @@
 import { Zap, Shield, Briefcase } from "lucide-react";
 import { Logo } from "@/components/common/Logo";
-import Image from "next/image";
 
 function Feature({
   icon,

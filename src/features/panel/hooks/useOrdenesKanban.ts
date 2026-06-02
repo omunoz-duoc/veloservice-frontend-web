@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { ordenesService } from "@/features/panel/services/ordenes.provider"
 import type { BoardData } from "react-kanban-kit"
-import type { Orden } from "@/features/panel/types/ordenes.types"
+import type { OrdenTrabajo } from "@/features/panel/types/ordenes.types"
 
 type KanbanColumna = {
   key: string
@@ -17,8 +17,8 @@ const COLUMNAS: KanbanColumna[] = [
   { key: "col-entregado", label: "Entregado",   color: "#3a6ea5", estado: "entregado" },
 ]
 
-function ordenesToBoardData(ordenes: Orden[]): BoardData {
-  const byEstado: Record<string, Orden[]> = {}
+function ordenesToBoardData(ordenes: OrdenTrabajo[]): BoardData {
+  const byEstado: Record<string, OrdenTrabajo[]> = {}
   for (const col of COLUMNAS) byEstado[col.estado] = []
   for (const o of ordenes) {
     if (byEstado[o.estado]) byEstado[o.estado].push(o)
@@ -36,7 +36,7 @@ function ordenesToBoardData(ordenes: Orden[]): BoardData {
 
   for (const col of COLUMNAS) {
     const items = byEstado[col.estado]
-    const cardIds = items.map(o => `card-${o.externalId}`)
+    const cardIds = items.map(o => `card-${o.numeroOrden}`)
 
     data[col.key] = {
       id: col.key,
@@ -47,18 +47,18 @@ function ordenesToBoardData(ordenes: Orden[]): BoardData {
     }
 
     for (const o of items) {
-      const id = `card-${o.externalId}`
+      const id = `card-${o.numeroOrden}`
       data[id] = {
         id,
-        title: o.externalId ?? "",
+        title: o.numeroOrden ?? "",
         children: [],
         totalChildrenCount: 0,
         parentId: col.key,
         type: "card",
         content: {
-          cliente: o.nombreCliente,
+          cliente: o.cliente,
           bici: `${o.bicicleta.marca} · ${o.bicicleta.tipo}`,
-          mecanico: o.nombreMecanico,
+          mecanico: o.mecanico,
           prioridad: o.prioridad,
           color: col.color,
         },

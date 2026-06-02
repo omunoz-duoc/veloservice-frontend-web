@@ -1,4 +1,4 @@
-import type { ClienteNuevaOTResponse } from "../components/ordenes/ordenes.mock"
+import type { ClienteNuevaOTResponse } from "../components/ordenes/ordenes.types"
 import data from "./clientes.nueva-ot.mock.data.json"
 
 export interface IClientesNuevaOTService {

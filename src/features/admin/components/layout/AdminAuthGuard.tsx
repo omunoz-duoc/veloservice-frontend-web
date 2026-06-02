@@ -1,24 +1,21 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/features/auth/store/auth.store"
+import { useAuthHydrated } from "@/features/auth/hooks/useAuthHydrated"
 
 export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user)
   const router = useRouter()
-  const [hydrated, setHydrated] = useState(false)
-
-  useEffect(() => {
-    setHydrated(true)
-  }, [])
+  const hydrated = useAuthHydrated()
 
   const isAdmin = user?.rol === "sysadmin" || user?.rol === "admin"
 
   useEffect(() => {
     if (hydrated) {
       if (!user) {
-        router.replace("/login")
+        router.replace("/login_admin")
       } else if (!isAdmin) {
         router.replace("/dashboard")
       }

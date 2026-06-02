@@ -3,29 +3,90 @@ export interface IOrdenesService {
     getOrdenesUrgentes(): Promise<OrdenesListResponse>;
     getOrdenesMetricas(): Promise<OrdenesMetricas>;
     createOrden(payload: CreateOrdenPayload): Promise<void>;
-    getOrdenById(id: string): Promise<Orden>;
-    updateOrden(id: string, payload: UpdateOrdenPayload): Promise<Orden>;
+    getOrdenById(id: string): Promise<OrdenTrabajoDetalle>;
+    updateOrden(id: string, payload: UpdateOrdenPayload): Promise<OrdenTrabajo>;
     bulkUpdateOrdenes(payload: BulkUpdateOrdenPayload): Promise<void>;
     deleteOrden(id: string): Promise<void>;
 }
 
-export type Orden = {
-    externalId: string | null;
+export type OrdenTrabajo = {
+    numeroOrden: string;
     tipo: string;
     fechaIngreso: string;
-    nombreMecanico: string;
-    nombreCliente: string;
-    descripcion: string;
-    observacionesCliente?: string;
-    prioridad?: "Baja" | "Media" | "Alta";
-    fechaEstimada?: string;
+    mecanico: string;
+    cliente: string;
     bicicleta: {
         marca: string;
-        color: string;
+        modelo: string;
         tipo: string;
-        talla: string;
+        color: string;
     };
+    diagnosticoInicial: string;
     estado: string;
+    prioridad: string;
+}
+
+export type OrdenTrabajoDetalle = {
+    id: string;
+    numeroOrden: string;
+    tallerId: string;
+    sucursalId: string;
+    estado: { id: string; codigo: string; nombre: string };
+    tipo: { id: string; codigo: string; nombre: string };
+    fechaIngreso: string;
+    fechaPrometida: string;
+    fechaEntrega: string | null;
+    diagnosticoInicial: string;
+    diagnosticoFinal: string | null;
+    observacionesCliente: string;
+    bicicleta: {
+        id: string;
+        marca: string;
+        modelo: string;
+        tipo: string;
+        color: string;
+        numeroSerie: string;
+    };
+    cliente: {
+        id: string;
+        nombre: string;
+        apellido: string;
+        telefono: string;
+        email: string;
+        rut: string;
+    };
+    mecanico: {
+        id: string;
+        nombre: string;
+        apellido: string;
+    };
+    prioridad: string;
+    comentarios: Array<{
+        usuario: string;
+        texto: string;
+        createdAt: string;
+    }>;
+    multimedia: Array<{
+        usuario: string;
+        tipoArchivo: string;
+        url: string;
+        etapa: string;
+        descripcion: string;
+    }>;
+    productos: Array<{
+        id: string;
+        productoId: string;
+        nombre: string;
+        sku: string;
+        cantidad: number;
+        precioVenta: number;
+    }>;
+    servicios: Array<{
+        id: string;
+        servicioId: string;
+        nombre: string;
+        precioBase: number;
+    }>;
 }
 
 
@@ -62,5 +123,5 @@ export type EstadoOT = "Recibido" | "En Proceso" | "Listo" | "Entregado" | "Canc
 export type Prioridad = "Baja" | "Media" | "Alta";
 export type TipoBici = "Ruta" | "Montaña" | "Híbrida" | "Eléctrica" | "Infantil" | "Otra";
 
-export type OrdenesListResponse = { total: number; ordenes: Orden[] }
+export type OrdenesListResponse = { total: number; ordenes: OrdenTrabajo[] }
 export type OrdenesMetricas = { recibidas: number; enProceso: number; listas: number; entregadas: number }

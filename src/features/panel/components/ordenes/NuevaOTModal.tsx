@@ -2,11 +2,9 @@
 
 import { useState, useRef, useEffect } from "react"
 import { X, Plus, Bike, Wrench, Search, User, ChevronLeft, Loader2, ChevronDown } from "lucide-react"
-import {
-  MECANICOS_MOCK, TIPOS_BICI,
-  type OrdenTrabajo, type Prioridad,
-  type ClienteResult, type BicicletaResult,
-} from "./ordenes.mock"
+import { MECANICOS_MOCK } from "./ordenes.mock"
+import { TIPOS_BICI } from "./ordenes.constants"
+import type { OrdenTrabajo, Prioridad, ClienteResult, BicicletaResult } from "./ordenes.types"
 import { useNuevaOT, type NuevoClienteForm, type NuevaBiciForm } from "@/features/panel/hooks/useNuevaOT"
 import type { Servicio } from "@/features/panel/types/servicios.types"
 
@@ -159,7 +157,7 @@ function ServiciosMultiSelect({
         {open && !loading && (
           <div className="absolute z-10 mt-1 w-full bg-vs-card border border-vs-line rounded-2xl shadow-lg overflow-hidden max-h-52 overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="px-3 py-3 text-[12px] text-[#8a7f70]">Sin resultados para "{query}"</div>
+              <div className="px-3 py-3 text-[12px] text-[#8a7f70]">Sin resultados para &quot;{query}&quot;</div>
             ) : filtered.map(s => {
               const selected = selectedIds.includes(s.id)
               return (
@@ -275,7 +273,7 @@ function ClienteCombobox({
             <div className="px-3 py-3 text-[12px] text-[#8a7f70]">Buscando…</div>
           )}
           {!loading && results.length === 0 && query.trim() && (
-            <div className="px-3 py-3 text-[12px] text-[#8a7f70]">Sin resultados para "{query}"</div>
+            <div className="px-3 py-3 text-[12px] text-[#8a7f70]">Sin resultados para &quot;{query}&quot;</div>
           )}
           {!loading && results.map(c => (
             <button

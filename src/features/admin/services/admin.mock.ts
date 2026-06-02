@@ -25,7 +25,7 @@ const MODULOS_DISPONIBLES: ModuloSaaS[] = [
 ]
 
 // ─── Mock data de talleres ────────────────────────────────────────────────────
-let _talleres: TallerAdmin[] = [
+const _talleres: TallerAdmin[] = [
   {
     id: "t1",
     nombre: "Taller AutoVelo",

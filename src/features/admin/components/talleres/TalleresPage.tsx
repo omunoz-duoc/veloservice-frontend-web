@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, Filter, Download, Eye, Ban, CheckCircle } from "lucide-react"
+import { Search, Download, Eye, Ban, CheckCircle } from "lucide-react"
 import { PageHeader } from "@/components/common/PageHeader"
 import { useAdminTalleres, useUpdateTallerEstado } from "@/features/admin/hooks/useAdmin"
 import { StatusBadge } from "@/components/common/StatusBadge"

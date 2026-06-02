@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { Check, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ESTADO_CONFIG, type EstadoOT } from "./ordenes.mock"
-import { useOrdenes } from "@/features/panel/context/OrdenesContext"
+import { ESTADO_CONFIG } from "./ordenes.constants"
+import type { EstadoOT } from "./ordenes.types"
+import { useBulkUpdateOrdenesMutation } from "@/features/panel/hooks/useOrdenes"
 
 export function BulkEstadoModal({
   ids,
@@ -15,7 +16,7 @@ export function BulkEstadoModal({
   onClose: () => void
   onSuccess: () => void
 }) {
-  const { bulkUpdateOrdenes } = useOrdenes()
+  const bulkUpdateOrdenes = useBulkUpdateOrdenesMutation()
   const [selected, setSelected] = useState<EstadoOT | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +26,7 @@ export function BulkEstadoModal({
     setLoading(true)
     setError(null)
     try {
-      await bulkUpdateOrdenes(ids, { estado: selected })
+      await bulkUpdateOrdenes.mutateAsync({ ids, changes: { estado: selected } })
       onSuccess()
     } catch {
       setError("Error al cambiar estado. Intenta de nuevo.")

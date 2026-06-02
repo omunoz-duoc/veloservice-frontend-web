@@ -1,10 +1,11 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState } from "react"
 import { Bell, Settings, Search, Plus, ChevronDown, LogOut, KeyRound, Mail } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useOrdenes } from "@/features/panel/context/OrdenesContext"
 import { useAuthStore } from "@/features/auth/store/auth.store"
+import { useClickOutside } from "@/lib/hooks/use-click-outside"
 
 export function Topbar() {
   const { openNuevaOT } = useOrdenes()
@@ -15,15 +16,7 @@ export function Topbar() {
   const [sentOpen, setSentOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  useClickOutside(dropdownRef, () => setDropdownOpen(false), dropdownOpen)
 
   function handleLogout() {
     logout()

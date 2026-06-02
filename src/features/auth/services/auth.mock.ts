@@ -1,5 +1,6 @@
 import type { IAuthService, RegisterPayload, User } from "./auth.service"
 import usersData from "./auth.mock.data.json"
+import { ApiError } from "@/lib/api/api-error"
 
 const MOCK_USERS: User[] = usersData as unknown as User[]
 
@@ -13,9 +14,7 @@ export const authMock: IAuthService = {
     const normalizedEmail = email.toLowerCase().trim()
     const user = MOCK_USERS.find((u) => u.email.toLowerCase() === normalizedEmail)
     if (!user) {
-      const error = new Error("USER_NOT_FOUND")
-      ;(error as any).body = { message: "USER_NOT_FOUND" }
-      throw error
+      throw new ApiError("USER_NOT_FOUND", 404, { message: "USER_NOT_FOUND" })
     }
     return mockFetch(user)
   },

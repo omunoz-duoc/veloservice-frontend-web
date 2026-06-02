@@ -6,6 +6,7 @@ import { Mail, Lock, Eye, EyeOff, ArrowRight, Shield, Check } from "lucide-react
 import { Field } from "@/components/common/Field";
 import { useLogin } from "@/features/auth/hooks/useAuth";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { getApiErrorMessage } from "@/lib/api/api-error";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,10 +59,11 @@ export function LoginForm({ onRecover, onRegister }: LoginFormProps) {
       } else {
         router.push("/dashboard");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
-      if (err.body?.message) {
-        setError(err.body.message);
+      const message = getApiErrorMessage(err);
+      if (message) {
+        setError(message);
       } else {
         setError("Ocurrió un error inesperado. Intenta de nuevo.");
       }
@@ -201,6 +203,13 @@ export function LoginForm({ onRecover, onRegister }: LoginFormProps) {
         >
           Solicitar acceso
         </button>
+      </div>
+
+      <div className="text-center text-[12.5px] text-[#8a7f70]">
+        ¿Eres sysadmin?{" "}
+        <a href="/login_admin" className="text-vs-ink font-semibold hover:underline">
+          Acceso administrador
+        </a>
       </div>
       <AlertDialog open={!!error} onOpenChange={(open) => { if (!open) setError(null); }}>
         <AlertDialogContent>

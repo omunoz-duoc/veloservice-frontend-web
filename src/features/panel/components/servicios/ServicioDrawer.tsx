@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, Eye, Pencil, Check, Plus, Copy, Trash2 } from "lucide-react"
+import { X, Pencil, Check, Plus, Copy, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   CATEGORIAS, ALL_SKILLS, fmt,

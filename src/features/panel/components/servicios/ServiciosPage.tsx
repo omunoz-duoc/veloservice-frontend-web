@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import {
   Plus, Search, LayoutGrid, List, ChevronDown,
   Eye, Pencil, Copy, MoreHorizontal, Sparkles,
@@ -12,7 +12,7 @@ import {
   CATEGORIAS, fmt, nextServicioId,
   type CatKey, type Servicio,
 } from "./servicios.mock"
-import { serviciosService } from "../../services/servicios.provider"
+import { useCreateServicioMutation, useServiciosQuery, useUpdateServicioCacheMutation } from "../../hooks/useServicios"
 import { ServicioDrawer } from "./ServicioDrawer"
 import { NuevoServicioModal } from "./NuevoServicioModal"
 
@@ -302,11 +302,9 @@ type DrawerState = { servicio: Servicio; mode: "view" | "edit" } | null
 type ModalState = { defaultCat?: CatKey } | null
 
 export function ServiciosPage() {
-  const [servicios, setServicios] = useState<Servicio[]>([])
-
-  useEffect(() => {
-    serviciosService.getServicios().then(r => setServicios(r.servicios))
-  }, [])
+  const { data: servicios = [], isLoading, isError, error } = useServiciosQuery()
+  const createServicio = useCreateServicioMutation()
+  const updateServicio = useUpdateServicioCacheMutation()
   const [view, setView] = useState<"grid" | "list">("grid")
   const [activeTab, setActiveTab] = useState<"all" | CatKey>("all")
   const [query, setQuery] = useState("")
@@ -343,22 +341,32 @@ export function ServiciosPage() {
   const toggleCollapse = (key: CatKey) =>
     setCollapsed(prev => {
       const next = new Set(prev)
-      next.has(key) ? next.delete(key) : next.add(key)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
       return next
     })
 
   const handleSave = (updated: Servicio) => {
-    setServicios(prev => prev.map(s => s.id === updated.id ? updated : s))
+    updateServicio.mutate(updated)
     setDrawer(null)
   }
 
-  const handleCreate = (nuevo: Servicio) => {
-    setServicios(prev => [...prev, nuevo])
-    setModal(null)
+  const handleCreate = async (nuevo: Servicio) => {
+    try {
+      await createServicio.mutateAsync(nuevo)
+      setModal(null)
+    } catch {
+      // Error is rendered near the page header.
+    }
   }
 
   const totalOTs = servicios.reduce((a, s) => a + s.ots30, 0)
-  const ticketProm = Math.round(servicios.reduce((a, s) => a + s.precio * s.ots30, 0) / totalOTs)
+  const ticketProm = totalOTs > 0
+    ? Math.round(servicios.reduce((a, s) => a + s.precio * s.ots30, 0) / totalOTs)
+    : 0
 
   const tabs = [
     { key: "all" as const, label: "Todos", count: counts.all },
@@ -388,9 +396,17 @@ export function ServiciosPage() {
       <PageHeader
         breadcrumb={[{ label: "Panel", href: "/dashboard" }, { label: "Servicios" }]}
         title="Catálogo de servicios"
-        subtitle={`${servicios.length} servicios activos · ${CATEGORIAS.length} categorías · Ticket promedio ${fmt(ticketProm)}`}
+        subtitle={isError ? "No se pudo cargar el catálogo" : `${servicios.length} servicios activos · ${CATEGORIAS.length} categorías · Ticket promedio ${fmt(ticketProm)}`}
         actions={ACTIONS}
       />
+
+      {(isError || createServicio.isError) && (
+        <div className="bg-vs-warn-bg border border-vs-warn/20 text-vs-warn rounded-[16px] px-4 py-3 mb-4 text-[13px]">
+          {isError && error instanceof Error
+            ? error.message
+            : "No se pudo guardar el servicio. Intenta nuevamente."}
+        </div>
+      )}
 
       {/* Filter bar */}
       <div className="bg-vs-card border border-vs-line rounded-[24px] p-3 mb-5 flex items-center gap-2 flex-wrap">
@@ -464,7 +480,13 @@ export function ServiciosPage() {
 
       {/* Grouped sections */}
       <div className="space-y-6">
-        {CATEGORIAS.map(cat => {
+        {isLoading && (
+          <div className="bg-vs-card border border-vs-line rounded-[24px] p-12 text-center text-[#8a7f70] text-[13px]">
+            Cargando servicios…
+          </div>
+        )}
+
+        {!isLoading && CATEGORIAS.map(cat => {
           const items = grouped[cat.key]
           if (!items || items.length === 0) return null
           return (
@@ -482,7 +504,7 @@ export function ServiciosPage() {
           )
         })}
 
-        {filtered.length === 0 && (
+        {!isLoading && filtered.length === 0 && (
           <div className="bg-vs-card border border-vs-line rounded-[24px] p-12 text-center text-[#8a7f70] text-[13px] vs-scale-in">
             Sin servicios para los filtros actuales.
           </div>

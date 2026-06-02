@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { ApiError } from "./api-error";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://veloservice-backend-337hberz7q-tl.a.run.app/api/v1/";
 
@@ -8,16 +9,27 @@ function authHeader(endpoint: string): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+async function parseJsonBody(res: Response) {
+  return res.json().catch(() => null);
+}
+
+async function parseOptionalJson<T>(res: Response): Promise<T> {
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
+}
+
+async function assertOk(res: Response, message: string) {
+  if (!res.ok) {
+    throw new ApiError(message, res.status, await parseJsonBody(res));
+  }
+}
+
 export const httpClient = {
   get: async <T>(endpoint: string): Promise<T> => {
-    console.log(`HTTP GET ${apiUrl}${endpoint}`);
     const res = await fetch(`${apiUrl}${endpoint}`, {
       headers: { ...authHeader(endpoint) },
     });
-    if (!res.ok) {
-      const errorBody = await res.json().catch(() => null);
-      throw { status: res.status, message: `GET ${endpoint} failed`, body: errorBody };
-    }
+    await assertOk(res, `GET ${endpoint} failed`);
     return res.json() as Promise<T>;
   },
   post: async <T>(endpoint: string, body: unknown): Promise<T> => {
@@ -26,12 +38,8 @@ export const httpClient = {
       headers: { "Content-Type": "application/json", ...authHeader(endpoint) },
       body: JSON.stringify(body),
     });
-    if (!res.ok) {
-      const errorBody = await res.json().catch(() => null);
-      throw { status: res.status, message: `POST ${endpoint} failed`, body: errorBody };
-    }
-    const text = await res.text();
-    return (text ? JSON.parse(text) : undefined) as T;
+    await assertOk(res, `POST ${endpoint} failed`);
+    return parseOptionalJson<T>(res);
   },
   put: async <T>(endpoint: string, body: unknown): Promise<T> => {
     const res = await fetch(`${apiUrl}${endpoint}`, {
@@ -39,10 +47,7 @@ export const httpClient = {
       headers: { "Content-Type": "application/json", ...authHeader(endpoint) },
       body: JSON.stringify(body),
     });
-    if (!res.ok) {
-      const errorBody = await res.json().catch(() => null);
-      throw { status: res.status, message: `PUT ${endpoint} failed`, body: errorBody };
-    }
+    await assertOk(res, `PUT ${endpoint} failed`);
     return res.json() as Promise<T>;
   },
   patch: async <T>(endpoint: string, body: unknown): Promise<T> => {
@@ -51,21 +56,14 @@ export const httpClient = {
       headers: { "Content-Type": "application/json", ...authHeader(endpoint) },
       body: JSON.stringify(body),
     });
-    if (!res.ok) {
-      const errorBody = await res.json().catch(() => null);
-      throw { status: res.status, message: `PATCH ${endpoint} failed`, body: errorBody };
-    }
-    const text = await res.text();
-    return (text ? JSON.parse(text) : undefined) as T;
+    await assertOk(res, `PATCH ${endpoint} failed`);
+    return parseOptionalJson<T>(res);
   },
   delete: async (endpoint: string): Promise<void> => {
     const res = await fetch(`${apiUrl}${endpoint}`, {
       method: "DELETE",
       headers: { ...authHeader(endpoint) },
     });
-    if (!res.ok) {
-      const errorBody = await res.json().catch(() => null);
-      throw { status: res.status, message: `DELETE ${endpoint} failed`, body: errorBody };
-    }
+    await assertOk(res, `DELETE ${endpoint} failed`);
   },
 };

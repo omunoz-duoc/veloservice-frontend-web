@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { defaultCountries, FlagImage, parseCountry, usePhoneInput } from "react-international-phone";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useClickOutside } from "@/lib/hooks/use-click-outside";
 
 interface PhoneFieldProps {
   value: string;
@@ -33,14 +34,7 @@ export function PhoneField({
       onChange: (data) => onChange(data.phone),
     });
 
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (!containerRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+  useClickOutside(containerRef, () => setOpen(false), open);
 
   return (
     <div ref={containerRef} className="relative">

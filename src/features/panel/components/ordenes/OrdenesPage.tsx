@@ -4,23 +4,54 @@ import { useState, useMemo, useRef, useEffect } from "react"
 import { PageHeader } from "@/components/common/PageHeader"
 import {
   Plus, Search, SlidersHorizontal, Wrench, Calendar,
-  Eye, Pencil, MoreHorizontal, ChevronLeft, ChevronRight, ChevronDown,
+  Eye, Pencil, ChevronLeft, ChevronRight, ChevronDown,
   Check, X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import {
-  MECANICOS_MOCK, TIPO_CONFIG, ESTADO_CONFIG,
-  type OrdenTrabajo, type EstadoOT, type TipoOT,
-} from "./ordenes.mock"
+// import {
+//   MECANICOS_MOCK, TIPO_CONFIG, ESTADO_CONFIG,
+//   type OrdenTrabajo, type EstadoOT, type TipoOT,
+// } from "./ordenes.mock"
 import { OTDrawer } from "./OTDrawer"
 import { useOrdenes } from "@/features/panel/context/OrdenesContext"
+import { useOrdenesQuery } from "@/features/panel/hooks/useOrdenes"
 import { BulkReasignarModal } from "./BulkReasignarModal"
 import { BulkEstadoModal } from "./BulkEstadoModal"
 
+
+export const TIPO_CONFIG: Record<string, { label: string; fg: string; bg: string }> = {
+  personalizacion: { label: "Personalización", fg: "#3a6ea5", bg: "#e4eaf2" },
+  mantencion:  { label: "Mantención",  fg: "#6b5bd1", bg: "#ebe7fa" },
+  reparacion:  { label: "Reparación",  fg: "#c85a2a", bg: "#fbeadd" },
+  revision:    { label: "Revisión",    fg: "#111418", bg: "#ece7de" },
+  garantia:    { label: "Garantía",    fg: "#2f7d4f", bg: "#e4f1e8" },
+  armado:      { label: "Armado",      fg: "#8c6a1e", bg: "#faecd6" },
+}
+
+export const ESTADO_CONFIG: Record<string, { label: string; fg: string; bg: string; dot: string }> = {
+  recibido:  { label: "Recibido",      fg: "#6b5d46", bg: "#efe9df", dot: "#a59682" },
+  proceso:   { label: "En proceso",    fg: "#6b5bd1", bg: "#ebe7fa", dot: "#6b5bd1" },
+  espera:    { label: "Esp. repuesto", fg: "#c85a2a", bg: "#fbeadd", dot: "#c85a2a" },
+  listo:     { label: "Listo",         fg: "#2f7d4f", bg: "#e4f1e8", dot: "#2f7d4f" },
+  entregado: { label: "Entregado",     fg: "#3a6ea5", bg: "#e4eaf2", dot: "#3a6ea5" },
+}
+
+export const PRIORIDAD_CONFIG: Record<string, { label: string; fg: string; bg: string }> = {
+  baja:  { label: "Baja",  fg: "#6b5d46", bg: "#efe9df" },
+  media: { label: "Media", fg: "#3a6ea5", bg: "#e4eaf2" },
+  alta:  { label: "Alta",  fg: "#c85a2a", bg: "#fbeadd" },
+}
+
+export const TIPOS_BICI: string[] = [
+  "MTB", "MTB Full", "Ruta", "Gravel", "Urbana", "BMX", "eBike MTB", "eBike Urbana", "Otro",
+]
+
+import type { OrdenTrabajo, EstadoOT } from "./ordenes.types"
 // ─── Small chips ───────────────────────────────────────────────────────────────
 
-export function TipoChip({ tipo }: { tipo: TipoOT | undefined }) {
-  const cfg = TIPO_CONFIG[tipo ?? "mantencion"]
+export function TipoChip({ tipo }: { tipo: {codigo: string, id: string, nombre: string} }) {
+  const codigo = tipo.codigo;
+  const cfg = TIPO_CONFIG[codigo ?? "mantencion"]
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
@@ -32,8 +63,8 @@ export function TipoChip({ tipo }: { tipo: TipoOT | undefined }) {
   )
 }
 
-export function EstadoChip({ estado }: { estado: EstadoOT }) {
-  const cfg = ESTADO_CONFIG[estado]
+export function EstadoChip({ estado }: { estado: string }) {
+  const cfg = ESTADO_CONFIG[estado ?? "recibido"]
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
@@ -47,14 +78,8 @@ export function EstadoChip({ estado }: { estado: EstadoOT }) {
 
 export function MecPill({ mecanicoId }: { mecanicoId: string }) {
   const normalizedMecanico = mecanicoId.trim().toLowerCase()
-  const mec = MECANICOS_MOCK.find(m =>
-    m.id.toLowerCase() === normalizedMecanico ||
-    m.nombre.toLowerCase() === normalizedMecanico
-  )
   const unassigned = normalizedMecanico === "--" || !normalizedMecanico
-  const nombre   = mec?.nombre   ?? (unassigned ? "Sin asignar" : mecanicoId)
-  const iniciales = mec?.iniciales ?? mecanicoId.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
-  const color    = mec?.color    ?? "#6b5bd1"
+  const iniciales = mecanicoId.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
   return (
     <div className="flex items-center gap-2 min-w-0">
       <div
@@ -64,7 +89,7 @@ export function MecPill({ mecanicoId }: { mecanicoId: string }) {
             ? "border border-dashed border-[#b8a88d] text-[#a59682]"
             : "text-white"
         )}
-        style={{ background: unassigned ? "transparent" : color }}
+        style={{ background: unassigned ? "transparent" : "#6b5bd1" }}
       >
         {unassigned ? "?" : iniciales}
       </div>
@@ -72,7 +97,7 @@ export function MecPill({ mecanicoId }: { mecanicoId: string }) {
         "text-[12px] truncate",
         unassigned ? "text-[#a59682] italic" : "text-[#2b2f36] font-medium"
       )}>
-        {nombre}
+        {unassigned ? "Sin asignar" : mecanicoId}
       </span>
     </div>
   )
@@ -184,6 +209,12 @@ function parseFechaIngreso(s: string): Date | null {
   const year = month > now.getMonth() + 1 ? now.getFullYear() - 1 : now.getFullYear()
   return new Date(year, month, +m[1], +m[3], +m[4])
 }
+
+const MECANICOS_MOCK = [
+  { id: "m-001", nombre: "Javier Bravo", iniciales: "JB", color: "#6b5bd1" },
+  { id: "m-002", nombre: "Rodrigo Soto", iniciales: "RS", color: "#2f7d4f" },
+  { id: "m-003", nombre: "Pablo Herrera", iniciales: "PH", color: "#c85a2a" },
+]
 
 function normalizeMecanicoId(value: string) {
   const normalized = value.trim().toLowerCase()
@@ -376,11 +407,12 @@ const TABS: { key: TabKey; label: string }[] = [
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export function OrdenesPage() {
-  const { ordenes, updateOrden, openNuevaOT } = useOrdenes()
+  const { openNuevaOT } = useOrdenes()
+  const { data: ordenes = [], isLoading, isError, error } = useOrdenesQuery()
   const [activeTab, setActiveTab] = useState<TabKey>("all")
   const [query, setQuery] = useState("")
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [drawer, setDrawer] = useState<{ orden: OrdenTrabajo; mode: "view" | "edit" } | null>(null)
+  const [drawer, setDrawer] = useState<{ ordenId: string } | null>(null)
   const [filterTipos, setFilterTipos] = useState<string[]>([])
   const [filterMecanicos, setFilterMecanicos] = useState<string[]>([])
   const [filterDesde, setFilterDesde] = useState("")
@@ -401,7 +433,7 @@ export function OrdenesPage() {
         const hay = [o.id, o.clienteNombre, o.biciMarca, o.descripcion].join(" ").toLowerCase()
         if (!hay.includes(q)) return false
       }
-      if (filterTipos.length > 0 && (!o.tipo || !filterTipos.includes(o.tipo))) return false
+      if (filterTipos.length > 0 && (!o.tipo || !filterTipos.includes(o.tipo.codigo))) return false
       if (filterMecanicos.length > 0 && !filterMecanicos.includes(normalizeMecanicoId(o.mecanicoId))) return false
       if (filterDesde || filterHasta) {
         const fecha = parseFechaIngreso(o.fechaIngreso)
@@ -421,7 +453,11 @@ export function OrdenesPage() {
   const toggleSelect = (id: string) =>
     setSelected(prev => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
       return next
     })
 
@@ -429,11 +465,6 @@ export function OrdenesPage() {
     setSelected(prev =>
       prev.size === filtered.length ? new Set() : new Set(filtered.map(o => o.id))
     )
-
-  const handleSaveEdit = (updated: OrdenTrabajo) => {
-    updateOrden(updated)
-    setDrawer(null)
-  }
 
   const allSelected = filtered.length > 0 && selected.size === filtered.length
 
@@ -462,9 +493,15 @@ export function OrdenesPage() {
       <PageHeader
         breadcrumb={[{ label: "Panel", href: "/dashboard" }, { label: "Órdenes de servicio" }]}
         title="Órdenes de servicio"
-        subtitle={`Gestiona las OTs del taller · ${counts.all} activas · Sucursal Providencia`}
+        subtitle={isError ? "No se pudieron cargar las OTs" : `Gestiona las OTs del taller · ${counts.all} activas · Sucursal Providencia`}
         actions={ACTIONS}
       />
+
+      {isError && (
+        <div className="bg-vs-warn-bg border border-vs-warn/20 text-vs-warn rounded-[16px] px-4 py-3 mb-4 text-[13px]">
+          {error instanceof Error ? error.message : "Error al cargar órdenes. Intenta nuevamente."}
+        </div>
+      )}
 
       {/* Tab bar + search + filters */}
       <div className="bg-vs-card border border-vs-line rounded-[24px] p-3 mb-4  items-center gap-2 flex-wrap">
@@ -581,17 +618,24 @@ export function OrdenesPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(orden => (
+            {isLoading && (
+              <tr>
+                <td colSpan={9} className="text-center py-12 text-[#8a7f70] text-[13px]">
+                  Cargando órdenes…
+                </td>
+              </tr>
+            )}
+            {!isLoading && filtered.map(orden => (
               <OTRow
                 key={orden.id}
                 orden={orden}
                 selected={selected.has(orden.id)}
                 onSelect={() => toggleSelect(orden.id)}
-                onView={() => setDrawer({ orden, mode: "view" })}
-                onEdit={() => setDrawer({ orden, mode: "edit" })}
+                onView={() => setDrawer({ ordenId: orden.id })}
+                onEdit={() => setDrawer({ ordenId: orden.id })}
               />
             ))}
-            {filtered.length === 0 && (
+            {!isLoading && filtered.length === 0 && (
               <tr>
                 <td colSpan={9} className="text-center py-12 text-[#8a7f70] text-[13px]">
                   Sin resultados para los filtros actuales.
@@ -638,10 +682,11 @@ export function OrdenesPage() {
       {/* Drawer */}
       {drawer && (
         <OTDrawer
-          orden={drawer.orden}
-          mode={drawer.mode}
+          ordenId={drawer.ordenId}
           onClose={() => setDrawer(null)}
-          onSave={handleSaveEdit}
+          onEdit={() => {
+            // TODO: open edit flow owned by OrdenesPage.
+          }}
         />
       )}
 

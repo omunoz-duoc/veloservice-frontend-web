@@ -146,7 +146,7 @@ function ProductoRow({
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export function InventarioPage() {
-  const { data: fetched = [], isLoading } = useInventarioProductos()
+  const { data: fetched = [] } = useInventarioProductos()
   const [localProductos, setLocalProductos] = useState<Producto[]>([])
   const productos = localProductos.length > 0 ? localProductos : fetched
   const [tab, setTab] = useState<"all" | "ok" | "low" | "out">("all")
@@ -184,7 +184,15 @@ export function InventarioPage() {
   }, [productos, tab, query])
 
   const toggleSel = (id: string) =>
-    setSel(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+    setSel(prev => {
+      const n = new Set(prev)
+      if (n.has(id)) {
+        n.delete(id)
+      } else {
+        n.add(id)
+      }
+      return n
+    })
 
   const toggleAll = () =>
     setSel(prev => prev.size === filtered.length ? new Set() : new Set(filtered.map(p => p.id)))

@@ -4,13 +4,13 @@ import { useState, useMemo } from "react"
 import { X, Check, Plus, Mail, Phone, MapPin, User, Pencil, Bike, Trash2, Star, Copy, CheckCheck, ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-  TIERS, CANALES, ID_TYPES, BICIS_MOCK, fmtGasto, fmtGastoK, avatarInitials, avatarColor,
+  TIERS, CANALES, ID_TYPES, BICIS_MOCK, fmtGastoK, avatarInitials, avatarColor,
   type Cliente, type Bicicleta, type TierKey, type CanalKey, type IdType,
 } from "./clientes.mock"
 import { NuevaOTModal } from "../ordenes/NuevaOTModal"
-import { useOrdenes } from "../../context/OrdenesContext"
-import type { ClienteResult } from "../ordenes/ordenes.mock"
-import { TIPOS_BICI } from "../ordenes/ordenes.mock"
+import { nextOrdenId, useCreateOrdenCacheMutation, useOrdenesQuery } from "../../hooks/useOrdenes"
+import type { ClienteResult } from "../ordenes/ordenes.types"
+import { TIPOS_BICI } from "../ordenes/ordenes.constants"
 
 // ─── Shared ────────────────────────────────────────────────────────────────────
 
@@ -331,7 +331,7 @@ function ManageView({
         </div>
         {client.notas && (
           <div className="mt-3 bg-vs-chip rounded-xl p-3 border border-vs-line-2 text-[12.5px] leading-relaxed text-[#4a4438]">
-            "{client.notas}"
+            &quot;{client.notas}&quot;
           </div>
         )}
       </div>
@@ -808,11 +808,10 @@ export function ClienteDrawer({
   // Delete confirmation state
   const [deleteBici, setDeleteBici] = useState<Bicicleta | null>(null)
 
-  const { ordenes, addOrden } = useOrdenes()
+  const { data: ordenes = [] } = useOrdenesQuery()
+  const createOrdenCache = useCreateOrdenCacheMutation()
   const nextId = useMemo(() => {
-    const nums = ordenes.map(o => parseInt(o.id.replace(/\D/g, ""))).filter(n => !isNaN(n) && n > 0)
-    const last = nums.length ? Math.max(...nums) : 343
-    return `OT-${(last + 1).toString().padStart(4, "0")}`
+    return nextOrdenId(ordenes)
   }, [ordenes])
 
   const prefillCliente: ClienteResult = useMemo(() => ({
@@ -966,7 +965,7 @@ export function ClienteDrawer({
           nextId={nextId}
           onClose={() => setShowNuevaOT(false)}
           onCreate={(orden) => {
-            addOrden(orden)
+            createOrdenCache.mutate(orden)
             setShowNuevaOT(false)
           }}
           prefillCliente={prefillCliente}

@@ -10,7 +10,6 @@ import {
 } from "lucide-react"
 import { KpiCard } from "@/components/common/KpiCard"
 import type { SaasKpis } from "@/features/admin/services/admin.types"
-import { Sparkline } from "@/components/common/Sparkline"
 
 type Accent = "violet" | "good" | "info" | "warn" | "ink"
 

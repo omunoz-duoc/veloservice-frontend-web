@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useRef, useCallback, useMemo } from "react"
+import { getApiErrorMessage } from "@/lib/api/api-error"
 import { httpClient } from "@/lib/api/http-client"
 import {
   type Prioridad, type OrdenTrabajo,
   type ClienteResult, type BicicletaResult, type NuevaOTApiPayload,
-} from "../components/ordenes/ordenes.mock"
+} from "../components/ordenes/ordenes.types"
 import { clientesNuevaOTService } from "../services/clientes.nueva-ot.provider"
 import { serviciosService } from "../services/servicios.provider"
 import type { Servicio } from "../types/servicios.types"
@@ -187,7 +188,7 @@ export function useNuevaOT({
 
   // ─── Validation ──────────────────────────────────────────────────────────────
 
-  const validate = (): boolean => {
+  const validate = useCallback((): boolean => {
     const next: Errors = {}
     let valid = true
 
@@ -215,7 +216,7 @@ export function useNuevaOT({
 
     setErrors(next)
     return valid
-  }
+  }, [biciMode, clienteMode, newBiciForm, newClienteForm, otForm, selectedBicicleta, selectedCliente])
 
   // ─── Submit ───────────────────────────────────────────────────────────────────
 
@@ -282,6 +283,7 @@ export function useNuevaOT({
 
       onCreate({
         id: nextId,
+        tipo: { id: "", codigo: "mantencion", nombre: "Mantención" },
         servicioIds: otForm.servicioIds,
         estado: "recibido",
         prioridad: otForm.prioridad,
@@ -302,12 +304,11 @@ export function useNuevaOT({
 
       onClose()
     } catch (err: unknown) {
-      const body = (err as { body?: { message?: string } })?.body
-      setSubmitError(body?.message ?? "Error al crear la orden. Intenta nuevamente.")
+      setSubmitError(getApiErrorMessage(err) ?? "Error al crear la orden. Intenta nuevamente.")
     } finally {
       setSubmitting(false)
     }
-  }, [clienteMode, biciMode, newClienteForm, newBiciForm, otForm, selectedCliente, selectedBicicleta, nextId, onClose, onCreate])
+  }, [clienteMode, biciMode, newClienteForm, newBiciForm, otForm, selectedCliente, selectedBicicleta, nextId, onClose, onCreate, validate])
 
   return {
     // Cliente

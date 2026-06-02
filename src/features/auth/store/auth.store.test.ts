@@ -7,7 +7,7 @@ const mockUser: User = {
   nombre: "Ana",
   apellido: "López",
   email: "ana@veloservice.cl",
-  cargo: "Mecánico Sr",
+  rol: "mecanico",
   taller: "VeloService Providencia",
 };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Mail, Lock, User, CreditCard, Building2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Mail, Lock, User, CreditCard } from "lucide-react";
 import { Field } from "@/components/common/Field";
 import { PasswordMeter } from "./PasswordMeter";
 import { StepIndicator } from "./shared/StepIndicator";
@@ -23,11 +23,6 @@ const CARGOS = Object.values(CARGOS_MAP);
 const CARGOS_REVERSE_MAP: Record<string, string> = Object.fromEntries(
   Object.entries(CARGOS_MAP).map(([k, v]) => [v, k])
 );
-
-const TALLERES_MAP: Record<string, string> = {
-  "660e8400-e29b-41d4-a716-446655440001": "VeloService Lo Barnechea",
-  "660e8400-e29b-41d4-a716-446655440002": "VeloService Vitacura",
-};
 
 function Summary({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (

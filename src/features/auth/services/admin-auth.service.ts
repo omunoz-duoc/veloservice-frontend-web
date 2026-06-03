@@ -1,14 +1,7 @@
 import { httpClient } from "@/lib/api/http-client";
+import type { AdminUser } from "@/features/auth/types/auth.types";
 
-export interface AdminUser {
-  id: string;
-  nombre: string;
-  apellido: string;
-  email: string;
-  rol: string;
-  taller: string;
-  token?: string;
-}
+export type { AdminUser };
 
 export const adminAuthService: IAdminAuthService = {
   async login(email, password) {

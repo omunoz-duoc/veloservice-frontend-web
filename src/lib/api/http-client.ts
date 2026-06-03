@@ -5,7 +5,7 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://veloservice-backend-3
 
 function authHeader(endpoint: string): Record<string, string> {
   if (endpoint.startsWith("auth")) return {};
-  const token = useAuthStore.getState().token;
+  const token = useAuthStore.getState().user?.token;
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 

@@ -25,7 +25,7 @@ const ACTIONS = (
 export function DashboardPage() {
   const { user } = useAuthStore()
   const userName = user?.nombre ?? "Usuario"
-  const sucursalName = user?.taller?.trim() || "Sucursal por confirmar"
+  const sucursalName = user?.tallerId?.trim() || "Sucursal por confirmar"
 
   const now = new Date()
   

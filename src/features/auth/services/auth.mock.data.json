@@ -1,20 +1,12 @@
 [
   {
-    "id": "U-001",
     "nombre": "Andrés",
     "apellido": "Muñoz",
     "email": "admin@veloservice.cl",
-    "rol": "admin",
-    "taller": "VeloService Central",
-    "token": "mock-token-admin"
-  },
-  {
-    "id": "U-002",
-    "nombre": "System",
-    "apellido": "Admin",
-    "email": "sysadmin@veloservice.cl",
-    "rol": "sysadmin",
-    "taller": "VeloService Platform",
-    "token": "mock-token-sysadmin"
+    "token": "mock-token-admin",
+    "rol": "admin_taller",
+    "ambito": "taller",
+    "tallerId": "10000000-0000-4000-8000-000000000001",
+    "sucursalId": null
   }
 ]

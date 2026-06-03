@@ -1,14 +1,15 @@
 import type { IAdminAuthService, AdminUser } from "./admin-auth.service"
 import { ApiError } from "@/lib/api/api-error"
 
+const MOCK_ADMIN_EMAIL = "sysadmin@veloservice.cl"
 const MOCK_ADMIN: AdminUser = {
-  id: "U-002",
   nombre: "System",
   apellido: "Admin",
-  email: "sysadmin@veloservice.cl",
-  rol: "sysadmin",
-  taller: "VeloService Platform",
   token: "mock-token-sysadmin",
+  rol: "sysadmin",
+  ambito: "platform",
+  tallerId: "sysadmin-taller",
+  sucursalId: null,
 }
 
 async function mockFetch<T>(data: T, delayMs = 250): Promise<T> {
@@ -19,7 +20,7 @@ async function mockFetch<T>(data: T, delayMs = 250): Promise<T> {
 export const adminAuthMock: IAdminAuthService = {
   async login(email, _password) {
     const normalizedEmail = email.toLowerCase().trim()
-    if (normalizedEmail !== MOCK_ADMIN.email.toLowerCase()) {
+    if (normalizedEmail !== MOCK_ADMIN_EMAIL.toLowerCase()) {
       throw new ApiError("USER_NOT_FOUND", 404, { message: "USER_NOT_FOUND" })
     }
     return mockFetch(MOCK_ADMIN)

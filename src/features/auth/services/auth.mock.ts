@@ -2,7 +2,8 @@ import type { IAuthService, RegisterPayload, User } from "./auth.service"
 import usersData from "./auth.mock.data.json"
 import { ApiError } from "@/lib/api/api-error"
 
-const MOCK_USERS: User[] = usersData as unknown as User[]
+type MockUserEntry = User & { email: string }
+const MOCK_USERS: MockUserEntry[] = usersData as unknown as MockUserEntry[]
 
 async function mockFetch<T>(data: T, delayMs = 250): Promise<T> {
   await new Promise(r => setTimeout(r, delayMs))

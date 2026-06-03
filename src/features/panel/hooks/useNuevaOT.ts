@@ -1,15 +1,27 @@
 "use client"
 
-import { useState, useRef, useCallback, useMemo } from "react"
+import { useState, useRef, useCallback, useEffect, useMemo } from "react"
 import { getApiErrorMessage } from "@/lib/api/api-error"
-import { httpClient } from "@/lib/api/http-client"
+import { useAuthStore } from "@/features/auth/store/auth.store"
 import {
-  type Prioridad, type OrdenTrabajo,
-  type ClienteResult, type BicicletaResult, type NuevaOTApiPayload,
+  type Prioridad,
+  type ClienteResult,
+  type BicicletaResult,
+  type TipoTrabajo,
+  type MecanicoApi,
+  type ProductoResult,
+  type ProductoSeleccionado,
+  type CreateOTPayload,
+  type CreateOTResponse,
 } from "../components/ordenes/ordenes.types"
-import { clientesNuevaOTService } from "../services/clientes.nueva-ot.provider"
+import { nuevaOTService } from "../services/nuevaOT.provider"
 import { serviciosService } from "../services/servicios.provider"
 import type { Servicio } from "../types/servicios.types"
+
+// Role that is taller-scoped and must send sucursalId from localStorage.
+const ADMIN_TALLER_ROL = "admin_taller"
+// TODO: temporary key — will be renamed when the active-sucursal selector is finalized.
+const SUCURSAL_STORAGE_KEY = "sucursalId"
 
 // ─── Sub-form types ────────────────────────────────────────────────────────────
 
@@ -19,14 +31,19 @@ export type NuevoClienteForm = {
 }
 
 export type NuevaBiciForm = {
-  marca: string; modelo: string; tipo: string; color: string
-  numSerie: string; anio: string
+  marca: string; modelo: string; tipo: string; aro: string
+  color: string; numSerie: string; anio: string; notas: string
 }
 
 export type OTForm = {
-  servicioIds: string[]; prioridad: Prioridad
-  fechaEstimada: string; mecanicoId: string
-  descripcion: string; notasInternas: string
+  tipoId: string
+  servicioIds: string[]
+  productos: ProductoSeleccionado[]
+  prioridad: Prioridad
+  fechaPrometida: string
+  mecanicoId: string // "" = sin asignar
+  diagnosticoInicial: string
+  observacionesCliente: string
 }
 
 type Errors = Partial<Record<string, boolean>>
@@ -36,31 +53,30 @@ const EMPTY_CLIENTE: NuevoClienteForm = {
 }
 
 const EMPTY_BICI: NuevaBiciForm = {
-  marca: "", modelo: "", tipo: "MTB", color: "", numSerie: "", anio: "",
+  marca: "", modelo: "", tipo: "MTB", aro: "",
+  color: "", numSerie: "", anio: "", notas: "",
 }
 
 const EMPTY_OT: OTForm = {
-  servicioIds: [], prioridad: "media",
-  fechaEstimada: "", mecanicoId: "--",
-  descripcion: "", notasInternas: "",
+  tipoId: "", servicioIds: [], productos: [],
+  prioridad: "media", fechaPrometida: "", mecanicoId: "",
+  diagnosticoInicial: "", observacionesCliente: "",
 }
 
 // ─── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useNuevaOT({
-  nextId,
   onClose,
   onCreate,
   prefillCliente,
 }: {
-  nextId: string
   onClose: () => void
-  onCreate: (orden: OrdenTrabajo) => void
+  onCreate: (result: CreateOTResponse) => void
   prefillCliente?: ClienteResult
 }) {
   // Cliente search
   const [clienteQuery, setClienteQuery] = useState(prefillCliente?.nombre ?? "")
-  const [allClientes, setAllClientes] = useState<ClienteResult[]>([])
+  const [allClientes, setAllClientes] = useState<ClienteResult[]>(prefillCliente ? [prefillCliente] : [])
   const [clienteLoading, setClienteLoading] = useState(false)
   const [clienteMode, setClienteMode] = useState<"search" | "new">("search")
   const [selectedCliente, setSelectedCliente] = useState<ClienteResult | null>(prefillCliente ?? null)
@@ -68,15 +84,26 @@ export function useNuevaOT({
   const clientesLoadedRef = useRef(false)
 
   // Bicicleta
-  const [bicicletas, setBicicletas] = useState<BicicletaResult[]>(prefillCliente?.bicicletas ?? [])
-  const [biciMode, setBiciMode] = useState<"select" | "new">(prefillCliente?.bicicletas.length ? "select" : "new")
-  const [selectedBicicleta, setSelectedBicicleta] = useState<BicicletaResult | null>(prefillCliente?.bicicletas[0] ?? null)
+  const [bicicletas, setBicicletas] = useState<BicicletaResult[]>([])
+  const [biciLoading, setBiciLoading] = useState(false)
+  const [biciMode, setBiciMode] = useState<"select" | "new">("new")
+  const [selectedBicicleta, setSelectedBicicleta] = useState<BicicletaResult | null>(null)
   const [newBiciForm, setNewBiciForm] = useState<NuevaBiciForm>(EMPTY_BICI)
 
-  // Servicios
+  // Catalogs loaded on mount
+  const [tipos, setTipos] = useState<TipoTrabajo[]>([])
+  const [mecanicos, setMecanicos] = useState<MecanicoApi[]>([])
+  const [catalogLoading, setCatalogLoading] = useState(true)
+
+  // Servicios (lazy)
   const [servicios, setServicios] = useState<Servicio[]>([])
   const [serviciosLoading, setServiciosLoading] = useState(false)
   const serviciosLoadedRef = useRef(false)
+
+  // Productos (lazy)
+  const [productos, setProductos] = useState<ProductoResult[]>([])
+  const [productosLoading, setProductosLoading] = useState(false)
+  const productosLoadedRef = useRef(false)
 
   // OT
   const [otForm, setOTForm] = useState<OTForm>(EMPTY_OT)
@@ -85,6 +112,57 @@ export function useNuevaOT({
   const [errors, setErrors] = useState<Errors>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  // ─── Bicicleta loader (per cliente) ──────────────────────────────────────────
+
+  const loadBicicletas = useCallback(async (clienteId: string) => {
+    setBiciLoading(true)
+    try {
+      const { bicicletas: bikes } = await nuevaOTService.getBicicletas(clienteId)
+      setBicicletas(bikes)
+      if (bikes.length > 0) {
+        setBiciMode("select")
+        setSelectedBicicleta(bikes[0])
+      } else {
+        setBiciMode("new")
+        setSelectedBicicleta(null)
+      }
+    } catch {
+      setBicicletas([])
+      setBiciMode("new")
+      setSelectedBicicleta(null)
+    } finally {
+      setBiciLoading(false)
+    }
+  }, [])
+
+  // ─── Mount: load tipos + mecanicos, and prefilled cliente's bikes ────────────
+
+  useEffect(() => {
+    let active = true
+    Promise.all([nuevaOTService.getTipos(), nuevaOTService.getMecanicos()])
+      .then(([tiposRes, mecRes]) => {
+        if (!active) return
+        setTipos(tiposRes.tipos)
+        setMecanicos(mecRes.mecanicos)
+        setOTForm(prev => prev.tipoId ? prev : { ...prev, tipoId: tiposRes.tipos[0]?.id ?? "" })
+      })
+      .catch(() => {
+        if (!active) return
+        setTipos([])
+        setMecanicos([])
+      })
+      .finally(() => { if (active) setCatalogLoading(false) })
+
+    // Defer past the synchronous effect body so the initial bici fetch
+    // doesn't set state during render-commit (avoids cascading renders).
+    if (prefillCliente) {
+      const clienteId = prefillCliente.id
+      queueMicrotask(() => { if (active) void loadBicicletas(clienteId) })
+    }
+    return () => { active = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ─── Filtered clientes (local) ───────────────────────────────────────────────
 
@@ -103,8 +181,8 @@ export function useNuevaOT({
     clientesLoadedRef.current = true
     setClienteLoading(true)
     try {
-      const res = await clientesNuevaOTService.getClientesConBicicletas()
-      setAllClientes(res.clientes)
+      const { clientes: list } = await nuevaOTService.getClientes()
+      setAllClientes(list)
     } catch {
       setAllClientes([])
     } finally {
@@ -126,21 +204,27 @@ export function useNuevaOT({
     }
   }, [])
 
-  // ─── Handlers ────────────────────────────────────────────────────────────────
+  const loadProductos = useCallback(async () => {
+    if (productosLoadedRef.current) return
+    productosLoadedRef.current = true
+    setProductosLoading(true)
+    try {
+      const { productos: list } = await nuevaOTService.getProductos()
+      setProductos(list)
+    } catch {
+      setProductos([])
+    } finally {
+      setProductosLoading(false)
+    }
+  }, [])
+
+  // ─── Cliente handlers ────────────────────────────────────────────────────────
 
   const selectCliente = useCallback((cliente: ClienteResult) => {
     setSelectedCliente(cliente)
     setClienteQuery(cliente.nombre)
-    if (cliente.bicicletas.length > 0) {
-      setBicicletas(cliente.bicicletas)
-      setBiciMode("select")
-      setSelectedBicicleta(cliente.bicicletas[0])
-    } else {
-      setBicicletas([])
-      setBiciMode("new")
-      setSelectedBicicleta(null)
-    }
-  }, [])
+    void loadBicicletas(cliente.id)
+  }, [loadBicicletas])
 
   const switchToNewCliente = useCallback(() => {
     setClienteMode("new")
@@ -164,10 +248,14 @@ export function useNuevaOT({
     setErrors(prev => ({ ...prev, [`cliente_${key}`]: false }))
   }, [])
 
+  // ─── Bicicleta handlers ──────────────────────────────────────────────────────
+
   const setBiciField = useCallback(<K extends keyof NuevaBiciForm>(key: K, val: NuevaBiciForm[K]) => {
     setNewBiciForm(prev => ({ ...prev, [key]: val }))
     setErrors(prev => ({ ...prev, [`bici_${key}`]: false }))
   }, [])
+
+  // ─── OT handlers ─────────────────────────────────────────────────────────────
 
   const setOTField = useCallback(<K extends keyof OTForm>(key: K, val: OTForm[K]) => {
     setOTForm(prev => ({ ...prev, [key]: val }))
@@ -175,15 +263,41 @@ export function useNuevaOT({
   }, [])
 
   const addServicio = useCallback((id: string) => {
-    setOTForm(prev => {
-      if (prev.servicioIds.includes(id)) return prev
-      return { ...prev, servicioIds: [...prev.servicioIds, id] }
-    })
+    setOTForm(prev => prev.servicioIds.includes(id)
+      ? prev
+      : { ...prev, servicioIds: [...prev.servicioIds, id] })
     setErrors(prev => ({ ...prev, servicioIds: false }))
   }, [])
 
   const removeServicio = useCallback((id: string) => {
     setOTForm(prev => ({ ...prev, servicioIds: prev.servicioIds.filter(s => s !== id) }))
+  }, [])
+
+  const addProducto = useCallback((id: string) => {
+    setOTForm(prev => {
+      if (prev.productos.some(p => p.productoId === id)) return prev
+      const prod = productos.find(p => p.id === id)
+      if (!prod) return prev
+      return {
+        ...prev,
+        productos: [...prev.productos, {
+          productoId: prod.id, nombre: prod.nombre,
+          precioVenta: prod.precioVenta, cantidad: 1,
+        }],
+      }
+    })
+  }, [productos])
+
+  const removeProducto = useCallback((id: string) => {
+    setOTForm(prev => ({ ...prev, productos: prev.productos.filter(p => p.productoId !== id) }))
+  }, [])
+
+  const updateProductoCantidad = useCallback((id: string, cantidad: number) => {
+    const safe = Number.isFinite(cantidad) ? Math.max(1, Math.floor(cantidad)) : 1
+    setOTForm(prev => ({
+      ...prev,
+      productos: prev.productos.map(p => p.productoId === id ? { ...p, cantidad: safe } : p),
+    }))
   }, [])
 
   // ─── Validation ──────────────────────────────────────────────────────────────
@@ -202,7 +316,7 @@ export function useNuevaOT({
     }
 
     if (biciMode === "new") {
-      const required: (keyof NuevaBiciForm)[] = ["marca", "modelo", "tipo", "color"]
+      const required: (keyof NuevaBiciForm)[] = ["marca", "modelo", "tipo", "aro", "color"]
       for (const k of required) {
         if (!newBiciForm[k].trim()) { next[`bici_${k}`] = true; valid = false }
       }
@@ -210,9 +324,10 @@ export function useNuevaOT({
       next["bicicleta"] = true; valid = false
     }
 
+    if (!otForm.tipoId) { next["tipoId"] = true; valid = false }
     if (otForm.servicioIds.length === 0) { next["servicioIds"] = true; valid = false }
-    if (!otForm.fechaEstimada.trim()) { next["fechaEstimada"] = true; valid = false }
-    if (!otForm.descripcion.trim()) { next["descripcion"] = true; valid = false }
+    if (!otForm.fechaPrometida.trim()) { next["fechaPrometida"] = true; valid = false }
+    if (!otForm.diagnosticoInicial.trim()) { next["diagnosticoInicial"] = true; valid = false }
 
     setErrors(next)
     return valid
@@ -226,89 +341,55 @@ export function useNuevaOT({
     setSubmitError(null)
 
     try {
-      let clienteId: string
-      if (clienteMode === "new") {
-        const created = await httpClient.post<ClienteResult>("clientes", newClienteForm)
-        clienteId = created.id
-      } else {
-        clienteId = selectedCliente!.id
-      }
+      const user = useAuthStore.getState().user
+      const sucursalId = user?.rol === ADMIN_TALLER_ROL
+        ? (typeof window !== "undefined" ? localStorage.getItem(SUCURSAL_STORAGE_KEY) : null)
+        : null
 
-      let bicicletaId: string
-      if (biciMode === "new") {
-        const biciPayload = {
-          clienteId,
-          marca: newBiciForm.marca,
-          modelo: newBiciForm.modelo,
-          tipo: newBiciForm.tipo,
-          color: newBiciForm.color,
-          numSerie: newBiciForm.numSerie || undefined,
-          anio: newBiciForm.anio ? parseInt(newBiciForm.anio) : undefined,
-        }
-        const created = await httpClient.post<BicicletaResult>("bicicletas", biciPayload)
-        bicicletaId = created.id
-      } else {
-        bicicletaId = selectedBicicleta!.id
-      }
+      const clientePart = clienteMode === "new"
+        ? { clienteNuevo: { ...newClienteForm } }
+        : { clienteId: selectedCliente!.id }
 
-      const payload: NuevaOTApiPayload = {
-        clienteId,
-        bicicletaId,
-        servicioIds: otForm.servicioIds,
+      const biciPart = biciMode === "new"
+        ? {
+            bicicletaNueva: {
+              marca: newBiciForm.marca,
+              modelo: newBiciForm.modelo,
+              tipo: newBiciForm.tipo,
+              aro: newBiciForm.aro,
+              color: newBiciForm.color,
+              numeroSerie: newBiciForm.numSerie || undefined,
+              anio: newBiciForm.anio ? Number(newBiciForm.anio) : undefined,
+              notas: newBiciForm.notas || undefined,
+            },
+          }
+        : { bicicletaId: selectedBicicleta!.id }
+
+      const tipoTrabajo = tipos.find(t => t.id === otForm.tipoId)?.codigo ?? ""
+
+      const payload: CreateOTPayload = {
+        ...(sucursalId ? { sucursalId } : {}),
+        ...clientePart,
+        ...biciPart,
+        tipoTrabajo,
         prioridad: otForm.prioridad,
-        fechaEstimada: otForm.fechaEstimada,
-        mecanicoId: otForm.mecanicoId,
-        descripcion: otForm.descripcion,
-        notasInternas: otForm.notasInternas || undefined,
-      }
-      await httpClient.post("ordenes", payload)
-
-      const now = new Date()
-      const fechaIngreso =
-        now.toLocaleDateString("es-CL", { day: "numeric", month: "short" }) +
-        " · " +
-        now.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })
-
-      const clienteDisplay = clienteMode === "new"
-        ? `${newClienteForm.nombre} ${newClienteForm.apellido}`
-        : selectedCliente!.nombre
-
-      const biciDisplay = biciMode === "new" ? newBiciForm : {
-        marca: selectedBicicleta!.marca,
-        modelo: selectedBicicleta!.modelo,
-        tipo: selectedBicicleta!.tipo,
-        color: selectedBicicleta!.color,
-        numSerie: selectedBicicleta!.numSerie,
+        ...(otForm.mecanicoId ? { mecanicoId: otForm.mecanicoId } : {}),
+        fechaPrometida: otForm.fechaPrometida,
+        diagnosticoInicial: otForm.diagnosticoInicial,
+        ...(otForm.observacionesCliente.trim() ? { observacionesCliente: otForm.observacionesCliente } : {}),
+        servicios: otForm.servicioIds.map(id => ({ servicioId: id })),
+        productos: otForm.productos.map(p => ({ productoId: p.productoId, cantidad: p.cantidad })),
       }
 
-      onCreate({
-        id: nextId,
-        tipo: { id: "", codigo: "mantencion", nombre: "Mantención" },
-        servicioIds: otForm.servicioIds,
-        estado: "recibido",
-        prioridad: otForm.prioridad,
-        fechaIngreso,
-        fechaEstimada: otForm.fechaEstimada,
-        mecanicoId: otForm.mecanicoId,
-        clienteNombre: clienteDisplay,
-        biciMarca: biciMode === "new"
-          ? `${newBiciForm.marca} ${newBiciForm.modelo}`
-          : `${selectedBicicleta!.marca} ${selectedBicicleta!.modelo}`,
-        biciTipo: biciDisplay.tipo,
-        biciTalla: "",
-        biciColor: biciDisplay.color,
-        biciNumSerie: biciDisplay.numSerie || undefined,
-        descripcion: otForm.descripcion,
-        notasInternas: otForm.notasInternas || undefined,
-      })
-
+      const result = await nuevaOTService.createOrden(payload)
+      onCreate(result)
       onClose()
     } catch (err: unknown) {
       setSubmitError(getApiErrorMessage(err) ?? "Error al crear la orden. Intenta nuevamente.")
     } finally {
       setSubmitting(false)
     }
-  }, [clienteMode, biciMode, newClienteForm, newBiciForm, otForm, selectedCliente, selectedBicicleta, nextId, onClose, onCreate, validate])
+  }, [validate, clienteMode, biciMode, newClienteForm, newBiciForm, otForm, selectedCliente, selectedBicicleta, tipos, onCreate, onClose])
 
   return {
     // Cliente
@@ -323,15 +404,21 @@ export function useNuevaOT({
     setClienteField,
     loadClientes,
     // Bicicleta
-    bicicletas,
+    bicicletas, biciLoading,
     biciMode, setBiciMode,
     selectedBicicleta, setSelectedBicicleta,
     newBiciForm,
     setBiciField,
+    // Catalogs
+    tipos, mecanicos, catalogLoading,
     // Servicios
     servicios, serviciosLoading,
     addServicio, removeServicio,
     loadServicios,
+    // Productos
+    productos, productosLoading,
+    addProducto, removeProducto, updateProductoCantidad,
+    loadProductos,
     // OT
     otForm, setOTField,
     // Submit

@@ -96,10 +96,10 @@ const TIPO_MAP: Record<string, TipoOT> = {
     mantenimiento: "mantencion",
     reparacion: "reparacion",
     revision: "revision",
-    diagnostico: "revision",
+    diagnostico: "diagnostico",
     garantia: "garantia",
     armado: "armado",
-    overhaul: "mantencion",
+    overhaul: "overhaul",
 }
 
 const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
@@ -138,7 +138,8 @@ function formatFechaIngreso(value: string | undefined) {
 
 function normalizePrioridad(value: string | undefined): FrontendPrioridad {
     const prioridad = normalizeCode(value ?? "media")
-    return prioridad === "baja" || prioridad === "alta" ? prioridad : "media"
+    if (prioridad === "baja" || prioridad === "alta" || prioridad === "urgente") return prioridad
+    return "media"
 }
 
 function fullName(person: { nombre?: string; apellido?: string } | undefined | null) {
@@ -200,7 +201,7 @@ export const ordenesService: IOrdenesService = {
     },
 
     async updateOrden(id: string, payload: UpdateOrdenPayload) {
-        return httpClient.put<ApiOrdenTrabajo>(`ordenes/${id}`, payload);
+        return httpClient.patch<ApiOrdenTrabajo>(`ordenes/${id}`, payload);
     },
 
     async cambiarEstado(id: string, payload: OrdenEstadoChangePayload) {

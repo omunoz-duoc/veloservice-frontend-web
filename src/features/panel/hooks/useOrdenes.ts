@@ -5,8 +5,6 @@ import { ordenesService } from "@/features/panel/services/ordenes.provider"
 import { ESTADO_TO_API_MAP, mapApiOrden } from "@/features/panel/services/ordenes.service"
 import type {
   BulkUpdateOrdenPayload,
-  Prioridad as ApiPrioridad,
-  TipoOT as ApiTipoOT,
   UpdateOrdenPayload,
 } from "@/features/panel/types/ordenes.types"
 import type { EstadoOT, OrdenTrabajo, Prioridad, TipoOT } from "@/features/panel/components/ordenes/ordenes.types"
@@ -20,30 +18,31 @@ type BulkChanges = {
   mecanicoId?: string
 }
 
-const TIPO_TO_API_MAP: Record<TipoOT, ApiTipoOT> = {
-  personalizacion: "Otro",
-  mantencion: "Mantención",
-  reparacion: "Otro",
-  revision: "Diagnóstico",
-  garantia: "Garantía",
-  armado: "Armado",
+const TIPO_TO_API_MAP: Record<TipoOT, string> = {
+  personalizacion: "revision",
+  mantencion: "mantencion",
+  reparacion: "reparacion",
+  revision: "revision",
+  diagnostico: "diagnostico",
+  overhaul: "overhaul",
+  garantia: "garantia",
+  armado: "armado",
 }
 
-const PRIORIDAD_TO_API_MAP: Record<Prioridad, ApiPrioridad> = {
-  baja: "Baja",
-  media: "Media",
-  alta: "Alta",
+const PRIORIDAD_TO_API_MAP: Record<Prioridad, string> = {
+  baja: "baja",
+  media: "media",
+  alta: "alta",
+  urgente: "urgente",
 }
 
 function toUpdatePayload(orden: OrdenTrabajo): UpdateOrdenPayload {
   return {
-    tipo: orden.tipo?.codigo ? TIPO_TO_API_MAP[orden.tipo.codigo as TipoOT] : undefined,
+    estadoCodigo: ESTADO_TO_API_MAP[orden.estado],
+    estadoObservacion: "Cambio de estado desde panel web",
+    tipoCodigo: orden.tipo?.codigo ? TIPO_TO_API_MAP[orden.tipo.codigo as TipoOT] : undefined,
     prioridad: PRIORIDAD_TO_API_MAP[orden.prioridad],
-    fechaEstimada: orden.fechaEstimada,
     mecanicoId: orden.mecanicoId,
-    descripcion: orden.descripcion,
-    estado: ESTADO_TO_API_MAP[orden.estado],
-    notasInternas: orden.notasInternas,
   }
 }
 

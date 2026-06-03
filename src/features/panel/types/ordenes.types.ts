@@ -103,10 +103,12 @@ export type CreateOrdenPayload = {
 }
 
 export type UpdateOrdenPayload = {
-    tipo?: TipoOT;
-    prioridad?: Prioridad;
-    fechaEstimada?: string;
+    estadoCodigo?: string;
+    estadoObservacion?: string;
+    tipoCodigo?: string;
+    prioridad?: string;
     mecanicoId?: string;
+    fechaEstimada?: string;
     bicicletaId?: string;
     descripcion?: string;
     estado?: string;

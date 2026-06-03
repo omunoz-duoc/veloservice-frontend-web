@@ -24,6 +24,8 @@ export const TIPO_CONFIG: Record<string, { label: string; fg: string; bg: string
   mantencion:  { label: "Mantención",  fg: "#6b5bd1", bg: "#ebe7fa" },
   reparacion:  { label: "Reparación",  fg: "#c85a2a", bg: "#fbeadd" },
   revision:    { label: "Revisión",    fg: "#111418", bg: "#ece7de" },
+  diagnostico: { label: "Diagnostico", fg: "#3a6ea5", bg: "#e4eaf2" },
+  overhaul:    { label: "Overhaul",    fg: "#111418", bg: "#ece7de" },
   garantia:    { label: "Garantía",    fg: "#2f7d4f", bg: "#e4f1e8" },
   armado:      { label: "Armado",      fg: "#8c6a1e", bg: "#faecd6" },
 }
@@ -43,6 +45,7 @@ export const PRIORIDAD_CONFIG: Record<string, { label: string; fg: string; bg: s
   baja:  { label: "Baja",  fg: "#6b5d46", bg: "#efe9df" },
   media: { label: "Media", fg: "#3a6ea5", bg: "#e4eaf2" },
   alta:  { label: "Alta",  fg: "#c85a2a", bg: "#fbeadd" },
+  urgente: { label: "Urgente", fg: "#8c1e1e", bg: "#f7dddd" },
 }
 
 const TIPO_FALLBACK = { label: "Otro", fg: "#4a4438", bg: "#ece7de" }

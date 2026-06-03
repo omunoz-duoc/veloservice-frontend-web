@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { Check, FileText, Loader2, Pencil, X } from "lucide-react"
 import { useMecanicosActivos } from "@/features/panel/hooks/useMecanicosActivos"
-import { useChangeOrdenEstadoMutation, useOrdenDetalleQuery } from "@/features/panel/hooks/useOrdenes"
+import { useOrdenDetalleQuery, useUpdateOrdenMutation } from "@/features/panel/hooks/useOrdenes"
 import type { EstadoOT, OrdenTrabajo, Prioridad, TipoOT } from "@/features/panel/components/ordenes/ordenes.types"
 import type { OrdenTrabajoDetalle } from "@/features/panel/types/ordenes.types"
 
@@ -41,10 +41,11 @@ const PRIORIDAD_COLORS: Record<string, { fg: string; bg: string }> = {
 }
 
 const TIPO_OPTIONS: Array<{ value: TipoOT; label: string }> = [
-  { value: "personalizacion", label: "Personalizacion" },
   { value: "mantencion", label: "Mantencion" },
   { value: "reparacion", label: "Reparacion" },
   { value: "revision", label: "Revision" },
+  { value: "diagnostico", label: "Diagnostico" },
+  { value: "overhaul", label: "Overhaul" },
   { value: "garantia", label: "Garantia" },
   { value: "armado", label: "Armado" },
 ]
@@ -64,6 +65,7 @@ const PRIORIDAD_OPTIONS: Array<{ value: Prioridad; label: string }> = [
   { value: "baja", label: "Baja" },
   { value: "media", label: "Media" },
   { value: "alta", label: "Alta" },
+  { value: "urgente", label: "Urgente" },
 ]
 
 const TIPO_MAP: Record<string, TipoOT> = {
@@ -73,10 +75,10 @@ const TIPO_MAP: Record<string, TipoOT> = {
   mantenimiento: "mantencion",
   reparacion: "reparacion",
   revision: "revision",
-  diagnostico: "revision",
+  diagnostico: "diagnostico",
   garantia: "garantia",
   armado: "armado",
-  overhaul: "mantencion",
+  overhaul: "overhaul",
 }
 
 const ESTADO_MAP: Record<string, EstadoOT> = {
@@ -122,7 +124,8 @@ function normalizeEstado(codigo: string | null | undefined): EstadoOT {
 
 function normalizePrioridad(prioridad: string | null | undefined): Prioridad {
   const value = normalizeCode(prioridad)
-  return value === "baja" || value === "alta" ? value : "media"
+  if (value === "baja" || value === "alta" || value === "urgente") return value
+  return "media"
 }
 
 function formatFecha(iso: string | null | undefined): string {
@@ -338,7 +341,7 @@ export function OTDrawer({
   onClose: () => void
 }) {
   const query = useOrdenDetalleQuery(ordenId)
-  const changeOrdenEstado = useChangeOrdenEstadoMutation()
+  const updateOrden = useUpdateOrdenMutation()
   const mecanicosQuery = useMecanicosActivos()
   const orden = query.data
   const [mode, setMode] = useState<"view" | "edit">("view")
@@ -396,7 +399,7 @@ export function OTDrawer({
   }
 
   const isEditing = mode === "edit"
-  const isSaving = changeOrdenEstado.isPending
+  const isSaving = updateOrden.isPending
   const tipoCfg = TIPO_COLORS[normalizeTipo(orden.tipo.codigo)] ?? NEUTRAL
   const servicios = orden.servicios ?? []
   const productos = orden.productos ?? []
@@ -411,7 +414,7 @@ export function OTDrawer({
     if (!draft) return
     setSaveError(null)
     try {
-      await changeOrdenEstado.mutateAsync(draft)
+      await updateOrden.mutateAsync(draft)
       setMode("view")
     } catch {
       setSaveError("No se pudo guardar la orden. Intenta nuevamente.")

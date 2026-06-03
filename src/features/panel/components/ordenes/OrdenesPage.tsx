@@ -30,10 +30,13 @@ export const TIPO_CONFIG: Record<string, { label: string; fg: string; bg: string
 
 export const ESTADO_CONFIG: Record<string, { label: string; fg: string; bg: string; dot: string }> = {
   recibido:  { label: "Recibido",      fg: "#6b5d46", bg: "#efe9df", dot: "#a59682" },
+  diagnostico: { label: "Diagnostico", fg: "#3a6ea5", bg: "#e4eaf2", dot: "#3a6ea5" },
   proceso:   { label: "En proceso",    fg: "#6b5bd1", bg: "#ebe7fa", dot: "#6b5bd1" },
   espera:    { label: "Esp. repuesto", fg: "#c85a2a", bg: "#fbeadd", dot: "#c85a2a" },
+  calidad:   { label: "Control calidad", fg: "#8c6a1e", bg: "#faecd6", dot: "#8c6a1e" },
   listo:     { label: "Listo",         fg: "#2f7d4f", bg: "#e4f1e8", dot: "#2f7d4f" },
   entregado: { label: "Entregado",     fg: "#3a6ea5", bg: "#e4eaf2", dot: "#3a6ea5" },
+  cancelado: { label: "Cancelado",     fg: "#6b5d46", bg: "#ece7de", dot: "#6b5d46" },
 }
 
 export const PRIORIDAD_CONFIG: Record<string, { label: string; fg: string; bg: string }> = {
@@ -41,6 +44,9 @@ export const PRIORIDAD_CONFIG: Record<string, { label: string; fg: string; bg: s
   media: { label: "Media", fg: "#3a6ea5", bg: "#e4eaf2" },
   alta:  { label: "Alta",  fg: "#c85a2a", bg: "#fbeadd" },
 }
+
+const TIPO_FALLBACK = { label: "Otro", fg: "#4a4438", bg: "#ece7de" }
+const ESTADO_FALLBACK = { label: "Sin estado", fg: "#4a4438", bg: "#ece7de", dot: "#a59682" }
 
 export const TIPOS_BICI: string[] = [
   "MTB", "MTB Full", "Ruta", "Gravel", "Urbana", "BMX", "eBike MTB", "eBike Urbana", "Otro",
@@ -50,8 +56,7 @@ import type { OrdenTrabajo, EstadoOT } from "./ordenes.types"
 // ─── Small chips ───────────────────────────────────────────────────────────────
 
 export function TipoChip({ tipo }: { tipo: {codigo: string, id: string, nombre: string} }) {
-  const codigo = tipo.codigo;
-  const cfg = TIPO_CONFIG[codigo ?? "mantencion"]
+  const cfg = TIPO_CONFIG[tipo.codigo] ?? TIPO_FALLBACK
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
@@ -64,7 +69,7 @@ export function TipoChip({ tipo }: { tipo: {codigo: string, id: string, nombre: 
 }
 
 export function EstadoChip({ estado }: { estado: string }) {
-  const cfg = ESTADO_CONFIG[estado ?? "recibido"]
+  const cfg = ESTADO_CONFIG[estado] ?? ESTADO_FALLBACK
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
@@ -408,7 +413,7 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export function OrdenesPage() {
   const { openNuevaOT } = useOrdenes()
-  const { data: ordenes = [], isLoading, isError, error } = useOrdenesQuery()
+  const { data: ordenes = [], isLoading, isFetching, isError, error } = useOrdenesQuery()
   const [activeTab, setActiveTab] = useState<TabKey>("all")
   const [query, setQuery] = useState("")
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -420,8 +425,8 @@ export function OrdenesPage() {
   const [bulkModal, setBulkModal] = useState<"reasignar" | "estado" | null>(null)
 
   const counts = useMemo(() => {
-    const c = { all: ordenes.length, recibido: 0, proceso: 0, espera: 0, listo: 0, entregado: 0 }
-    ordenes.forEach(o => { c[o.estado]++ })
+    const c: Record<string, number> = { all: ordenes.length, recibido: 0, proceso: 0, espera: 0, listo: 0, entregado: 0 }
+    ordenes.forEach(o => { c[o.estado] = (c[o.estado] ?? 0) + 1 })
     return c as Record<TabKey, number>
   }, [ordenes])
 
@@ -595,7 +600,12 @@ export function OrdenesPage() {
       )}
 
       {/* Table */}
-      <div className="bg-vs-card border border-vs-line rounded-[24px] overflow-hidden">
+      <div className="relative bg-vs-card border border-vs-line rounded-[24px] overflow-hidden">
+        {isFetching && !isLoading && (
+          <div className="absolute left-0 right-0 top-0 z-10 border-b border-vs-line bg-[#faf6f0]/95 px-4 py-2 text-center text-[12px] font-medium text-[#6b5d46]">
+            Actualizando...
+          </div>
+        )}
         <table className="w-full text-left">
           <thead>
             <tr className="bg-[#faf6f0] border-b border-vs-line">
@@ -631,8 +641,8 @@ export function OrdenesPage() {
                 orden={orden}
                 selected={selected.has(orden.id)}
                 onSelect={() => toggleSelect(orden.id)}
-                onView={() => setDrawer({ ordenId: orden.id })}
-                onEdit={() => setDrawer({ ordenId: orden.id })}
+                onView={() => setDrawer({ ordenId: orden.backendId ?? orden.id })}
+                onEdit={() => setDrawer({ ordenId: orden.backendId ?? orden.id })}
               />
             ))}
             {!isLoading && filtered.length === 0 && (
@@ -684,9 +694,6 @@ export function OrdenesPage() {
         <OTDrawer
           ordenId={drawer.ordenId}
           onClose={() => setDrawer(null)}
-          onEdit={() => {
-            // TODO: open edit flow owned by OrdenesPage.
-          }}
         />
       )}
 

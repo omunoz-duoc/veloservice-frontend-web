@@ -5,7 +5,6 @@ import { ordenesService } from "@/features/panel/services/ordenes.provider"
 import { ESTADO_TO_API_MAP, mapApiOrden } from "@/features/panel/services/ordenes.service"
 import type {
   BulkUpdateOrdenPayload,
-  EstadoOT as ApiEstadoOT,
   Prioridad as ApiPrioridad,
   TipoOT as ApiTipoOT,
   UpdateOrdenPayload,
@@ -13,6 +12,8 @@ import type {
 import type { EstadoOT, OrdenTrabajo, Prioridad, TipoOT } from "@/features/panel/components/ordenes/ordenes.types"
 
 export const ordenesQueryKey = ["ordenes", "list"] as const
+
+export const ordenDetalleQueryKey = (ordenId: string) => ["ordenes", "detalle", ordenId] as const
 
 type BulkChanges = {
   estado?: EstadoOT
@@ -41,7 +42,7 @@ function toUpdatePayload(orden: OrdenTrabajo): UpdateOrdenPayload {
     fechaEstimada: orden.fechaEstimada,
     mecanicoId: orden.mecanicoId,
     descripcion: orden.descripcion,
-    estado: ESTADO_TO_API_MAP[orden.estado] as ApiEstadoOT,
+    estado: ESTADO_TO_API_MAP[orden.estado],
     notasInternas: orden.notasInternas,
   }
 }
@@ -67,7 +68,7 @@ export function useOrdenesQuery() {
 
 export function useOrdenDetalleQuery(ordenId: string) {
   return useQuery({
-    queryKey: ["ordenes", "detalle", ordenId] as const,
+    queryKey: ordenDetalleQueryKey(ordenId),
     queryFn: () => ordenesService.getOrdenById(ordenId),
     staleTime: 30_000,
     enabled: !!ordenId,
@@ -94,14 +95,51 @@ export function useUpdateOrdenMutation() {
 
   return useMutation({
     mutationFn: async (orden: OrdenTrabajo) => {
-      await ordenesService.updateOrden(orden.id, toUpdatePayload(orden))
+      await ordenesService.updateOrden(orden.backendId ?? orden.id, toUpdatePayload(orden))
       return orden
     },
     onSuccess: updated => {
+      const updatedLookupId = updated.backendId ?? updated.id
       queryClient.setQueryData<OrdenTrabajo[]>(ordenesQueryKey, current =>
-        (current ?? []).map(o => o.id === updated.id ? updated : o)
+        (current ?? []).map(o => {
+          const lookupId = o.backendId ?? o.id
+          return lookupId === updatedLookupId || o.id === updated.id ? { ...o, ...updated } : o
+        })
       )
       void queryClient.invalidateQueries({ queryKey: ordenesQueryKey })
+      void queryClient.invalidateQueries({ queryKey: ordenDetalleQueryKey(updatedLookupId) })
+      if (updatedLookupId !== updated.id) {
+        void queryClient.invalidateQueries({ queryKey: ordenDetalleQueryKey(updated.id) })
+      }
+    },
+  })
+}
+
+export function useChangeOrdenEstadoMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (orden: Pick<OrdenTrabajo, "id" | "backendId" | "estado">) => {
+      const lookupId = orden.backendId ?? orden.id
+      await ordenesService.cambiarEstado(lookupId, {
+        codigo: ESTADO_TO_API_MAP[orden.estado],
+        observacion: "Cambio de estado desde panel web",
+      })
+      return orden
+    },
+    onSuccess: updated => {
+      const updatedLookupId = updated.backendId ?? updated.id
+      queryClient.setQueryData<OrdenTrabajo[]>(ordenesQueryKey, current =>
+        (current ?? []).map(o => {
+          const lookupId = o.backendId ?? o.id
+          return lookupId === updatedLookupId || o.id === updated.id ? { ...o, estado: updated.estado } : o
+        })
+      )
+      void queryClient.invalidateQueries({ queryKey: ordenesQueryKey })
+      void queryClient.invalidateQueries({ queryKey: ordenDetalleQueryKey(updatedLookupId) })
+      if (updatedLookupId !== updated.id) {
+        void queryClient.invalidateQueries({ queryKey: ordenDetalleQueryKey(updated.id) })
+      }
     },
   })
 }

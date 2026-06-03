@@ -129,6 +129,16 @@ export const ordenesMock: IOrdenesService = {
     if (idx >= 0) ordenes = ordenes.map(o => o.numeroOrden === id ? updated : o)
     return mockFetch(updated)
   },
+  async cambiarEstado(id, payload) {
+    const idx = ordenes.findIndex(o => o.numeroOrden === id)
+    const current = idx >= 0 ? ordenes[idx] : ordenes[0]
+    const updated: OrdenTrabajo = {
+      ...current,
+      estado: payload.codigo,
+    }
+    if (idx >= 0) ordenes = ordenes.map(o => o.numeroOrden === id ? updated : o)
+    return mockFetch(toDetalle(updated))
+  },
   async deleteOrden(_id) {
     return mockFetch(undefined as void)
   },

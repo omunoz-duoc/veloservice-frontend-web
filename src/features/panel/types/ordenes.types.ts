@@ -87,6 +87,9 @@ export type OrdenTrabajoDetalle = {
         servicioId: string;
         nombre: string;
         precioBase: number;
+        precioAplicado?: number;
+        descuentoAplicado?: number;
+        notas?: string;
     }>;
 }
 
@@ -113,6 +116,7 @@ export type UpdateOrdenPayload = {
     descripcion?: string;
     estado?: string;
     notasInternas?: string;
+    serviciosCambios?: OrdenServicioCambioPayload[];
 }
 
 export type BulkUpdateOrdenPayload = {
@@ -125,6 +129,24 @@ export type OrdenEstadoChangePayload = {
     codigo: string;
     observacion?: string;
 }
+
+export type OrdenServicioCambioPayload =
+    | {
+        accion: "AGREGAR";
+        servicioId: string;
+        notas?: string;
+    }
+    | {
+        accion: "ACTUALIZAR";
+        lineaId: string;
+        precioAplicado: number;
+        descuentoAplicado: number;
+        notas?: string;
+    }
+    | {
+        accion: "ELIMINAR";
+        lineaId: string;
+    }
 
 export type TipoOT = "Mantención" | "Diagnóstico" | "Garantía" | "Armado" | "Otro";
 export type EstadoOT = "recibida" | "en_diagnostico" | "esperando_repuestos" | "en_reparacion" | "control_calidad" | "lista_para_entrega" | "entregada" | "cancelada";

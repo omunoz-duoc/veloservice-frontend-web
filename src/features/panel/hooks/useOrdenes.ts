@@ -6,6 +6,7 @@ import { ordenesService } from "@/features/panel/services/ordenes.provider"
 import { ESTADO_TO_API_MAP, mapApiOrden } from "@/features/panel/services/ordenes.service"
 import type {
   BulkUpdateOrdenPayload,
+  OrdenServicioCambioPayload,
   UpdateOrdenPayload,
 } from "@/features/panel/types/ordenes.types"
 import type { EstadoOT, OrdenTrabajo, Prioridad, TipoOT } from "@/features/panel/components/ordenes/ordenes.types"
@@ -17,6 +18,10 @@ export const ordenDetalleQueryKey = (ordenId: string) => ["ordenes", "detalle", 
 type BulkChanges = {
   estado?: EstadoOT
   mecanicoId?: string
+}
+
+type UpdateOrdenDraft = OrdenTrabajo & {
+  serviciosCambios?: OrdenServicioCambioPayload[]
 }
 
 const TIPO_TO_API_MAP: Record<TipoOT, string> = {
@@ -37,14 +42,16 @@ const PRIORIDAD_TO_API_MAP: Record<Prioridad, string> = {
   urgente: "urgente",
 }
 
-function toUpdatePayload(orden: OrdenTrabajo): UpdateOrdenPayload {
-  return {
+function toUpdatePayload(orden: UpdateOrdenDraft): UpdateOrdenPayload {
+  const payload: UpdateOrdenPayload = {
     estadoCodigo: ESTADO_TO_API_MAP[orden.estado],
     estadoObservacion: "Cambio de estado desde panel web",
     tipoCodigo: orden.tipo?.codigo ? TIPO_TO_API_MAP[orden.tipo.codigo as TipoOT] : undefined,
     prioridad: PRIORIDAD_TO_API_MAP[orden.prioridad],
     mecanicoId: orden.mecanicoId,
   }
+  if (orden.serviciosCambios && orden.serviciosCambios.length > 0) payload.serviciosCambios = orden.serviciosCambios
+  return payload
 }
 
 export function nextOrdenId(ordenes: OrdenTrabajo[]) {
@@ -105,9 +112,11 @@ export function useUpdateOrdenMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (orden: OrdenTrabajo) => {
+    mutationFn: async (orden: UpdateOrdenDraft) => {
       await ordenesService.updateOrden(orden.backendId ?? orden.id, toUpdatePayload(orden))
-      return orden
+      const { serviciosCambios, ...updated } = orden
+      void serviciosCambios
+      return updated
     },
     onSuccess: updated => {
       const updatedLookupId = updated.backendId ?? updated.id

@@ -12,7 +12,7 @@ import type { INuevaOTService } from "./nuevaOT.types"
 
 export const nuevaOTService: INuevaOTService = {
   async getClientes() {
-    return httpClient.get<ClientesListResponse>("lista-clientes")
+    return httpClient.get<ClientesListResponse>("clientes/lista-clientes")
   },
   async getBicicletas(clienteId: string) {
     return httpClient.get<BicicletasListResponse>(`bicicletas?clienteId=${encodeURIComponent(clienteId)}`)
@@ -21,10 +21,10 @@ export const nuevaOTService: INuevaOTService = {
     return httpClient.get<TiposTrabajoResponse>("ordenes/tipos")
   },
   async getMecanicos() {
-    return httpClient.get<MecanicosListResponse>("lista-mecanicos")
+    return httpClient.get<MecanicosListResponse>("administracion/lista-mecanicos")
   },
   async getProductos() {
-    return httpClient.get<ProductosListResponse>("lista-productos")
+    return httpClient.get<ProductosListResponse>("productos/lista-productos")
   },
   async createOrden(payload: CreateOTPayload) {
     return httpClient.post<CreateOTResponse>("ordenes", payload)

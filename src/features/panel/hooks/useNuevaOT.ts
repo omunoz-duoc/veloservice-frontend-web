@@ -118,11 +118,11 @@ export function useNuevaOT({
   const loadBicicletas = useCallback(async (clienteId: string) => {
     setBiciLoading(true)
     try {
-      const { bicicletas: bikes } = await nuevaOTService.getBicicletas(clienteId)
-      setBicicletas(bikes)
-      if (bikes.length > 0) {
+      const  bicicletas  = await nuevaOTService.getBicicletas(clienteId)
+      setBicicletas(bicicletas)
+      if (bicicletas.length > 0) {
         setBiciMode("select")
-        setSelectedBicicleta(bikes[0])
+        setSelectedBicicleta(bicicletas[0])
       } else {
         setBiciMode("new")
         setSelectedBicicleta(null)
@@ -143,9 +143,9 @@ export function useNuevaOT({
     Promise.all([nuevaOTService.getTipos(), nuevaOTService.getMecanicos()])
       .then(([tiposRes, mecRes]) => {
         if (!active) return
-        setTipos(tiposRes.tipos)
-        setMecanicos(mecRes.mecanicos)
-        setOTForm(prev => prev.tipoId ? prev : { ...prev, tipoId: tiposRes.tipos[0]?.id ?? "" })
+        setTipos(tiposRes)
+        setMecanicos(mecRes)
+        setOTForm(prev => prev.tipoId ? prev : { ...prev, tipoId: tiposRes[0]?.id ?? "" })
       })
       .catch(() => {
         if (!active) return
@@ -181,8 +181,8 @@ export function useNuevaOT({
     clientesLoadedRef.current = true
     setClienteLoading(true)
     try {
-      const { clientes: list } = await nuevaOTService.getClientes()
-      setAllClientes(list)
+      const clientes  = await nuevaOTService.getClientes()
+      setAllClientes(clientes)
     } catch {
       setAllClientes([])
     } finally {
@@ -365,7 +365,7 @@ export function useNuevaOT({
           }
         : { bicicletaId: selectedBicicleta!.id }
 
-      const tipoTrabajo = tipos.find(t => t.id === otForm.tipoId)?.codigo ?? ""
+      const tipoTrabajo = tipos.find(t => t.id === otForm.tipoId)?.id ?? ""
 
       const payload: CreateOTPayload = {
         ...(sucursalId ? { sucursalId } : {}),

@@ -45,9 +45,7 @@ export type ClienteResult = {
   rut: string
 }
 
-export type ClientesListResponse = {
-  clientes: ClienteResult[]
-}
+export type ClientesListResponse = ClienteResult[]
 
 // Bicicleta returned by /bicicletas?clienteId=
 export type BicicletaResult = {
@@ -60,9 +58,7 @@ export type BicicletaResult = {
   anio?: number
 }
 
-export type BicicletasListResponse = {
-  bicicletas: BicicletaResult[]
-}
+export type BicicletasListResponse = BicicletaResult[]
 
 // Tipo de trabajo from /ordenes/tipos
 export type TipoTrabajo = {
@@ -71,9 +67,8 @@ export type TipoTrabajo = {
   nombre: string
 }
 
-export type TiposTrabajoResponse = {
-  tipos: TipoTrabajo[]
-}
+export type TiposTrabajoResponse = TipoTrabajo[]
+
 
 // Mecánico from /lista-mecanicos
 export type MecanicoApi = {
@@ -81,9 +76,8 @@ export type MecanicoApi = {
   nombre: string
 }
 
-export type MecanicosListResponse = {
-  mecanicos: MecanicoApi[]
-}
+export type MecanicosListResponse = MecanicoApi[]
+
 
 // Producto from /lista-productos
 export type ProductoResult = {

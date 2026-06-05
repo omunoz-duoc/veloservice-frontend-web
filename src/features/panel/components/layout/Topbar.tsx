@@ -160,7 +160,7 @@ export function Topbar() {
               <h2 className="text-[15px] font-semibold text-[#2b2f36]">Enlace enviado</h2>
               <p className="text-[13px] text-[#8a7f70] leading-relaxed">
                 Hemos enviado un enlace a{" "}
-                <span className="font-medium text-[#2b2f36]">{user?.email ?? "tu correo registrado"}</span>{" "}
+                <span className="font-medium text-[#2b2f36]">tu correo registrado</span>{" "}
                 para restablecer tu contraseña.
               </p>
             </div>

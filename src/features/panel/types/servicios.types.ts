@@ -6,18 +6,11 @@ export interface IServiciosService {
 }
 
 export type Servicio = {
-  id: string
-  cat: CatKey
-  nombre: string
-  precio: number
-  precio2?: number
-  dur: number
-  desc: string
-  incluye: string[]
-  skills: string[]
-  activo: boolean
-  popular?: boolean
-  ots30: number
+  id: string;
+  nombre: string;
+  descripcion: string;
+  precioBase: number;
+  activo: true;
 }
 
 export type ServiciosListResponse = { total: number; servicios: Servicio[] }

@@ -1,14 +1,7 @@
 import { httpClient } from "@/lib/api/http-client";
+import type { User } from "@/features/auth/types/auth.types";
 
-export interface User {
-  id: string;
-  nombre: string;
-  apellido: string;
-  email: string;
-  rol: string;
-  taller: string;
-  token?: string;
-}
+export type { User };
 
 export interface RegisterPayload {
   nombre: string;

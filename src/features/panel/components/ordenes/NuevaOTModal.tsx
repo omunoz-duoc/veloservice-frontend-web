@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { X, Plus, Bike, Wrench, Search, User, ChevronLeft, Loader2, ChevronDown } from "lucide-react"
+import { X, Plus, Minus, Bike, Wrench, Search, User, ChevronLeft, Loader2, ChevronDown } from "lucide-react"
 import { TIPOS_BICI } from "./ordenes.constants"
-import type { OrdenTrabajo, Prioridad, ClienteResult, BicicletaResult } from "./ordenes.types"
+import type {
+  Prioridad, ClienteResult, BicicletaResult, ProductoResult, ProductoSeleccionado, CreateOTResponse,
+} from "./ordenes.types"
 import { useNuevaOT, type NuevoClienteForm, type NuevaBiciForm } from "@/features/panel/hooks/useNuevaOT"
 import type { Servicio } from "@/features/panel/types/servicios.types"
 
@@ -47,18 +49,20 @@ function Input({
 }
 
 function Select({
-  value, onChange, options,
+  value, onChange, options, disabled,
 }: {
   value: string
   onChange: (v: string) => void
   options: { value: string; label: string }[]
+  disabled?: boolean
 }) {
   return (
     <div className="relative">
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full appearance-none bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border border-vs-line-2 pr-8 text-vs-ink focus:border-[#a59682] transition-colors"
+        disabled={disabled}
+        className="w-full appearance-none bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border border-vs-line-2 pr-8 text-vs-ink focus:border-[#a59682] transition-colors disabled:opacity-60"
       >
         {options.map(o => (
           <option key={o.value} value={o.value}>{o.label}</option>
@@ -169,20 +173,14 @@ function ServiciosMultiSelect({
                 <button
                   key={s.id}
                   type="button"
-                  onMouseDown={() => {
-                    if (selected) {
-                      onRemove(s.id)
-                    } else {
-                      onAdd(s.id)
-                    }
-                  }}
+                  onMouseDown={() => { if (selected) onRemove(s.id); else onAdd(s.id) }}
                   className={`w-full text-left px-3 py-2.5 flex items-center justify-between border-b border-vs-line-2 last:border-0 transition-colors ${
                     selected ? "bg-[#ebe7fa] hover:bg-[#e0d9f8]" : "hover:bg-vs-chip"
                   }`}
                 >
                   <div>
                     <div className="text-[12.5px] font-medium text-vs-ink">{s.nombre}</div>
-                    <div className="text-[11px] text-[#8a7f70]">${s.precio.toLocaleString("es-CL")} · {s.dur} min</div>
+                    <div className="text-[11px] text-[#8a7f70]">${s.precioBase.toLocaleString("es-CL")}</div>
                   </div>
                   {selected && (
                     <div className="w-4 h-4 rounded-full bg-[#6b5bd1] flex items-center justify-center shrink-0">
@@ -216,6 +214,153 @@ function ServiciosMultiSelect({
                 <X size={11} strokeWidth={2.5} />
               </button>
             </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── ProductosMultiSelect ─────────────────────────────────────────────────────
+
+function ProductosMultiSelect({
+  productos, loading,
+  selected, onAdd, onRemove, onUpdateCantidad,
+  onFirstFocus,
+}: {
+  productos: ProductoResult[]
+  loading: boolean
+  selected: ProductoSeleccionado[]
+  onAdd: (id: string) => void
+  onRemove: (id: string) => void
+  onUpdateCantidad: (id: string, cantidad: number) => void
+  onFirstFocus: () => void
+}) {
+  const [query, setQuery] = useState("")
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
+
+  const selectedIds = selected.map(p => p.productoId)
+  const filtered = query.trim()
+    ? productos.filter(p => p.nombre.toLowerCase().includes(query.toLowerCase()))
+    : productos
+
+  return (
+    <div className="space-y-2">
+      <div ref={containerRef} className="relative">
+        <div
+          className={`flex items-center gap-2 bg-vs-chip rounded-xl px-3 py-2 border transition-colors cursor-text ${
+            open ? "border-[#a59682]" : "border-vs-line-2"
+          }`}
+          onClick={() => setOpen(true)}
+        >
+          <Search size={13} strokeWidth={1.8} className="text-[#8a7f70] shrink-0" />
+          <input
+            value={query}
+            onChange={e => { setQuery(e.target.value); setOpen(true) }}
+            onFocus={() => { setOpen(true); onFirstFocus() }}
+            placeholder={loading ? "Cargando productos…" : "Buscar y agregar producto…"}
+            disabled={loading}
+            className="flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-[#b8a88d]"
+          />
+          {loading
+            ? <Loader2 size={13} strokeWidth={2} className="text-[#8a7f70] animate-spin shrink-0" />
+            : <ChevronDown size={13} strokeWidth={2} className="text-[#8a7f70] shrink-0" />
+          }
+        </div>
+
+        {open && !loading && (
+          <div className="absolute z-10 mt-1 w-full bg-vs-card border border-vs-line rounded-2xl shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="px-3 py-3 text-[12px] text-[#8a7f70]">Sin resultados para &quot;{query}&quot;</div>
+            ) : filtered.map(p => {
+              const isSel = selectedIds.includes(p.id)
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onMouseDown={() => { if (isSel) onRemove(p.id); else onAdd(p.id) }}
+                  className={`w-full text-left px-3 py-2.5 flex items-center justify-between border-b border-vs-line-2 last:border-0 transition-colors ${
+                    isSel ? "bg-[#ebe7fa] hover:bg-[#e0d9f8]" : "hover:bg-vs-chip"
+                  }`}
+                >
+                  <div>
+                    <div className="text-[12.5px] font-medium text-vs-ink">{p.nombre}</div>
+                    <div className="text-[11px] text-[#8a7f70]">
+                      ${p.precioVenta.toLocaleString("es-CL")} · stock {p.stock}
+                    </div>
+                  </div>
+                  {isSel && (
+                    <div className="w-4 h-4 rounded-full bg-[#6b5bd1] flex items-center justify-center shrink-0">
+                      <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                        <path d="M2 6l3 3 5-5" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Selected products with inline quantity stepper */}
+      {selected.length > 0 && (
+        <div className="space-y-1.5">
+          {selected.map(p => (
+            <div
+              key={p.productoId}
+              className="flex items-center gap-2 bg-vs-chip rounded-xl px-3 py-2 border border-vs-line-2"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-[12.5px] font-medium text-vs-ink truncate">{p.nombre}</div>
+                <div className="text-[11px] text-[#8a7f70]">${p.precioVenta.toLocaleString("es-CL")} c/u</div>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => onUpdateCantidad(p.productoId, p.cantidad - 1)}
+                  disabled={p.cantidad <= 1}
+                  className="w-6 h-6 rounded-full bg-vs-card border border-vs-line-2 flex items-center justify-center text-[#4a4438] hover:bg-[#ebe3d6] disabled:opacity-40 transition-colors"
+                  aria-label="Disminuir cantidad"
+                >
+                  <Minus size={12} strokeWidth={2.5} />
+                </button>
+                <input
+                  type="number"
+                  min={1}
+                  value={p.cantidad}
+                  onChange={e => onUpdateCantidad(p.productoId, parseInt(e.target.value, 10))}
+                  className="w-9 text-center bg-transparent text-[12.5px] font-medium outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => onUpdateCantidad(p.productoId, p.cantidad + 1)}
+                  className="w-6 h-6 rounded-full bg-vs-card border border-vs-line-2 flex items-center justify-center text-[#4a4438] hover:bg-[#ebe3d6] transition-colors"
+                  aria-label="Aumentar cantidad"
+                >
+                  <Plus size={12} strokeWidth={2.5} />
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={() => onRemove(p.productoId)}
+                className="ml-1 text-[#8a7f70] hover:text-vs-warn transition-colors shrink-0"
+                aria-label={`Quitar ${p.nombre}`}
+              >
+                <X size={13} strokeWidth={2.2} />
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -431,20 +576,38 @@ function BicicletaForm({
           <Select value={form.tipo} onChange={v => onChange("tipo", v)} options={tipoOptions} />
         </div>
         <div>
-          <Label required>Color</Label>
-          <Input value={form.color} onChange={v => onChange("color", v)} placeholder="ej. Rojo Volcán" error={errors["bici_color"]} />
-          {errors["bici_color"] && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
+          <Label required>Aro</Label>
+          <Input value={form.aro} onChange={v => onChange("aro", v)} placeholder="ej. 29, 700c, 27.5" error={errors["bici_aro"]} />
+          {errors["bici_aro"] && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
+          <Label required>Color</Label>
+          <Input value={form.color} onChange={v => onChange("color", v)} placeholder="ej. Rojo Volcán" error={errors["bici_color"]} />
+          {errors["bici_color"] && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
+        </div>
+        <div>
           <Label>Número de serie</Label>
           <Input value={form.numSerie} onChange={v => onChange("numSerie", v)} placeholder="Opcional" />
         </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <Label>Año</Label>
           <Input value={form.anio} onChange={v => onChange("anio", v)} placeholder="ej. 2024" type="number" />
         </div>
+        <div />
+      </div>
+      <div>
+        <Label>Notas</Label>
+        <textarea
+          value={form.notas}
+          onChange={e => onChange("notas", e.target.value)}
+          rows={2}
+          placeholder="Notas sobre la bicicleta…"
+          className="w-full bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border border-vs-line-2 leading-relaxed resize-none placeholder:text-[#b8a88d] focus:border-[#a59682] transition-colors"
+        />
       </div>
     </div>
   )
@@ -453,11 +616,10 @@ function BicicletaForm({
 // ─── Modal ─────────────────────────────────────────────────────────────────────
 
 export function NuevaOTModal({
-  nextId, onClose, onCreate, prefillCliente,
+  onClose, onCreate, prefillCliente,
 }: {
-  nextId: string
   onClose: () => void
-  onCreate: (orden: OrdenTrabajo) => void
+  onCreate: (result: CreateOTResponse) => void
   prefillCliente?: ClienteResult
 }) {
   const {
@@ -471,21 +633,33 @@ export function NuevaOTModal({
     selectCliente,
     setClienteField,
     loadClientes,
-    bicicletas,
+    bicicletas, biciLoading,
     biciMode, setBiciMode,
     selectedBicicleta, setSelectedBicicleta,
     newBiciForm, setBiciField,
+    tipos, mecanicos, catalogLoading,
     servicios, serviciosLoading,
     addServicio, removeServicio,
     loadServicios,
+    productos, productosLoading,
+    addProducto, removeProducto, updateProductoCantidad,
+    loadProductos,
     otForm, setOTField,
     errors, submitting, submitError,
     submit,
-  } = useNuevaOT({ nextId, onClose, onCreate, prefillCliente })
+  } = useNuevaOT({ onClose, onCreate, prefillCliente })
 
   const clienteResolved = selectedCliente !== null || clienteMode === "new"
 
-  const mecOptions = MECANICOS_MOCK.map(m => ({ value: m.id, label: m.nombre }))
+  const tipoOptions = catalogLoading
+    ? [{ value: "", label: "Cargando tipos…" }]
+    : tipos.map(t => ({ value: t.id, label: t.nombre }))
+
+  const mecOptions = [
+    { value: "", label: "Sin asignar" },
+    ...mecanicos.map(m => ({ value: m.id, label: m.nombre })),
+  ]
+
   const prioOptions = [
     { value: "baja",  label: "Baja" },
     { value: "media", label: "Media" },
@@ -508,7 +682,7 @@ export function NuevaOTModal({
             </div>
             <div className="flex-1">
               <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">Nueva orden de trabajo</div>
-              <div className="text-[16px] font-semibold font-mono text-[#a59682]">{nextId}</div>
+              <div className="text-[15px] font-semibold text-[#4a4438]">Registrar trabajo</div>
             </div>
             <button
               onClick={onClose}
@@ -554,7 +728,7 @@ export function NuevaOTModal({
               <Section icon={<Bike size={14} strokeWidth={1.6} />} title="Bicicleta">
                 {biciMode === "select" ? (
                   <BicicletaSelect
-                    loading={false}
+                    loading={biciLoading}
                     bicicletas={bicicletas}
                     selected={selectedBicicleta}
                     onSelect={setSelectedBicicleta}
@@ -576,6 +750,18 @@ export function NuevaOTModal({
             {/* Section: Orden de trabajo */}
             <Section icon={<Wrench size={14} strokeWidth={1.6} />} title="Orden de trabajo">
 
+              {/* Tipo */}
+              <div>
+                <Label required>Tipo de trabajo</Label>
+                <Select
+                  value={otForm.tipoId}
+                  onChange={v => setOTField("tipoId", v)}
+                  options={tipoOptions}
+                  disabled={catalogLoading}
+                />
+                {errors["tipoId"] && <p className="text-[11px] text-vs-warn mt-1">Selecciona un tipo</p>}
+              </div>
+
               {/* Servicios multi-select */}
               <div>
                 <Label required>Servicios</Label>
@@ -593,6 +779,20 @@ export function NuevaOTModal({
                 )}
               </div>
 
+              {/* Productos multi-select */}
+              <div>
+                <Label>Productos</Label>
+                <ProductosMultiSelect
+                  productos={productos}
+                  loading={productosLoading}
+                  selected={otForm.productos}
+                  onAdd={addProducto}
+                  onRemove={removeProducto}
+                  onUpdateCantidad={updateProductoCantidad}
+                  onFirstFocus={loadProductos}
+                />
+              </div>
+
               {/* Prioridad + Fecha */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -607,11 +807,11 @@ export function NuevaOTModal({
                   <Label required>Fecha estimada entrega</Label>
                   <Input
                     type="date"
-                    value={otForm.fechaEstimada}
-                    onChange={v => setOTField("fechaEstimada", v)}
-                    error={errors["fechaEstimada"]}
+                    value={otForm.fechaPrometida}
+                    onChange={v => setOTField("fechaPrometida", v)}
+                    error={errors["fechaPrometida"]}
                   />
-                  {errors["fechaEstimada"] && (
+                  {errors["fechaPrometida"] && (
                     <p className="text-[11px] text-vs-warn mt-1">Campo requerido</p>
                   )}
                 </div>
@@ -624,32 +824,33 @@ export function NuevaOTModal({
                   value={otForm.mecanicoId}
                   onChange={v => setOTField("mecanicoId", v)}
                   options={mecOptions}
+                  disabled={catalogLoading}
                 />
               </div>
 
-              {/* Descripción */}
+              {/* Descripción → diagnosticoInicial */}
               <div>
                 <Label required>Descripción del trabajo</Label>
                 <textarea
-                  value={otForm.descripcion}
-                  onChange={e => setOTField("descripcion", e.target.value)}
+                  value={otForm.diagnosticoInicial}
+                  onChange={e => setOTField("diagnosticoInicial", e.target.value)}
                   rows={4}
                   placeholder="Describe el trabajo a realizar, síntomas observados, piezas a reemplazar…"
                   className={`w-full bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border leading-relaxed resize-none placeholder:text-[#b8a88d] focus:border-[#a59682] transition-colors ${
-                    errors["descripcion"] ? "border-vs-warn ring-2 ring-vs-warn/30" : "border-vs-line-2"
+                    errors["diagnosticoInicial"] ? "border-vs-warn ring-2 ring-vs-warn/30" : "border-vs-line-2"
                   }`}
                 />
-                {errors["descripcion"] && (
+                {errors["diagnosticoInicial"] && (
                   <p className="text-[11px] text-vs-warn mt-1">Campo requerido</p>
                 )}
               </div>
 
-              {/* Notas internas */}
+              {/* Notas internas → observacionesCliente */}
               <div>
                 <Label>Notas internas</Label>
                 <textarea
-                  value={otForm.notasInternas}
-                  onChange={e => setOTField("notasInternas", e.target.value)}
+                  value={otForm.observacionesCliente}
+                  onChange={e => setOTField("observacionesCliente", e.target.value)}
                   rows={2}
                   placeholder="Notas visibles solo para el equipo del taller…"
                   className="w-full bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border border-vs-line-2 leading-relaxed resize-none placeholder:text-[#b8a88d] focus:border-[#a59682] transition-colors"
@@ -676,7 +877,7 @@ export function NuevaOTModal({
             </button>
             <button
               onClick={submit}
-              disabled={submitting}
+              disabled={submitting || catalogLoading}
               className="flex items-center gap-2 px-5 py-2 rounded-full bg-vs-ink text-white text-[13px] font-medium hover:bg-[#1e2228] transition-colors disabled:opacity-50"
             >
               {submitting

@@ -1,14 +1,15 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useAuthStore } from "./auth.store";
-import type { User } from "@/features/auth/services/auth.service";
+import type { User } from "@/features/auth/types/auth.types";
 
 const mockUser: User = {
-  id: "1",
   nombre: "Ana",
   apellido: "López",
-  email: "ana@veloservice.cl",
+  token: "mock-token-test",
   rol: "mecanico",
-  taller: "VeloService Providencia",
+  ambito: "taller",
+  tallerId: "T-001",
+  sucursalId: null,
 };
 
 beforeEach(() => {

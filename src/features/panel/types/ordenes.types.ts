@@ -5,6 +5,7 @@ export interface IOrdenesService {
     createOrden(payload: CreateOrdenPayload): Promise<void>;
     getOrdenById(id: string): Promise<OrdenTrabajoDetalle>;
     updateOrden(id: string, payload: UpdateOrdenPayload): Promise<OrdenTrabajo>;
+    cambiarEstado(id: string, payload: OrdenEstadoChangePayload): Promise<OrdenTrabajoDetalle>;
     bulkUpdateOrdenes(payload: BulkUpdateOrdenPayload): Promise<void>;
     deleteOrden(id: string): Promise<void>;
 }
@@ -97,18 +98,20 @@ export type CreateOrdenPayload = {
     mecanicoId: string;
     bicicletaId: string;
     descripcion: string;
-    estado: EstadoOT;
+    estado: string;
     notasInternas?: string;
 }
 
 export type UpdateOrdenPayload = {
-    tipo?: TipoOT;
-    prioridad?: Prioridad;
-    fechaEstimada?: string;
+    estadoCodigo?: string;
+    estadoObservacion?: string;
+    tipoCodigo?: string;
+    prioridad?: string;
     mecanicoId?: string;
+    fechaEstimada?: string;
     bicicletaId?: string;
     descripcion?: string;
-    estado?: EstadoOT;
+    estado?: string;
     notasInternas?: string;
 }
 
@@ -118,8 +121,13 @@ export type BulkUpdateOrdenPayload = {
     mecanicoId?: string;
 }
 
+export type OrdenEstadoChangePayload = {
+    codigo: string;
+    observacion?: string;
+}
+
 export type TipoOT = "Mantención" | "Diagnóstico" | "Garantía" | "Armado" | "Otro";
-export type EstadoOT = "Recibido" | "En Proceso" | "Listo" | "Entregado" | "Cancelado";
+export type EstadoOT = "recibida" | "en_diagnostico" | "esperando_repuestos" | "en_reparacion" | "control_calidad" | "lista_para_entrega" | "entregada" | "cancelada";
 export type Prioridad = "Baja" | "Media" | "Alta";
 export type TipoBici = "Ruta" | "Montaña" | "Híbrida" | "Eléctrica" | "Infantil" | "Otra";
 

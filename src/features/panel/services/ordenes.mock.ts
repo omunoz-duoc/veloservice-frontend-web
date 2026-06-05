@@ -120,14 +120,24 @@ export const ordenesMock: IOrdenesService = {
     const current = idx >= 0 ? ordenes[idx] : ordenes[0]
     const updated: OrdenTrabajo = {
       ...current,
-      tipo: payload.tipo ?? current.tipo,
+      tipo: payload.tipoCodigo ?? current.tipo,
       prioridad: payload.prioridad ?? current.prioridad,
       mecanico: payload.mecanicoId ?? current.mecanico,
       diagnosticoInicial: payload.descripcion ?? current.diagnosticoInicial,
-      estado: payload.estado ?? current.estado,
+      estado: payload.estadoCodigo ?? payload.estado ?? current.estado,
     }
     if (idx >= 0) ordenes = ordenes.map(o => o.numeroOrden === id ? updated : o)
     return mockFetch(updated)
+  },
+  async cambiarEstado(id, payload) {
+    const idx = ordenes.findIndex(o => o.numeroOrden === id)
+    const current = idx >= 0 ? ordenes[idx] : ordenes[0]
+    const updated: OrdenTrabajo = {
+      ...current,
+      estado: payload.codigo,
+    }
+    if (idx >= 0) ordenes = ordenes.map(o => o.numeroOrden === id ? updated : o)
+    return mockFetch(toDetalle(updated))
   },
   async deleteOrden(_id) {
     return mockFetch(undefined as void)

@@ -1,7 +1,8 @@
 [
   {
-    "nombre": "Andrés",
-    "apellido": "Muñoz",
+    "id": "mock-user-admin",
+    "nombre": "Andres",
+    "apellido": "Munoz",
     "email": "admin@veloservice.cl",
     "token": "mock-token-admin",
     "rol": "admin_taller",

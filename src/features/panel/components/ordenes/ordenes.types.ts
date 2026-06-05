@@ -1,6 +1,6 @@
-export type TipoOT = "personalizacion" | "mantencion" | "reparacion" | "revision" | "garantia" | "armado"
-export type EstadoOT = "recibido" | "proceso" | "espera" | "listo" | "entregado"
-export type Prioridad = "baja" | "media" | "alta"
+export type TipoOT = "personalizacion" | "mantencion" | "reparacion" | "revision" | "diagnostico" | "overhaul" | "garantia" | "armado"
+export type EstadoOT = "recibido" | "diagnostico" | "espera" | "proceso" | "calidad" | "listo" | "entregado" | "cancelado"
+export type Prioridad = "baja" | "media" | "alta" | "urgente"
 export type TipoBici = "MTB" | "MTB Full" | "Ruta" | "Gravel" | "Urbana" | "BMX" | "eBike MTB" | "eBike Urbana" | "Otro"
 
 export type Mecanico = {

@@ -20,6 +20,9 @@ export const ordenesService: IOrdenesService = {
   async updateOrden(id, payload) {
     return realOrdenesService.updateOrden(id, payload)
   },
+  async cambiarEstado(id, payload) {
+    return (await loadOrdenesService()).cambiarEstado(id, payload)
+  },
   async bulkUpdateOrdenes(payload) {
     return realOrdenesService.bulkUpdateOrdenes(payload)
   },

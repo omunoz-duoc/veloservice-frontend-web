@@ -8,10 +8,6 @@ import {
   Check, X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-// import {
-//   MECANICOS_MOCK, TIPO_CONFIG, ESTADO_CONFIG,
-//   type OrdenTrabajo, type EstadoOT, type TipoOT,
-// } from "./ordenes.mock"
 import { OTDrawer } from "./OTDrawer"
 import { useOrdenes } from "@/features/panel/context/OrdenesContext"
 import { useOrdenesQuery } from "@/features/panel/hooks/useOrdenes"
@@ -36,6 +32,9 @@ export const ESTADO_CONFIG: Record<string, { label: string; fg: string; bg: stri
   entregado: { label: "Entregado",     fg: "#3a6ea5", bg: "#e4eaf2", dot: "#3a6ea5" },
 }
 
+const TIPO_FALLBACK = { label: "Otro", fg: "#6b5d46", bg: "#efe9df" }
+const ESTADO_FALLBACK = { label: "Sin estado", fg: "#6b5d46", bg: "#efe9df", dot: "#a59682" }
+
 export const PRIORIDAD_CONFIG: Record<string, { label: string; fg: string; bg: string }> = {
   baja:  { label: "Baja",  fg: "#6b5d46", bg: "#efe9df" },
   media: { label: "Media", fg: "#3a6ea5", bg: "#e4eaf2" },
@@ -49,29 +48,30 @@ export const TIPOS_BICI: string[] = [
 import type { OrdenTrabajo, EstadoOT } from "./ordenes.types"
 // ─── Small chips ───────────────────────────────────────────────────────────────
 
-export function TipoChip({ tipo }: { tipo: {codigo: string, id: string, nombre: string} }) {
-  const codigo = tipo.codigo;
-  const cfg = TIPO_CONFIG[codigo ?? "mantencion"]
+export function TipoChip({ tipo }: { tipo?: { codigo?: string; id?: string; nombre?: string } }) {
+  const cfg = TIPO_CONFIG[tipo?.codigo ?? ""] ?? TIPO_FALLBACK
+  const label = cfg === TIPO_FALLBACK ? (tipo?.nombre || tipo?.codigo || cfg.label) : cfg.label
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
       style={{ background: cfg.bg, color: cfg.fg }}
     >
       <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cfg.fg }} />
-      {cfg.label}
+      {label}
     </span>
   )
 }
 
 export function EstadoChip({ estado }: { estado: string }) {
-  const cfg = ESTADO_CONFIG[estado ?? "recibido"]
+  const cfg = ESTADO_CONFIG[estado ?? ""] ?? ESTADO_FALLBACK
+  const label = cfg === ESTADO_FALLBACK ? (estado || cfg.label) : cfg.label
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
       style={{ background: cfg.bg, color: cfg.fg }}
     >
       <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cfg.dot }} />
-      {cfg.label}
+      {label}
     </span>
   )
 }
@@ -631,8 +631,8 @@ export function OrdenesPage() {
                 orden={orden}
                 selected={selected.has(orden.id)}
                 onSelect={() => toggleSelect(orden.id)}
-                onView={() => setDrawer({ ordenId: orden.id })}
-                onEdit={() => setDrawer({ ordenId: orden.id })}
+                onView={() => setDrawer({ ordenId: orden.backendId ?? orden.id })}
+                onEdit={() => setDrawer({ ordenId: orden.backendId ?? orden.id })}
               />
             ))}
             {!isLoading && filtered.length === 0 && (

@@ -179,26 +179,62 @@ export function mapApiOrden(apiOrden: ApiOrdenTrabajo | BackendOrdenTrabajo, idx
     }
 }
 
+function normalizeDetalle(orden: OrdenTrabajoDetalle): OrdenTrabajoDetalle {
+  const nullableOrden = orden as OrdenTrabajoDetalle & {
+    diagnosticoInicial: string | null
+    observacionesCliente: string | null
+    mecanico: OrdenTrabajoDetalle["mecanico"] | null
+    comentarios?: OrdenTrabajoDetalle["comentarios"]
+    multimedia?: OrdenTrabajoDetalle["multimedia"]
+    productos?: OrdenTrabajoDetalle["productos"]
+    servicios?: OrdenTrabajoDetalle["servicios"]
+  }
+
+  return {
+    ...nullableOrden,
+    diagnosticoInicial: nullableOrden.diagnosticoInicial ?? "Sin descripcion",
+    observacionesCliente: nullableOrden.observacionesCliente ?? "Sin observaciones",
+    mecanico: nullableOrden.mecanico ?? { id: "--", nombre: "Sin", apellido: "asignar" },
+    bicicleta: {
+      ...nullableOrden.bicicleta,
+      tipo: nullableOrden.bicicleta.tipo ?? "Otro",
+      color: nullableOrden.bicicleta.color ?? "-",
+      numeroSerie: nullableOrden.bicicleta.numeroSerie ?? "",
+    },
+    cliente: {
+      ...nullableOrden.cliente,
+      telefono: nullableOrden.cliente.telefono ?? "",
+      email: nullableOrden.cliente.email ?? "",
+      rut: nullableOrden.cliente.rut ?? "",
+    },
+    comentarios: nullableOrden.comentarios ?? [],
+    multimedia: nullableOrden.multimedia ?? [],
+    productos: nullableOrden.productos ?? [],
+    servicios: nullableOrden.servicios ?? [],
+  }
+}
+
 export const ordenesService: IOrdenesService = {
     async getOrdenes() {
         return httpClient.get<BackendOrdenesListResponse>("ordenes") as unknown as Promise<OrdenesListResponse>;
     },
 
-    async getOrdenesUrgentes() {
-        return httpClient.get<OrdenesListResponse>("ordenes/urgentes");
-    },
+  async getOrdenesUrgentes() {
+    return httpClient.get<OrdenesListResponse>("ordenes/urgentes")
+  },
 
-    async getOrdenesMetricas() {
-        return httpClient.get<OrdenesMetricas>("ordenes/metricas");
-    },
+  async getOrdenesMetricas() {
+    return httpClient.get<OrdenesMetricas>("ordenes/metricas")
+  },
 
-    async getOrdenById(id: string) {
-        return httpClient.get<OrdenTrabajoDetalle>(`ordenes/${id}`);
-    },
+  async getOrdenById(id: string) {
+    const orden = await httpClient.get<OrdenTrabajoDetalle>(`ordenes/${id}`)
+    return normalizeDetalle(orden)
+  },
 
-    async createOrden(payload: CreateOrdenPayload) {
-        return httpClient.post("ordenes", payload);
-    },
+  async createOrden(payload: CreateOrdenPayload) {
+    return httpClient.post("ordenes", payload)
+  },
 
     async updateOrden(id: string, payload: UpdateOrdenPayload) {
         return httpClient.patch<ApiOrdenTrabajo>(`ordenes/${id}`, payload);
@@ -208,11 +244,11 @@ export const ordenesService: IOrdenesService = {
         return httpClient.patch<OrdenTrabajoDetalle>(`ordenes/${id}/estado`, payload);
     },
 
-    async bulkUpdateOrdenes(payload: BulkUpdateOrdenPayload) {
-        return httpClient.patch<void>("ordenes/bulk", payload);
-    },
+  async bulkUpdateOrdenes(payload: BulkUpdateOrdenPayload) {
+    return httpClient.patch<void>("ordenes/bulk", payload)
+  },
 
-    async deleteOrden(id: string) {
-        return httpClient.delete(`ordenes/${id}`);
-    }
+  async deleteOrden(id: string) {
+    return httpClient.delete(`ordenes/${id}`)
+  },
 }

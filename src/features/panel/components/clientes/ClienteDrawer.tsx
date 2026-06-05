@@ -8,7 +8,7 @@ import {
   type Cliente, type Bicicleta, type TierKey, type CanalKey, type IdType,
 } from "./clientes.mock"
 import { NuevaOTModal } from "../ordenes/NuevaOTModal"
-import { nextOrdenId, useCreateOrdenCacheMutation, useOrdenesQuery } from "../../hooks/useOrdenes"
+import { useInvalidateOrdenes } from "../../hooks/useOrdenes"
 import type { ClienteResult } from "../ordenes/ordenes.types"
 import { TIPOS_BICI } from "../ordenes/ordenes.constants"
 
@@ -808,29 +808,13 @@ export function ClienteDrawer({
   // Delete confirmation state
   const [deleteBici, setDeleteBici] = useState<Bicicleta | null>(null)
 
-  const { data: ordenes = [] } = useOrdenesQuery()
-  const createOrdenCache = useCreateOrdenCacheMutation()
-  const nextId = useMemo(() => {
-    return nextOrdenId(ordenes)
-  }, [ordenes])
+  const invalidateOrdenes = useInvalidateOrdenes()
 
   const prefillCliente: ClienteResult = useMemo(() => ({
     id: draft.id,
     nombre: draft.nombre,
     rut: draft.idNum,
-    bicicletas: bicis.map(b => {
-      const { marca, modelo } = parseMarcaModelo(b.marca)
-      return {
-        id: b.id,
-        marca,
-        modelo,
-        tipo: b.tipo,
-        color: b.color,
-        numSerie: b.serial,
-        anio: b.añoCompra,
-      }
-    }),
-  }), [draft.id, draft.nombre, draft.idNum, bicis])
+  }), [draft.id, draft.nombre, draft.idNum])
 
   const set = <K extends keyof Cliente>(key: K, val: Cliente[K]) =>
     setDraft(prev => ({ ...prev, [key]: val }))
@@ -962,10 +946,9 @@ export function ClienteDrawer({
 
       {showNuevaOT && (
         <NuevaOTModal
-          nextId={nextId}
           onClose={() => setShowNuevaOT(false)}
-          onCreate={(orden) => {
-            createOrdenCache.mutate(orden)
+          onCreate={() => {
+            invalidateOrdenes()
             setShowNuevaOT(false)
           }}
           prefillCliente={prefillCliente}

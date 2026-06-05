@@ -1,5 +1,6 @@
 "use client"
 
+import { useCallback } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ordenesService } from "@/features/panel/services/ordenes.provider"
 import { ESTADO_TO_API_MAP, mapApiOrden } from "@/features/panel/services/ordenes.service"
@@ -72,6 +73,17 @@ export function useOrdenDetalleQuery(ordenId: string) {
     staleTime: 30_000,
     enabled: !!ordenId,
   })
+}
+
+/**
+ * Returns a callback that invalidates every ordenes query (list + kanban + detalle),
+ * forcing a refetch. Used after creating an OT so all subscribed views update.
+ */
+export function useInvalidateOrdenes() {
+  const queryClient = useQueryClient()
+  return useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ["ordenes"] })
+  }, [queryClient])
 }
 
 export function useCreateOrdenCacheMutation() {

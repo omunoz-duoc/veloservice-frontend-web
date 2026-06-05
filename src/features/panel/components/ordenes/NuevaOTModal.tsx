@@ -9,12 +9,6 @@ import type {
 import { useNuevaOT, type NuevoClienteForm, type NuevaBiciForm } from "@/features/panel/hooks/useNuevaOT"
 import type { Servicio } from "@/features/panel/types/servicios.types"
 
-const MECANICOS_MOCK = [
-  { id: "m-001", nombre: "Javier Bravo" },
-  { id: "m-002", nombre: "Rodrigo Soto" },
-  { id: "m-003", nombre: "Pablo Herrera" },
-]
-
 // ─── Primitive form components ─────────────────────────────────────────────────
 
 function Label({ children, required }: { children: React.ReactNode; required?: boolean }) {

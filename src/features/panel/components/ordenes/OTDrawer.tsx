@@ -4,10 +4,28 @@ import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { Check, FileText, Loader2, Pencil, X } from "lucide-react"
 import { useMecanicosActivos } from "@/features/panel/hooks/useMecanicosActivos"
 import { useOrdenDetalleQuery, useUpdateOrdenMutation } from "@/features/panel/hooks/useOrdenes"
+import { useServiciosQuery } from "@/features/panel/hooks/useServicios"
 import type { EstadoOT, OrdenTrabajo, Prioridad, TipoOT } from "@/features/panel/components/ordenes/ordenes.types"
-import type { OrdenTrabajoDetalle } from "@/features/panel/types/ordenes.types"
+import type { OrdenServicioCambioPayload, OrdenTrabajoDetalle } from "@/features/panel/types/ordenes.types"
+import type { Servicio } from "@/features/panel/types/servicios.types"
 
 type Person = { nombre?: string | null; apellido?: string | null }
+type MecanicoOptionSource = Person & { id: string }
+
+type DraftServicio = {
+  lineId: string
+  servicioId: string
+  nombre: string
+  precioBase: number
+  precioAplicado: number
+  descuentoAplicado: number
+  notas?: string
+  originalPrecioAplicado?: number
+  originalDescuentoAplicado?: number
+  originalNotas?: string
+  isNew: boolean
+  isDeleted?: boolean
+}
 
 const TIPO_COLORS: Record<string, { fg: string; bg: string }> = {
   diagnostico: { fg: "#3a6ea5", bg: "#e4eaf2" },
@@ -135,8 +153,9 @@ function formatFecha(iso: string | null | undefined): string {
   return `${d.getUTCDate()} ${MESES[d.getUTCMonth()]} ${d.getUTCFullYear()}`
 }
 
-function formatPeso(n: number): string {
-  return `$${n.toLocaleString("es-CL")}`
+function formatPeso(n: number | null | undefined): string {
+  const safeValue = typeof n === "number" && Number.isFinite(n) ? n : 0
+  return `$${safeValue.toLocaleString("es-CL")}`
 }
 
 function capitalize(s: string) {
@@ -151,6 +170,54 @@ function initials(person: Person | null | undefined) {
   const first = person?.nombre?.charAt(0) ?? ""
   const second = person?.apellido?.charAt(0) ?? ""
   return `${first}${second}`.toUpperCase() || "?"
+}
+
+function serviceCatalogPrice(servicio: Servicio) {
+  return servicio.precioBase ?? 0
+}
+
+function draftServicioFromBackend(servicio: OrdenTrabajoDetalle["servicios"][number]): DraftServicio {
+  const precioAplicado = servicio.precioAplicado ?? servicio.precioBase ?? 0
+  const descuentoAplicado = servicio.descuentoAplicado ?? 0
+  return {
+    lineId: servicio.id,
+    servicioId: servicio.servicioId,
+    nombre: servicio.nombre,
+    precioBase: servicio.precioBase ?? precioAplicado,
+    precioAplicado,
+    descuentoAplicado,
+    notas: servicio.notas,
+    originalPrecioAplicado: precioAplicado,
+    originalDescuentoAplicado: descuentoAplicado,
+    originalNotas: servicio.notas,
+    isNew: false,
+  }
+}
+
+function draftServicioFromCatalog(servicio: Servicio, notas: string): DraftServicio {
+  const precioBase = serviceCatalogPrice(servicio)
+  return {
+    lineId: `draft-servicio-${servicio.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    servicioId: servicio.id,
+    nombre: servicio.nombre,
+    precioBase,
+    precioAplicado: precioBase,
+    descuentoAplicado: 0,
+    notas: notas.trim() || undefined,
+    isNew: true,
+  }
+}
+
+function servicioChanged(servicio: DraftServicio) {
+  return !servicio.isNew && !servicio.isDeleted && (
+    servicio.precioAplicado !== servicio.originalPrecioAplicado ||
+    servicio.descuentoAplicado !== servicio.originalDescuentoAplicado ||
+    (servicio.notas ?? "") !== (servicio.originalNotas ?? "")
+  )
+}
+
+function sanitizeMoneyInput(value: string) {
+  return Math.max(0, Math.floor(Number(value)) || 0)
 }
 
 function detalleToDraft(orden: OrdenTrabajoDetalle): OrdenTrabajo {
@@ -278,6 +345,97 @@ function MechanicPill({ mecanico }: { mecanico: OrdenTrabajoDetalle["mecanico"] 
   )
 }
 
+function ServicioLine({
+  servicio,
+  isEditing,
+  disabled,
+  onPrecioChange,
+  onDescuentoChange,
+  onNotasChange,
+  onRemove,
+  onRestore,
+}: {
+  servicio: DraftServicio
+  isEditing: boolean
+  disabled: boolean
+  onPrecioChange: (lineId: string, value: string) => void
+  onDescuentoChange: (lineId: string, value: string) => void
+  onNotasChange: (lineId: string, value: string) => void
+  onRemove: (lineId: string) => void
+  onRestore: (lineId: string) => void
+}) {
+  const isChanged = servicioChanged(servicio)
+
+  return (
+    <div className={servicio.isDeleted ? "rounded-xl border border-vs-warn/20 bg-vs-warn-bg/40 px-3 py-2.5 space-y-2 opacity-80" : "rounded-xl border border-vs-line-2 bg-white px-3 py-2.5 space-y-2"}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <div className="text-[13px] text-[#2b2f36] font-medium truncate">{servicio.nombre}</div>
+            {isEditing && servicio.isNew && <span className="rounded-full bg-vs-good-bg px-2 py-0.5 text-[10px] font-semibold text-vs-good">Nuevo</span>}
+            {isEditing && isChanged && <span className="rounded-full bg-vs-violet-bg px-2 py-0.5 text-[10px] font-semibold text-vs-violet">Editado</span>}
+            {isEditing && servicio.isDeleted && <span className="rounded-full bg-vs-warn-bg px-2 py-0.5 text-[10px] font-semibold text-vs-warn">Marcado para eliminar</span>}
+          </div>
+          {!isEditing && servicio.notas && <div className="text-[12px] text-[#4a4438] mt-1 whitespace-pre-wrap">Notas: {servicio.notas}</div>}
+        </div>
+        {!isEditing && (
+          <div className="text-right shrink-0">
+            <div className="text-[13px] text-[#2b2f36] font-mono">{formatPeso(servicio.precioAplicado)}</div>
+            {servicio.descuentoAplicado > 0 && <div className="text-[11px] text-[#8a7f70] mt-0.5">Desc. {formatPeso(servicio.descuentoAplicado)}</div>}
+          </div>
+        )}
+      </div>
+
+      {isEditing && (
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <label className="space-y-1">
+              <span className="text-[11px] text-[#8a7f70] uppercase tracking-wider block">Precio aplicado</span>
+              <input
+                type="number"
+                min={0}
+                value={servicio.precioAplicado}
+                disabled={disabled || servicio.isDeleted}
+                onChange={event => onPrecioChange(servicio.lineId, event.target.value)}
+                className="w-full rounded-xl border border-vs-line-2 bg-white px-3 py-2 text-[13px] outline-none disabled:opacity-60"
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-[11px] text-[#8a7f70] uppercase tracking-wider block">Descuento</span>
+              <input
+                type="number"
+                min={0}
+                value={servicio.descuentoAplicado}
+                disabled={disabled || servicio.isDeleted}
+                onChange={event => onDescuentoChange(servicio.lineId, event.target.value)}
+                className="w-full rounded-xl border border-vs-line-2 bg-white px-3 py-2 text-[13px] outline-none disabled:opacity-60"
+              />
+            </label>
+          </div>
+          <label className="space-y-1 block">
+            <span className="text-[11px] text-[#8a7f70] uppercase tracking-wider block">Notas</span>
+            <input
+              value={servicio.notas ?? ""}
+              disabled={disabled || servicio.isDeleted}
+              onChange={event => onNotasChange(servicio.lineId, event.target.value)}
+              placeholder="Opcional"
+              className="w-full rounded-xl border border-vs-line-2 bg-white px-3 py-2 text-[13px] outline-none disabled:opacity-60"
+            />
+          </label>
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-[12px] text-[#2b2f36] font-mono">{formatPeso(servicio.precioAplicado)}</div>
+            {servicio.isDeleted ? (
+              <button type="button" onClick={() => onRestore(servicio.lineId)} disabled={disabled} className="text-[12px] font-medium text-vs-violet hover:text-vs-ink disabled:opacity-60">Deshacer</button>
+            ) : (
+              <button type="button" onClick={() => onRemove(servicio.lineId)} disabled={disabled} className="text-[12px] font-medium text-vs-warn hover:bg-vs-warn-bg px-2 py-1 rounded-lg disabled:opacity-60">Eliminar</button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function DrawerFrame({
   children,
   onClose,
@@ -343,23 +501,39 @@ export function OTDrawer({
   const query = useOrdenDetalleQuery(ordenId)
   const updateOrden = useUpdateOrdenMutation()
   const mecanicosQuery = useMecanicosActivos()
+  const serviciosQuery = useServiciosQuery()
   const orden = query.data
   const [mode, setMode] = useState<"view" | "edit">("view")
   const [draft, setDraft] = useState<OrdenTrabajo | null>(null)
+  const [draftServicios, setDraftServicios] = useState<DraftServicio[]>([])
+  const [selectedServicioId, setSelectedServicioId] = useState("")
+  const [servicioNotas, setServicioNotas] = useState("")
+  const [servicioError, setServicioError] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!orden) return
     setDraft(detalleToDraft(orden))
+    setDraftServicios((orden.servicios ?? []).map(draftServicioFromBackend))
+    setSelectedServicioId("")
+    setServicioNotas("")
+    setServicioError(null)
     setMode("view")
     setSaveError(null)
   }, [orden])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const mecanicoOptions = useMemo(() => {
     const current = draft?.mecanicoId
       ? [{ value: draft.mecanicoId, label: orden ? fullName(orden.mecanico) : draft.mecanicoId }]
       : [{ value: "", label: "Sin asignar" }]
-    const remote = mecanicosQuery.data?.mecanicos.map(mecanico => ({
+    const mecanicosData = mecanicosQuery.data as
+      | MecanicoOptionSource[]
+      | { mecanicos?: MecanicoOptionSource[] }
+      | undefined
+    const mecanicos = Array.isArray(mecanicosData) ? mecanicosData : mecanicosData?.mecanicos ?? []
+    const remote = mecanicos.map(mecanico => ({
       value: mecanico.id,
       label: fullName(mecanico),
     })) ?? []
@@ -368,7 +542,7 @@ export function OTDrawer({
     return options.filter((option, index, list) =>
       list.findIndex(item => item.value === option.value) === index
     )
-  }, [draft?.mecanicoId, mecanicosQuery.data?.mecanicos, orden])
+  }, [draft, mecanicosQuery.data, orden])
 
   if (query.isLoading) {
     return <DrawerSkeleton onClose={onClose} />
@@ -401,21 +575,123 @@ export function OTDrawer({
   const isEditing = mode === "edit"
   const isSaving = updateOrden.isPending
   const tipoCfg = TIPO_COLORS[normalizeTipo(orden.tipo.codigo)] ?? NEUTRAL
-  const servicios = orden.servicios ?? []
+  const servicios = draftServicios
   const productos = orden.productos ?? []
   const comentarios = orden.comentarios ?? []
-  const serviciosTotal = servicios.reduce((sum, s) => sum + s.precioBase, 0)
+  const serviciosTotal = servicios.reduce((sum, s) => s.isDeleted ? sum : sum + s.precioAplicado, 0)
   const productosTotal = productos.reduce((sum, p) => sum + p.precioVenta * p.cantidad, 0)
   const total = serviciosTotal + productosTotal
-  const hasLineItems = servicios.length > 0 || productos.length > 0
+  const hasLineItems = servicios.some(servicio => !servicio.isDeleted) || productos.length > 0
   const bikeName = [orden.bicicleta?.marca, orden.bicicleta?.modelo].filter(Boolean).join(" ") || "-"
+  const serviciosDisponibles = serviciosQuery.data ?? []
+  const servicioOptions = serviciosDisponibles.map(servicio => ({
+    value: servicio.id,
+    label: `${servicio.nombre} - ${formatPeso(serviceCatalogPrice(servicio))}`,
+  }))
+  const selectedServicio = serviciosDisponibles.find(servicio => servicio.id === selectedServicioId)
+
+  const resetEdit = () => {
+    setDraft(detalleToDraft(orden))
+    setDraftServicios((orden.servicios ?? []).map(draftServicioFromBackend))
+    setSelectedServicioId("")
+    setServicioNotas("")
+    setServicioError(null)
+    setMode("view")
+    setSaveError(null)
+  }
+
+  const handleAddDraftServicio = () => {
+    if (!isEditing) return
+    if (!selectedServicio) {
+      setServicioError("Selecciona un servicio.")
+      return
+    }
+    const existing = draftServicios.find(servicio => servicio.servicioId === selectedServicio.id)
+    if (existing) {
+      if (existing.isDeleted) {
+        setDraftServicios(current => current.map(servicio =>
+          servicio.lineId === existing.lineId ? { ...servicio, isDeleted: false, notas: servicio.notas || servicioNotas.trim() || undefined } : servicio
+        ))
+        setServicioError("El servicio ya existia y fue restaurado en el draft.")
+      } else {
+        setServicioError("El servicio ya esta asociado a la orden.")
+      }
+      setSelectedServicioId("")
+      setServicioNotas("")
+      return
+    }
+    setDraftServicios(current => [draftServicioFromCatalog(selectedServicio, servicioNotas), ...current])
+    setSelectedServicioId("")
+    setServicioNotas("")
+    setServicioError(null)
+  }
+
+  const handleServicioPrecioChange = (lineId: string, value: string) => {
+    setDraftServicios(current => current.map(servicio =>
+      servicio.lineId === lineId ? { ...servicio, precioAplicado: sanitizeMoneyInput(value) } : servicio
+    ))
+  }
+
+  const handleServicioDescuentoChange = (lineId: string, value: string) => {
+    setDraftServicios(current => current.map(servicio =>
+      servicio.lineId === lineId ? { ...servicio, descuentoAplicado: sanitizeMoneyInput(value) } : servicio
+    ))
+  }
+
+  const handleServicioNotasChange = (lineId: string, value: string) => {
+    setDraftServicios(current => current.map(servicio =>
+      servicio.lineId === lineId ? { ...servicio, notas: value } : servicio
+    ))
+  }
+
+  const handleRemoveDraftServicio = (lineId: string) => {
+    setDraftServicios(current => current.flatMap(servicio => {
+      if (servicio.lineId !== lineId) return [servicio]
+      return servicio.isNew ? [] : [{ ...servicio, isDeleted: true }]
+    }))
+  }
+
+  const handleRestoreDraftServicio = (lineId: string) => {
+    setDraftServicios(current => current.map(servicio =>
+      servicio.lineId === lineId ? { ...servicio, isDeleted: false } : servicio
+    ))
+  }
+
+  const buildServiciosCambios = (): OrdenServicioCambioPayload[] => {
+    return draftServicios.flatMap<OrdenServicioCambioPayload>(servicio => {
+      if (servicio.isNew) {
+        if (servicio.isDeleted) return []
+        return [{
+          accion: "AGREGAR",
+          servicioId: servicio.servicioId,
+          notas: servicio.notas?.trim() || undefined,
+        }]
+      }
+      if (servicio.isDeleted) return [{ accion: "ELIMINAR", lineaId: servicio.lineId }]
+      if (servicioChanged(servicio)) {
+        return [{
+          accion: "ACTUALIZAR",
+          lineaId: servicio.lineId,
+          precioAplicado: servicio.precioAplicado,
+          descuentoAplicado: servicio.descuentoAplicado,
+          notas: servicio.notas?.trim() || undefined,
+        }]
+      }
+      return []
+    })
+  }
 
   const handleSave = async () => {
     if (!draft) return
     setSaveError(null)
     try {
-      await updateOrden.mutateAsync(draft)
+      const serviciosCambios = buildServiciosCambios()
+      await updateOrden.mutateAsync({
+        ...draft,
+        serviciosCambios: serviciosCambios.length > 0 ? serviciosCambios : undefined,
+      })
       setMode("view")
+      await query.refetch()
     } catch {
       setSaveError("No se pudo guardar la orden. Intenta nuevamente.")
     }
@@ -437,11 +713,7 @@ export function OTDrawer({
         {isEditing ? (
           <div className="flex items-center gap-2">
             <button
-              onClick={() => {
-                setDraft(detalleToDraft(orden))
-                setMode("view")
-                setSaveError(null)
-              }}
+              onClick={resetEdit}
               disabled={isSaving}
               className="bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] disabled:opacity-60 transition-colors"
             >
@@ -573,24 +845,77 @@ export function OTDrawer({
           </div>
         </Section>
 
-        {servicios.length > 0 && (
-          <Section title="Servicios">
-            <div className="divide-y divide-vs-line-2">
-              {servicios.map(servicio => (
-                <div key={servicio.id} className="flex items-center justify-between gap-4 py-2 first:pt-0">
-                  <div className="text-[13px] text-[#2b2f36] font-medium">{servicio.nombre}</div>
-                  <div className="text-[13px] text-[#2b2f36] font-mono shrink-0">{formatPeso(servicio.precioBase)}</div>
-                </div>
-              ))}
-              {servicios.length > 1 && (
+        <Section title="Servicios">
+          <div className="space-y-4">
+            {isEditing && (
+              <div className="rounded-xl border border-vs-line-2 bg-vs-chip p-3 space-y-3">
+                <label className="space-y-1 block">
+                  <span className="text-[11px] text-[#8a7f70] uppercase tracking-wider block">Servicio</span>
+                  <select
+                    value={selectedServicioId}
+                    disabled={isSaving || serviciosQuery.isLoading || serviciosQuery.isError || servicioOptions.length === 0}
+                    onChange={event => {
+                      setSelectedServicioId(event.target.value)
+                      setServicioError(null)
+                    }}
+                    className="w-full rounded-xl border border-[#d7cabb] bg-white px-3 py-2 text-[13px] font-medium text-[#2b2f36] shadow-sm outline-none transition-colors hover:border-[#c0ad91] hover:bg-[#fffdf9] focus:border-vs-violet focus:ring-2 focus:ring-vs-violet/15 disabled:opacity-60"
+                  >
+                    <option value="">Selecciona servicio</option>
+                    {servicioOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                </label>
+                {serviciosQuery.isLoading && <div className="text-[12px] text-[#8a7f70]">Cargando servicios...</div>}
+                {serviciosQuery.isError && <div className="text-[12px] text-vs-warn">No se pudieron cargar servicios.</div>}
+                {!serviciosQuery.isLoading && !serviciosQuery.isError && servicioOptions.length === 0 && <div className="text-[12px] text-[#8a7f70]">No hay servicios disponibles.</div>}
+                <label className="space-y-1 block">
+                  <span className="text-[11px] text-[#8a7f70] uppercase tracking-wider block">Notas</span>
+                  <input
+                    value={servicioNotas}
+                    disabled={isSaving || !selectedServicio}
+                    onChange={event => setServicioNotas(event.target.value)}
+                    placeholder="Opcional"
+                    className="w-full rounded-xl border border-vs-line-2 bg-white px-3 py-2 text-[13px] outline-none disabled:opacity-60"
+                  />
+                </label>
+                {servicioError && <div className="text-[12px] text-vs-warn">{servicioError}</div>}
+                <button
+                  type="button"
+                  disabled={isSaving || !selectedServicio}
+                  onClick={handleAddDraftServicio}
+                  className="w-full bg-vs-ink text-white text-[13px] font-medium py-2.5 rounded-full hover:bg-[#1e2228] disabled:opacity-50 transition-colors"
+                >
+                  Agregar servicio
+                </button>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              {servicios.length > 0 ? (
+                servicios.map(servicio => (
+                  <ServicioLine
+                    key={servicio.lineId}
+                    servicio={servicio}
+                    isEditing={isEditing}
+                    disabled={isSaving}
+                    onPrecioChange={handleServicioPrecioChange}
+                    onDescuentoChange={handleServicioDescuentoChange}
+                    onNotasChange={handleServicioNotasChange}
+                    onRemove={handleRemoveDraftServicio}
+                    onRestore={handleRestoreDraftServicio}
+                  />
+                ))
+              ) : (
+                <div className="rounded-xl border border-dashed border-vs-line-2 bg-white/60 px-3 py-3 text-[12px] text-[#8a7f70]">Sin servicios asociados.</div>
+              )}
+              {servicios.length > 0 && (
                 <div className="flex items-center justify-between gap-4 pt-3 text-[13px] font-semibold">
                   <span>Total servicios</span>
                   <span className="font-mono">{formatPeso(serviciosTotal)}</span>
                 </div>
               )}
             </div>
-          </Section>
-        )}
+          </div>
+        </Section>
 
         {productos.length > 0 && (
           <Section title="Productos">

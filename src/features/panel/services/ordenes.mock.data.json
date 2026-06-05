@@ -9,7 +9,7 @@
       "cliente": "Pablo Mora",
       "diagnosticoInicial": "Cambio de cadena y ajuste de frenos delantero y trasero",
       "bicicleta": { "marca": "Trek", "modelo": "", "tipo": "MTB", "color": "Negro" },
-      "estado": "recibido",
+      "estado": "recibida",
       "prioridad": "media"
     },
     {
@@ -20,18 +20,18 @@
       "cliente": "Camila Reyes",
       "diagnosticoInicial": "Revisión general y ajuste de cambios Shimano",
       "bicicleta": { "marca": "Giant", "modelo": "", "tipo": "Ruta", "color": "Blanco" },
-      "estado": "recibido",
+      "estado": "recibida",
       "prioridad": "baja"
     },
     {
       "numeroOrden": "OT-0343",
-      "tipo": "diagnostico",
+      "tipo": "revision",
       "fechaIngreso": "2026-05-13T12:00:00.000Z",
       "mecanico": "Pablo Herrera",
       "cliente": "Martín Díaz",
       "diagnosticoInicial": "Ruido en pedalier al hacer fuerza",
       "bicicleta": { "marca": "Scott", "modelo": "", "tipo": "MTB", "color": "Azul" },
-      "estado": "recibido",
+      "estado": "recibida",
       "prioridad": "alta"
     },
     {
@@ -42,18 +42,18 @@
       "cliente": "Felipe Tapia",
       "diagnosticoInicial": "Cambio de horquilla delantera y bleeding de frenos",
       "bicicleta": { "marca": "Specialized", "modelo": "", "tipo": "MTB", "color": "Rojo" },
-      "estado": "proceso",
+      "estado": "en_reparacion",
       "prioridad": "alta"
     },
     {
       "numeroOrden": "OT-0331",
-      "tipo": "overhaul",
+      "tipo": "mantencion",
       "fechaIngreso": "2026-05-09T14:00:00.000Z",
       "mecanico": "Javier Bravo",
       "cliente": "Lorena Pinto",
       "diagnosticoInicial": "Overhaul completo: limpieza, lubricación y ajuste de todos los componentes",
       "bicicleta": { "marca": "Canyon", "modelo": "", "tipo": "Gravel", "color": "Gris" },
-      "estado": "proceso",
+      "estado": "en_reparacion",
       "prioridad": "alta"
     },
     {
@@ -64,7 +64,7 @@
       "cliente": "Alejandro Vera",
       "diagnosticoInicial": "Revisión de motor y calibración de asistencia eléctrica",
       "bicicleta": { "marca": "Orbea", "modelo": "", "tipo": "eBike", "color": "Verde" },
-      "estado": "proceso",
+      "estado": "en_reparacion",
       "prioridad": "media"
     },
     {
@@ -75,18 +75,18 @@
       "cliente": "Sebastián Núñez",
       "diagnosticoInicial": "Ajuste de frenos y centrado de ruedas",
       "bicicleta": { "marca": "Haro", "modelo": "", "tipo": "BMX", "color": "Negro" },
-      "estado": "listo",
+      "estado": "lista_para_entrega",
       "prioridad": "baja"
     },
     {
       "numeroOrden": "OT-0318",
-      "tipo": "diagnostico",
+      "tipo": "revision",
       "fechaIngreso": "2026-05-06T13:00:00.000Z",
       "mecanico": "Rodrigo Soto",
       "cliente": "Ricardo Lagos",
       "diagnosticoInicial": "Revisión completa post-caída, chequeo de estructura y componentes",
       "bicicleta": { "marca": "Cannondale", "modelo": "", "tipo": "Ruta", "color": "Naranja" },
-      "estado": "listo",
+      "estado": "lista_para_entrega",
       "prioridad": "media"
     }
   ]

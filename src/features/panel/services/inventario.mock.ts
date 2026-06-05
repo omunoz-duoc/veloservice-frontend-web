@@ -8,8 +8,18 @@ async function mockFetch<T>(data: T, delayMs = 250): Promise<T> {
 }
 
 export const inventarioMock: IInventarioService = {
-  async getProductos() {
+  async getProductos(_sucursalId?: string) {
     return mockFetch(productosData as ProductosListResponse)
+  },
+  async buscarProductos(search: string, _sucursalId?: string) {
+    const q = search.trim().toLowerCase()
+    const data = productosData as ProductosListResponse
+    const productos = q
+      ? data.productos.filter(producto =>
+          [producto.nombre, producto.sku, producto.categoria].join(" ").toLowerCase().includes(q)
+        )
+      : data.productos
+    return mockFetch({ total: productos.length, productos })
   },
   async getMetricas() {
     return mockFetch(metricasData as InventarioMetricas)

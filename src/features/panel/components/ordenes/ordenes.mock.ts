@@ -9,7 +9,7 @@ export const MECANICOS_MOCK: Mecanico[] = [
 
 export const ORDENES_MOCK: OrdenTrabajo[] = [
   {
-    id: "OT-0343", tipo: { id: "1", codigo: "personalizacion", nombre: "Personalización" }, estado: "recibido", prioridad: "media",
+    id: "OT-0343", tipo: { id: "1", codigo: "personalizacion", nombre: "Personalización" }, estado: "recibida", prioridad: "media",
     fechaIngreso: "23 Abr · 09:30", fechaEstimada: "25 Abr",
     mecanicoId: "JB",
     clienteNombre: "Matías Díaz", clienteTelefono: "+56 9 8234 5678",
@@ -17,7 +17,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     descripcion: "Ruido en transmisión al pedalear en 3ra marcha. Cambio brusco de piñón.",
   },
   {
-    id: "OT-0342", tipo: { id: "2", codigo: "mantencion", nombre: "Mantención" }, estado: "proceso", prioridad: "media",
+    id: "OT-0342", tipo: { id: "2", codigo: "mantencion", nombre: "Mantención" }, estado: "en_reparacion", prioridad: "media",
     fechaIngreso: "23 Abr · 11:00", fechaEstimada: "24 Abr",
     mecanicoId: "RS",
     clienteNombre: "Camila Reyes", clienteEmail: "c.reyes@email.com",
@@ -25,7 +25,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     descripcion: "Mantención completa: limpieza drivetrain, ajuste de cambios, revisión frenos hidráulicos.",
   },
   {
-    id: "OT-0341", tipo: { id: "6", codigo: "armado", nombre: "Armado" }, estado: "recibido", prioridad: "baja",
+    id: "OT-0341", tipo: { id: "6", codigo: "armado", nombre: "Armado" }, estado: "recibida", prioridad: "baja",
     fechaIngreso: "23 Abr · 12:00", fechaEstimada: "24 Abr",
     mecanicoId: "--",
     clienteNombre: "Paulina Mora", clienteTelefono: "+56 9 1234 5678",
@@ -33,7 +33,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     descripcion: "Bicicleta nueva en caja. Armado completo + tuning inicial y pre-ride check.",
   },
   {
-    id: "OT-0340", tipo: { id: "3", codigo: "reparacion", nombre: "Reparación" }, estado: "espera", prioridad: "alta",
+    id: "OT-0340", tipo: { id: "3", codigo: "reparacion", nombre: "Reparación" }, estado: "esperando_repuestos", prioridad: "alta",
     fechaIngreso: "22 Abr · 18:45", fechaEstimada: "25 Abr",
     mecanicoId: "PH",
     clienteNombre: "Andrés Vera",
@@ -43,7 +43,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     notasInternas: "Esperando respuesta del distribuidor Orbea Chile.",
   },
   {
-    id: "OT-0339", tipo: { id: "1", codigo: "personalizacion", nombre: "Personalización" }, estado: "proceso", prioridad: "alta",
+    id: "OT-0339", tipo: { id: "1", codigo: "personalizacion", nombre: "Personalización" }, estado: "en_reparacion", prioridad: "alta",
     fechaIngreso: "22 Abr · 15:20", fechaEstimada: "26 Abr",
     mecanicoId: "RS",
     clienteNombre: "Felipe Tapia", clienteTelefono: "+56 9 9871 2345",
@@ -51,7 +51,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     descripcion: "Overhaul completo: cajeras BB, dirección, desarme/engrase de bujes, sangrado frenos Shimano MT501.",
   },
   {
-    id: "OT-0338", tipo: { id: "2", codigo: "mantencion", nombre: "Mantención" }, estado: "proceso", prioridad: "media",
+    id: "OT-0338", tipo: { id: "2", codigo: "mantencion", nombre: "Mantención" }, estado: "en_reparacion", prioridad: "media",
     fechaIngreso: "22 Abr · 10:10", fechaEstimada: "23 Abr",
     mecanicoId: "JB",
     clienteNombre: "Lucía Pinto", clienteEmail: "l.pinto@email.com",
@@ -59,7 +59,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     descripcion: "Mantención 500km: ajuste cambios SRAM Rival AXS, torque bielas, rotación neumáticos tubeless.",
   },
   {
-    id: "OT-0337", tipo: { id: "5", codigo: "garantia", nombre: "Garantía" }, estado: "espera", prioridad: "alta",
+    id: "OT-0337", tipo: { id: "5", codigo: "garantia", nombre: "Garantía" }, estado: "esperando_repuestos", prioridad: "alta",
     fechaIngreso: "21 Abr · 17:30", fechaEstimada: "30 Abr",
     mecanicoId: "PH",
     clienteNombre: "Sofía Núñez", clienteTelefono: "+56 9 7654 3210",
@@ -67,7 +67,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     descripcion: "Garantía de cuadro — fisura en tubo superior. Coordinación con distribuidor para reemplazo.",
   },
   {
-    id: "OT-0336", tipo: { id: "3", codigo: "reparacion", nombre: "Reparación" }, estado: "listo", prioridad: "media",
+    id: "OT-0336", tipo: { id: "3", codigo: "reparacion", nombre: "Reparación" }, estado: "lista_para_entrega", prioridad: "media",
     fechaIngreso: "21 Abr · 14:00", fechaEstimada: "22 Abr",
     mecanicoId: "RS",
     clienteNombre: "Rodrigo Lagos",
@@ -75,7 +75,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     descripcion: "Cambio de pastillas Shimano J03A + centrado de rotores. Revisión de olguras en dirección integrada.",
   },
   {
-    id: "OT-0335", tipo: { id: "2", codigo: "mantencion", nombre: "Mantención" }, estado: "entregado", prioridad: "baja",
+    id: "OT-0335", tipo: { id: "2", codigo: "mantencion", nombre: "Mantención" }, estado: "entregada", prioridad: "baja",
     fechaIngreso: "21 Abr · 11:45", fechaEstimada: "22 Abr",
     mecanicoId: "JB",
     clienteNombre: "Tomás Álvarez",
@@ -83,7 +83,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     descripcion: "Mantención básica: ajuste cambios trasero, tensión cadena, chequeo presión neumáticos.",
   },
   {
-    id: "OT-0334", tipo: { id: "1", codigo: "personalizacion", nombre: "Personalización" }, estado: "proceso", prioridad: "media",
+    id: "OT-0334", tipo: { id: "1", codigo: "personalizacion", nombre: "Personalización" }, estado: "en_reparacion", prioridad: "media",
     fechaIngreso: "21 Abr · 10:00", fechaEstimada: "23 Abr",
     mecanicoId: "PH",
     clienteNombre: "Ignacio Soto", clienteEmail: "i.soto@email.com",
@@ -91,7 +91,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     descripcion: "Suspensión RockShox Deluxe Select+ pierde aceite. Diagnóstico y presupuesto de servicio técnico.",
   },
   {
-    id: "OT-0333", tipo: { id: "3", codigo: "reparacion", nombre: "Reparación" }, estado: "listo", prioridad: "alta",
+    id: "OT-0333", tipo: { id: "3", codigo: "reparacion", nombre: "Reparación" }, estado: "lista_para_entrega", prioridad: "alta",
     fechaIngreso: "20 Abr · 16:20", fechaEstimada: "21 Abr",
     mecanicoId: "PH",
     clienteNombre: "Ana Vera",
@@ -99,7 +99,7 @@ export const ORDENES_MOCK: OrdenTrabajo[] = [
     descripcion: "Sangrado de frenos Shimano BR-MT520 delantero y trasero. Reemplazo de pastillas metálicas.",
   },
   {
-    id: "OT-0332", tipo: { id: "1", codigo: "personalizacion", nombre: "Personalización" }, estado: "entregado", prioridad: "alta",
+    id: "OT-0332", tipo: { id: "1", codigo: "personalizacion", nombre: "Personalización" }, estado: "entregada", prioridad: "alta",
     fechaIngreso: "20 Abr · 09:00", fechaEstimada: "22 Abr",
     mecanicoId: "RS",
     clienteNombre: "Bernardo Silva", clienteTelefono: "+56 9 3456 7890",

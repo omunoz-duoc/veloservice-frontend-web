@@ -6,9 +6,9 @@ import type { BoardData, BoardItem, BoardProps } from 'react-kanban-kit'
 import { useOrdenesKanban } from '@/features/panel/hooks/useOrdenesKanban'
 
 const PRIORIDAD_COLOR: Record<string, string> = {
-  Alta:  "#c85a2a",
-  Media: "#c99a2e",
-  Baja:  "#a59682",
+  alta: "#c85a2a",
+  media: "#c99a2e",
+  baja: "#a59682",
 }
 
 type OrdenCardContent = {

@@ -3,9 +3,48 @@ import { ApiError } from "./api-error";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://veloservice-backend-337hberz7q-tl.a.run.app/api/v1/";
 
+type PersistedAuthState = {
+  state?: {
+    user?: {
+      token?: unknown;
+    };
+    token?: unknown;
+  };
+  user?: {
+    token?: unknown;
+  };
+  token?: unknown;
+};
+
+function readTokenCandidate(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function tokenFromPersistedAuth(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+
+  try {
+    const persisted = window.localStorage.getItem("vs-auth");
+    if (!persisted) return undefined;
+    const parsed = JSON.parse(persisted) as PersistedAuthState;
+    return (
+      readTokenCandidate(parsed.state?.user?.token) ??
+      readTokenCandidate(parsed.state?.token) ??
+      readTokenCandidate(parsed.user?.token) ??
+      readTokenCandidate(parsed.token)
+    );
+  } catch {
+    return undefined;
+  }
+}
+
+function authToken(): string | undefined {
+  return readTokenCandidate(useAuthStore.getState().user?.token) ?? tokenFromPersistedAuth();
+}
+
 function authHeader(endpoint: string): Record<string, string> {
   if (endpoint.startsWith("auth")) return {};
-  const token = useAuthStore.getState().user?.token;
+  const token = authToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
@@ -22,6 +61,10 @@ async function assertOk(res: Response, message: string) {
   if (!res.ok) {
     throw new ApiError(message, res.status, await parseJsonBody(res));
   }
+}
+
+export function __getAuthTokenForTest() {
+  return authToken();
 }
 
 export const httpClient = {

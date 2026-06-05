@@ -15,11 +15,17 @@ export const ordenesService: IOrdenesService = {
   async getOrdenes() {
     return (await loadOrdenesService()).getOrdenes()
   },
-  async getOrdenesUrgentes() {
-    return (await loadOrdenesService()).getOrdenesUrgentes()
-  },
   async getOrdenesMetricas() {
     return (await loadOrdenesService()).getOrdenesMetricas()
+  },
+  async getEstadosOrden() {
+    return (await loadOrdenesService()).getEstadosOrden()
+  },
+  async getTiposOrden() {
+    return (await loadOrdenesService()).getTiposOrden()
+  },
+  async getPrioridadesOrden() {
+    return (await loadOrdenesService()).getPrioridadesOrden()
   },
   async createOrden(payload) {
     return (await loadOrdenesService()).createOrden(payload)
@@ -29,6 +35,9 @@ export const ordenesService: IOrdenesService = {
   },
   async updateOrden(id, payload) {
     return (await loadOrdenesService()).updateOrden(id, payload)
+  },
+  async addProductos(id, payload) {
+    return (await loadOrdenesService()).addProductos(id, payload)
   },
   async bulkUpdateOrdenes(payload) {
     return (await loadOrdenesService()).bulkUpdateOrdenes(payload)

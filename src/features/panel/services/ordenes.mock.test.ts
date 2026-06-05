@@ -9,12 +9,6 @@ describe("ordenesMock", () => {
     expect(Array.isArray(result.ordenes)).toBe(true)
   })
 
-  it("getOrdenesUrgentes resolves with OrdenesListResponse shape", async () => {
-    const result = await ordenesMock.getOrdenesUrgentes()
-    expect(result).toHaveProperty("total")
-    expect(Array.isArray(result.ordenes)).toBe(true)
-  })
-
   it("getOrdenesMetricas resolves with OrdenesMetricas shape", async () => {
     const result = await ordenesMock.getOrdenesMetricas()
     expect(result).toHaveProperty("recibidas")
@@ -26,16 +20,16 @@ describe("ordenesMock", () => {
   it("createOrden resolves without error", async () => {
     await expect(
       ordenesMock.createOrden({
-        servicioIds: ["s-001"], prioridad: "Media",
+        servicioIds: ["s-001"], prioridad: "media",
         fechaEstimada: "2026-05-20", mecanicoId: "m-001",
-        bicicletaId: "b-001", descripcion: "Test", estado: "Recibido"
+        bicicletaId: "b-001", descripcion: "Test", estado: "recibida"
       })
     ).resolves.toBeUndefined()
   })
 
   it("bulkUpdateOrdenes resolves without error", async () => {
     await expect(
-      ordenesMock.bulkUpdateOrdenes({ ids: ["OT-0001"], estado: "Recibido" })
+      ordenesMock.bulkUpdateOrdenes({ ids: ["OT-0001"], estado: "recibida" })
     ).resolves.toBeUndefined()
   })
 

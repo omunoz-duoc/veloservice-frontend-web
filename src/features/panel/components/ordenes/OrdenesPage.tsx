@@ -8,39 +8,22 @@ import {
   Check, X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-// import {
-//   MECANICOS_MOCK, TIPO_CONFIG, ESTADO_CONFIG,
-//   type OrdenTrabajo, type EstadoOT, type TipoOT,
-// } from "./ordenes.mock"
 import { OTDrawer } from "./OTDrawer"
 import { useOrdenes } from "@/features/panel/context/OrdenesContext"
-import { useOrdenesQuery } from "@/features/panel/hooks/useOrdenes"
+import { useOrdenCatalogosQuery, useOrdenesQuery } from "@/features/panel/hooks/useOrdenes"
 import { BulkReasignarModal } from "./BulkReasignarModal"
 import { BulkEstadoModal } from "./BulkEstadoModal"
+import {
+  catalogLabel,
+  ESTADO_COLORS,
+  ORDEN_CATALOGOS_FALLBACK,
+  TIPO_COLORS,
+} from "@/features/panel/services/ordenes.catalogos"
+import type { OrdenCatalogoItem } from "@/features/panel/types/ordenes.types"
 
 
-export const TIPO_CONFIG: Record<string, { label: string; fg: string; bg: string }> = {
-  personalizacion: { label: "Personalización", fg: "#3a6ea5", bg: "#e4eaf2" },
-  mantencion:  { label: "Mantención",  fg: "#6b5bd1", bg: "#ebe7fa" },
-  reparacion:  { label: "Reparación",  fg: "#c85a2a", bg: "#fbeadd" },
-  revision:    { label: "Revisión",    fg: "#111418", bg: "#ece7de" },
-  garantia:    { label: "Garantía",    fg: "#2f7d4f", bg: "#e4f1e8" },
-  armado:      { label: "Armado",      fg: "#8c6a1e", bg: "#faecd6" },
-}
-
-export const ESTADO_CONFIG: Record<string, { label: string; fg: string; bg: string; dot: string }> = {
-  recibido:  { label: "Recibido",      fg: "#6b5d46", bg: "#efe9df", dot: "#a59682" },
-  proceso:   { label: "En proceso",    fg: "#6b5bd1", bg: "#ebe7fa", dot: "#6b5bd1" },
-  espera:    { label: "Esp. repuesto", fg: "#c85a2a", bg: "#fbeadd", dot: "#c85a2a" },
-  listo:     { label: "Listo",         fg: "#2f7d4f", bg: "#e4f1e8", dot: "#2f7d4f" },
-  entregado: { label: "Entregado",     fg: "#3a6ea5", bg: "#e4eaf2", dot: "#3a6ea5" },
-}
-
-export const PRIORIDAD_CONFIG: Record<string, { label: string; fg: string; bg: string }> = {
-  baja:  { label: "Baja",  fg: "#6b5d46", bg: "#efe9df" },
-  media: { label: "Media", fg: "#3a6ea5", bg: "#e4eaf2" },
-  alta:  { label: "Alta",  fg: "#c85a2a", bg: "#fbeadd" },
-}
+const TIPO_FALLBACK = { label: "Otro", fg: "#4a4438", bg: "#ece7de" }
+const ESTADO_FALLBACK = { label: "Sin estado", fg: "#4a4438", bg: "#ece7de", dot: "#a59682" }
 
 export const TIPOS_BICI: string[] = [
   "MTB", "MTB Full", "Ruta", "Gravel", "Urbana", "BMX", "eBike MTB", "eBike Urbana", "Otro",
@@ -49,37 +32,38 @@ export const TIPOS_BICI: string[] = [
 import type { OrdenTrabajo, EstadoOT } from "./ordenes.types"
 // ─── Small chips ───────────────────────────────────────────────────────────────
 
-export function TipoChip({ tipo }: { tipo: {codigo: string, id: string, nombre: string} }) {
-  const codigo = tipo.codigo;
-  const cfg = TIPO_CONFIG[codigo ?? "mantencion"]
+export function TipoChip({ tipo, catalogos }: { tipo: {codigo: string, id: string, nombre: string}; catalogos: OrdenCatalogoItem[] }) {
+  const cfg = TIPO_COLORS[tipo.codigo as keyof typeof TIPO_COLORS] ?? TIPO_FALLBACK
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
       style={{ background: cfg.bg, color: cfg.fg }}
     >
       <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cfg.fg }} />
-      {cfg.label}
+      {catalogLabel(catalogos, tipo.codigo)}
     </span>
   )
 }
 
-export function EstadoChip({ estado }: { estado: string }) {
-  const cfg = ESTADO_CONFIG[estado ?? "recibido"]
+export function EstadoChip({ estado, catalogos }: { estado: string; catalogos: OrdenCatalogoItem[] }) {
+  const cfg = ESTADO_COLORS[estado as keyof typeof ESTADO_COLORS] ?? ESTADO_FALLBACK
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap"
       style={{ background: cfg.bg, color: cfg.fg }}
     >
       <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cfg.dot }} />
-      {cfg.label}
+      {catalogLabel(catalogos, estado)}
     </span>
   )
 }
 
 export function MecPill({ mecanicoId }: { mecanicoId: string }) {
   const normalizedMecanico = mecanicoId.trim().toLowerCase()
-  const unassigned = normalizedMecanico === "--" || !normalizedMecanico
-  const iniciales = mecanicoId.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(normalizedMecanico)
+  const unassigned = normalizedMecanico === "--" || !normalizedMecanico || isUuid
+  const label = unassigned ? "Sin asignar" : mecanicoId
+  const iniciales = label.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)
   return (
     <div className="flex items-center gap-2 min-w-0">
       <div
@@ -97,7 +81,7 @@ export function MecPill({ mecanicoId }: { mecanicoId: string }) {
         "text-[12px] truncate",
         unassigned ? "text-[#a59682] italic" : "text-[#2b2f36] font-medium"
       )}>
-        {unassigned ? "Sin asignar" : mecanicoId}
+        {label}
       </span>
     </div>
   )
@@ -107,12 +91,14 @@ export function MecPill({ mecanicoId }: { mecanicoId: string }) {
 
 function OTRow({
   orden,
+  catalogos,
   selected,
   onSelect,
   onView,
   onEdit,
 }: {
   orden: OrdenTrabajo
+  catalogos: { estados: OrdenCatalogoItem[]; tipos: OrdenCatalogoItem[] }
   selected: boolean
   onSelect: () => void
   onView: () => void
@@ -134,13 +120,13 @@ function OTRow({
           <span className="font-mono font-semibold text-[12.5px]">{orden.id}</span>
           {orden.prioridad === "alta" && (
             <span className="text-[9.5px] font-semibold text-vs-warn bg-vs-warn-bg px-1.5 py-0.5 rounded">
-              URG
+              ALTA
             </span>
           )}
         </div>
       </td>
       <td className="px-4 py-3.5 align-middle">
-        <TipoChip tipo={orden.tipo} />
+        <TipoChip tipo={orden.tipo} catalogos={catalogos.tipos} />
       </td>
       <td className="px-4 py-3.5 align-middle">
         <div className="text-[12.5px] font-medium">{fecha}</div>
@@ -164,7 +150,7 @@ function OTRow({
         <div className="text-[11.5px] text-[#4a4438] leading-snug line-clamp-2">{orden.descripcion}</div>
       </td>
       <td className="px-4 py-3.5 align-middle">
-        <EstadoChip estado={orden.estado} />
+        <EstadoChip estado={orden.estado} catalogos={catalogos.estados} />
       </td>
       <td className="px-4 py-3.5 align-middle">
         <div className="flex items-center gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
@@ -395,20 +381,13 @@ function DateRangeFilter({ desde, hasta, onChange }: {
 
 type TabKey = "all" | EstadoOT
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "all",      label: "Todas" },
-  { key: "recibido", label: "Recibidas" },
-  { key: "proceso",  label: "En proceso" },
-  { key: "espera",   label: "Esp. repuesto" },
-  { key: "listo",    label: "Listas" },
-  { key: "entregado",label: "Entregadas" },
-]
-
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export function OrdenesPage() {
   const { openNuevaOT } = useOrdenes()
-  const { data: ordenes = [], isLoading, isError, error } = useOrdenesQuery()
+  const { data: ordenes = [], isLoading, isFetching, isError, error } = useOrdenesQuery()
+  const catalogosQuery = useOrdenCatalogosQuery()
+  const catalogos = catalogosQuery.data ?? ORDEN_CATALOGOS_FALLBACK
   const [activeTab, setActiveTab] = useState<TabKey>("all")
   const [query, setQuery] = useState("")
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -419,11 +398,17 @@ export function OrdenesPage() {
   const [filterHasta, setFilterHasta] = useState("")
   const [bulkModal, setBulkModal] = useState<"reasignar" | "estado" | null>(null)
 
+  const tabs = useMemo<{ key: TabKey; label: string }[]>(() => [
+    { key: "all", label: "Todas" },
+    ...catalogos.estados.map(estado => ({ key: estado.codigo as EstadoOT, label: estado.nombre })),
+  ], [catalogos.estados])
+
   const counts = useMemo(() => {
-    const c = { all: ordenes.length, recibido: 0, proceso: 0, espera: 0, listo: 0, entregado: 0 }
-    ordenes.forEach(o => { c[o.estado]++ })
+    const c: Record<string, number> = { all: ordenes.length }
+    catalogos.estados.forEach(estado => { c[estado.codigo] = 0 })
+    ordenes.forEach(o => { c[o.estado] = (c[o.estado] ?? 0) + 1 })
     return c as Record<TabKey, number>
-  }, [ordenes])
+  }, [catalogos.estados, ordenes])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -502,12 +487,17 @@ export function OrdenesPage() {
           {error instanceof Error ? error.message : "Error al cargar órdenes. Intenta nuevamente."}
         </div>
       )}
+      {catalogosQuery.isError && (
+        <div className="bg-vs-warn-bg border border-vs-warn/20 text-vs-warn rounded-[16px] px-4 py-3 mb-4 text-[13px]">
+          No se pudieron cargar los catalogos de ordenes. Se usara un fallback seguro.
+        </div>
+      )}
 
       {/* Tab bar + search + filters */}
       <div className="bg-vs-card border border-vs-line rounded-[24px] p-3 mb-4  items-center gap-2 flex-wrap">
         <div className="flex mb-4">
           <div className="flex gap-1 bg-vs-chip p-1 rounded-full overflow-x-auto shrink-0">
-            {TABS.map(tab => (
+            {tabs.map(tab => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
@@ -544,7 +534,11 @@ export function OrdenesPage() {
           <FilterDropdown
             label="Tipo"
             icon={<SlidersHorizontal size={13} strokeWidth={1.6} />}
-            options={Object.entries(TIPO_CONFIG).map(([v, cfg]) => ({ value: v, label: cfg.label, color: cfg.fg }))}
+            options={catalogos.tipos.map(tipo => ({
+              value: tipo.codigo,
+              label: tipo.nombre,
+              color: TIPO_COLORS[tipo.codigo as keyof typeof TIPO_COLORS]?.fg,
+            }))}
             selected={filterTipos}
             onChange={setFilterTipos}
           />
@@ -595,7 +589,12 @@ export function OrdenesPage() {
       )}
 
       {/* Table */}
-      <div className="bg-vs-card border border-vs-line rounded-[24px] overflow-hidden">
+      <div className="relative bg-vs-card border border-vs-line rounded-[24px] overflow-hidden">
+        {isFetching && !isLoading && (
+          <div className="absolute left-0 right-0 top-0 z-10 border-b border-vs-line bg-[#faf6f0]/95 px-4 py-2 text-center text-[12px] font-medium text-[#6b5d46]">
+            Actualizando...
+          </div>
+        )}
         <table className="w-full text-left">
           <thead>
             <tr className="bg-[#faf6f0] border-b border-vs-line">
@@ -629,10 +628,11 @@ export function OrdenesPage() {
               <OTRow
                 key={orden.id}
                 orden={orden}
+                catalogos={{ estados: catalogos.estados, tipos: catalogos.tipos }}
                 selected={selected.has(orden.id)}
                 onSelect={() => toggleSelect(orden.id)}
-                onView={() => setDrawer({ ordenId: orden.id })}
-                onEdit={() => setDrawer({ ordenId: orden.id })}
+                onView={() => setDrawer({ ordenId: orden.backendId ?? orden.id })}
+                onEdit={() => setDrawer({ ordenId: orden.backendId ?? orden.id })}
               />
             ))}
             {!isLoading && filtered.length === 0 && (
@@ -684,9 +684,6 @@ export function OrdenesPage() {
         <OTDrawer
           ordenId={drawer.ordenId}
           onClose={() => setDrawer(null)}
-          onEdit={() => {
-            // TODO: open edit flow owned by OrdenesPage.
-          }}
         />
       )}
 

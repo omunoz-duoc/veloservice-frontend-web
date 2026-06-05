@@ -285,7 +285,7 @@ export function useNuevaOT({
         id: nextId,
         tipo: { id: "", codigo: "mantencion", nombre: "Mantención" },
         servicioIds: otForm.servicioIds,
-        estado: "recibido",
+        estado: "recibida",
         prioridad: otForm.prioridad,
         fechaIngreso,
         fechaEstimada: otForm.fechaEstimada,

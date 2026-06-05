@@ -1,10 +1,13 @@
 export interface IOrdenesService {
     getOrdenes(): Promise<OrdenesListResponse>;
-    getOrdenesUrgentes(): Promise<OrdenesListResponse>;
     getOrdenesMetricas(): Promise<OrdenesMetricas>;
+    getEstadosOrden(): Promise<OrdenCatalogoItem[]>;
+    getTiposOrden(): Promise<OrdenCatalogoItem[]>;
+    getPrioridadesOrden(): Promise<OrdenCatalogoItem[]>;
     createOrden(payload: CreateOrdenPayload): Promise<void>;
     getOrdenById(id: string): Promise<OrdenTrabajoDetalle>;
     updateOrden(id: string, payload: UpdateOrdenPayload): Promise<OrdenTrabajo>;
+    addProductos(id: string, payload: OrdenProductoAddPayload[]): Promise<OrdenTrabajoDetalle["productos"]>;
     bulkUpdateOrdenes(payload: BulkUpdateOrdenPayload): Promise<void>;
     deleteOrden(id: string): Promise<void>;
 }
@@ -80,6 +83,7 @@ export type OrdenTrabajoDetalle = {
         sku: string;
         cantidad: number;
         precioVenta: number;
+        notas?: string;
     }>;
     servicios: Array<{
         id: string;
@@ -97,18 +101,22 @@ export type CreateOrdenPayload = {
     mecanicoId: string;
     bicicletaId: string;
     descripcion: string;
-    estado: EstadoOT;
+    estado: string;
     notasInternas?: string;
 }
 
 export type UpdateOrdenPayload = {
-    tipo?: TipoOT;
-    prioridad?: Prioridad;
-    fechaEstimada?: string;
+    estadoCodigo?: string;
+    estadoObservacion?: string;
+    tipoCodigo?: string;
+    prioridad?: string;
     mecanicoId?: string;
+    productosCambios?: OrdenProductoCambioPayload[];
+    productosAgregar?: OrdenProductoAddPayload[];
+    fechaEstimada?: string;
     bicicletaId?: string;
     descripcion?: string;
-    estado?: EstadoOT;
+    estado?: string;
     notasInternas?: string;
 }
 
@@ -118,9 +126,36 @@ export type BulkUpdateOrdenPayload = {
     mecanicoId?: string;
 }
 
-export type TipoOT = "Mantención" | "Diagnóstico" | "Garantía" | "Armado" | "Otro";
-export type EstadoOT = "Recibido" | "En Proceso" | "Listo" | "Entregado" | "Cancelado";
-export type Prioridad = "Baja" | "Media" | "Alta";
+export type OrdenProductoAddPayload = {
+    productoId: string;
+    cantidad: number;
+    proporcionadoPorCliente: boolean;
+    notas?: string;
+}
+
+export type OrdenProductoCambioPayload =
+    | {
+        accion: "AGREGAR";
+        productoId: string;
+        cantidad: number;
+        notas?: string;
+        proporcionadoPorCliente: boolean;
+    }
+    | {
+        accion: "ACTUALIZAR";
+        lineaId: string;
+        cantidad: number;
+        notas?: string;
+    }
+    | {
+        accion: "ELIMINAR";
+        lineaId: string;
+    }
+
+export type OrdenCatalogoItem = { id?: string; codigo: string; nombre: string };
+export type TipoOT = "mantencion" | "reparacion" | "revision" | "armado" | "garantia" | "personalizacion";
+export type EstadoOT = "recibida" | "en_diagnostico" | "esperando_repuestos" | "en_reparacion" | "control_calidad" | "lista_para_entrega" | "entregada" | "cancelada";
+export type Prioridad = "baja" | "media" | "alta";
 export type TipoBici = "Ruta" | "Montaña" | "Híbrida" | "Eléctrica" | "Infantil" | "Otra";
 
 export type OrdenesListResponse = { total: number; ordenes: OrdenTrabajo[] }

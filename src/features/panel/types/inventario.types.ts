@@ -1,5 +1,6 @@
 export interface IInventarioService {
-  getProductos(): Promise<ProductosListResponse>
+  getProductos(sucursalId?: string): Promise<ProductosListResponse>
+  buscarProductos(search: string, sucursalId?: string): Promise<ProductosListResponse>
   getMetricas(): Promise<InventarioMetricas>
   createProducto(payload: CreateProductoPayload): Promise<void>
 }

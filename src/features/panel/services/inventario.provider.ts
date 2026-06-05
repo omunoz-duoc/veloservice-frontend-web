@@ -12,8 +12,11 @@ async function loadInventarioService(): Promise<IInventarioService> {
 }
 
 export const inventarioService: IInventarioService = {
-  async getProductos() {
-    return (await loadInventarioService()).getProductos()
+  async getProductos(sucursalId?: string) {
+    return (await loadInventarioService()).getProductos(sucursalId)
+  },
+  async buscarProductos(search: string, sucursalId?: string) {
+    return (await loadInventarioService()).buscarProductos(search, sucursalId)
   },
   async getMetricas() {
     return (await loadInventarioService()).getMetricas()

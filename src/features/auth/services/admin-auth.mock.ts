@@ -3,6 +3,7 @@ import { ApiError } from "@/lib/api/api-error"
 
 const MOCK_ADMIN_EMAIL = "sysadmin@veloservice.cl"
 const MOCK_ADMIN: AdminUser = {
+  id: "mock-user-sysadmin",
   nombre: "System",
   apellido: "Admin",
   token: "mock-token-sysadmin",

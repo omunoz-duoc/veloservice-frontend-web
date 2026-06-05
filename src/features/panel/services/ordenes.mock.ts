@@ -1,6 +1,7 @@
 import type { IOrdenesService, OrdenTrabajo, OrdenTrabajoDetalle, OrdenesListResponse, OrdenesMetricas } from "../types/ordenes.types"
 import ordenesData from "./ordenes.mock.data.json"
 import metricasData from "./ordenes.metricas.mock.data.json"
+import { ESTADOS_ORDEN_FALLBACK, PRIORIDADES_ORDEN_FALLBACK, TIPOS_ORDEN_FALLBACK } from "./ordenes.catalogos"
 
 let ordenes = [...(ordenesData.ordenes as OrdenTrabajo[])]
 
@@ -10,25 +11,23 @@ async function mockFetch<T>(data: T, delayMs = 250): Promise<T> {
 }
 
 const ESTADO_DETALLE: Record<string, OrdenTrabajoDetalle["estado"]> = {
-  recibido: { id: "estado-recibido", codigo: "recibido", nombre: "Recibido" },
-  proceso: { id: "estado-reparacion", codigo: "en_reparacion", nombre: "En reparacion" },
-  "en proceso": { id: "estado-reparacion", codigo: "en_reparacion", nombre: "En reparacion" },
-  "en_proceso": { id: "estado-reparacion", codigo: "en_reparacion", nombre: "En reparacion" },
-  "en_reparacion": { id: "estado-reparacion", codigo: "en_reparacion", nombre: "En reparacion" },
-  espera: { id: "estado-espera", codigo: "en_espera", nombre: "En espera" },
-  "en_espera": { id: "estado-espera", codigo: "en_espera", nombre: "En espera" },
-  "espera_repuesto": { id: "estado-espera", codigo: "en_espera", nombre: "En espera" },
-  listo: { id: "estado-listo", codigo: "listo", nombre: "Listo" },
-  entregado: { id: "estado-entregado", codigo: "entregado", nombre: "Entregado" },
+  recibida: { id: "estado-recibida", codigo: "recibida", nombre: "Recibida" },
+  en_diagnostico: { id: "estado-diagnostico", codigo: "en_diagnostico", nombre: "En diagnostico" },
+  esperando_repuestos: { id: "estado-repuestos", codigo: "esperando_repuestos", nombre: "Esperando repuestos" },
+  en_reparacion: { id: "estado-reparacion", codigo: "en_reparacion", nombre: "En reparacion" },
+  control_calidad: { id: "estado-calidad", codigo: "control_calidad", nombre: "Control calidad" },
+  lista_para_entrega: { id: "estado-lista", codigo: "lista_para_entrega", nombre: "Lista para entrega" },
+  entregada: { id: "estado-entregada", codigo: "entregada", nombre: "Entregada" },
+  cancelada: { id: "estado-cancelada", codigo: "cancelada", nombre: "Cancelada" },
 }
 
 const TIPO_LABELS: Record<string, string> = {
-  diagnostico: "Diagnostico",
   mantencion: "Mantencion",
   reparacion: "Reparacion",
-  overhaul: "Overhaul",
+  revision: "Revision",
   garantia: "Garantia",
   armado: "Armado",
+  personalizacion: "Personalizacion",
 }
 
 function splitName(nombreCompleto: string) {
@@ -50,7 +49,7 @@ function toDetalle(orden: OrdenTrabajo): OrdenTrabajoDetalle {
     numeroOrden,
     tallerId: "mock-taller",
     sucursalId: "mock-sucursal",
-    estado: ESTADO_DETALLE[orden.estado.toLowerCase()] ?? ESTADO_DETALLE.recibido,
+    estado: ESTADO_DETALLE[orden.estado.toLowerCase()] ?? ESTADO_DETALLE.recibida,
     tipo: {
       id: `tipo-${tipoCodigo}`,
       codigo: tipoCodigo,
@@ -58,9 +57,9 @@ function toDetalle(orden: OrdenTrabajo): OrdenTrabajoDetalle {
     },
     fechaIngreso: orden.fechaIngreso,
     fechaPrometida: orden.fechaIngreso,
-    fechaEntrega: orden.estado === "entregado" ? orden.fechaIngreso : null,
+    fechaEntrega: orden.estado === "entregada" ? orden.fechaIngreso : null,
     diagnosticoInicial: orden.diagnosticoInicial,
-    diagnosticoFinal: orden.estado === "listo" || orden.estado === "entregado" ? "Trabajo completado y validado en banco." : null,
+    diagnosticoFinal: orden.estado === "lista_para_entrega" || orden.estado === "entregada" ? "Trabajo completado y validado en banco." : null,
     observacionesCliente: "Sin observaciones del cliente.",
     bicicleta: {
       id: `bici-${numeroOrden}`,
@@ -102,12 +101,17 @@ export const ordenesMock: IOrdenesService = {
   async getOrdenes() {
     return mockFetch({ total: ordenes.length, ordenes } as OrdenesListResponse)
   },
-  async getOrdenesUrgentes() {
-    const urgentes = ordenes.filter(o => o.prioridad === "alta")
-    return mockFetch({ total: urgentes.length, ordenes: urgentes } as OrdenesListResponse)
-  },
   async getOrdenesMetricas() {
     return mockFetch(metricasData as OrdenesMetricas)
+  },
+  async getEstadosOrden() {
+    return mockFetch(ESTADOS_ORDEN_FALLBACK)
+  },
+  async getTiposOrden() {
+    return mockFetch(TIPOS_ORDEN_FALLBACK)
+  },
+  async getPrioridadesOrden() {
+    return mockFetch(PRIORIDADES_ORDEN_FALLBACK)
   },
   async createOrden(_payload) {
     return mockFetch(undefined as void)
@@ -120,14 +124,26 @@ export const ordenesMock: IOrdenesService = {
     const current = idx >= 0 ? ordenes[idx] : ordenes[0]
     const updated: OrdenTrabajo = {
       ...current,
-      tipo: payload.tipo ?? current.tipo,
+      tipo: payload.tipoCodigo ?? current.tipo,
       prioridad: payload.prioridad ?? current.prioridad,
       mecanico: payload.mecanicoId ?? current.mecanico,
       diagnosticoInicial: payload.descripcion ?? current.diagnosticoInicial,
-      estado: payload.estado ?? current.estado,
+      estado: payload.estadoCodigo ?? payload.estado ?? current.estado,
     }
     if (idx >= 0) ordenes = ordenes.map(o => o.numeroOrden === id ? updated : o)
     return mockFetch(updated)
+  },
+  async addProductos(id, payload) {
+    const detalle = toDetalle(ordenes.find(o => o.numeroOrden === id) ?? ordenes[0])
+    const nuevos = payload.map((item, index) => ({
+      id: `linea-producto-${id}-${index}`,
+      productoId: item.productoId,
+      nombre: `Producto ${item.productoId}`,
+      sku: "SKU-MOCK",
+      cantidad: item.cantidad,
+      precioVenta: 10000,
+    }))
+    return mockFetch([...detalle.productos, ...nuevos])
   },
   async deleteOrden(_id) {
     return mockFetch(undefined as void)

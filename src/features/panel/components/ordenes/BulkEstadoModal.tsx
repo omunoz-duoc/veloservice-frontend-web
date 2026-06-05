@@ -3,9 +3,9 @@
 import { useState } from "react"
 import { Check, X } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ESTADO_CONFIG } from "./ordenes.constants"
+import { ESTADO_COLORS, ORDEN_CATALOGOS_FALLBACK } from "@/features/panel/services/ordenes.catalogos"
 import type { EstadoOT } from "./ordenes.types"
-import { useBulkUpdateOrdenesMutation } from "@/features/panel/hooks/useOrdenes"
+import { useBulkUpdateOrdenesMutation, useOrdenCatalogosQuery } from "@/features/panel/hooks/useOrdenes"
 
 export function BulkEstadoModal({
   ids,
@@ -17,6 +17,8 @@ export function BulkEstadoModal({
   onSuccess: () => void
 }) {
   const bulkUpdateOrdenes = useBulkUpdateOrdenesMutation()
+  const catalogosQuery = useOrdenCatalogosQuery()
+  const catalogos = catalogosQuery.data ?? ORDEN_CATALOGOS_FALLBACK
   const [selected, setSelected] = useState<EstadoOT | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -53,8 +55,11 @@ export function BulkEstadoModal({
         </div>
 
         <div className="space-y-2 mb-5">
-          {(Object.entries(ESTADO_CONFIG) as [EstadoOT, (typeof ESTADO_CONFIG)[EstadoOT]][]).map(
-            ([estado, cfg]) => (
+          {catalogos.estados.map(
+            (item) => {
+              const estado = item.codigo as EstadoOT
+              const cfg = ESTADO_COLORS[estado] ?? { fg: "#4a4438", bg: "#ece7de", dot: "#a59682" }
+              return (
               <button
                 key={estado}
                 onClick={() => setSelected(estado)}
@@ -73,16 +78,17 @@ export function BulkEstadoModal({
                     className="w-1.5 h-1.5 rounded-full shrink-0"
                     style={{ background: cfg.dot }}
                   />
-                  {cfg.label}
+                  {item.nombre}
                 </span>
                 {selected === estado && (
                   <Check size={14} strokeWidth={2.5} className="ml-auto text-vs-ink" />
                 )}
               </button>
-            )
+            )}
           )}
         </div>
 
+        {catalogosQuery.isError && <p className="text-[12px] text-red-500 mb-3">No se pudieron cargar los catalogos. Se usara un fallback seguro.</p>}
         {error && <p className="text-[12px] text-red-500 mb-3">{error}</p>}
 
         <div className="flex gap-2">

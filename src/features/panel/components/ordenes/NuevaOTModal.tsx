@@ -484,7 +484,7 @@ export function NuevaOTModal({
   const prioOptions = [
     { value: "baja",  label: "Baja" },
     { value: "media", label: "Media" },
-    { value: "alta",  label: "Alta — Urgente" },
+    { value: "alta",  label: "Alta" },
   ]
 
   return (

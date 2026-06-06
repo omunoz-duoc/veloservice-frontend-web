@@ -5,8 +5,6 @@ export const TIPO_CONFIG: Record<TipoOT, { label: string; fg: string; bg: string
   mantencion: { label: "Mantencion", fg: "#6b5bd1", bg: "#ebe7fa" },
   reparacion: { label: "Reparacion", fg: "#c85a2a", bg: "#fbeadd" },
   revision: { label: "Revision", fg: "#111418", bg: "#ece7de" },
-  diagnostico: { label: "Diagnostico", fg: "#3a6ea5", bg: "#e4eaf2" },
-  overhaul: { label: "Overhaul", fg: "#111418", bg: "#ece7de" },
   garantia: { label: "Garantia", fg: "#2f7d4f", bg: "#e4f1e8" },
   armado: { label: "Armado", fg: "#8c6a1e", bg: "#faecd6" },
 }

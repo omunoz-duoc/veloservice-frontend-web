@@ -96,10 +96,10 @@ const TIPO_MAP: Record<string, TipoOT> = {
     mantenimiento: "mantencion",
     reparacion: "reparacion",
     revision: "revision",
-    diagnostico: "diagnostico",
+    diagnostico: "revision",
     garantia: "garantia",
     armado: "armado",
-    overhaul: "overhaul",
+    overhaul: "revision",
 }
 
 const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]

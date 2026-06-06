@@ -90,6 +90,9 @@ export type OrdenTrabajoDetalle = {
         servicioId: string;
         nombre: string;
         precioBase: number;
+        precioAplicado?: number;
+        descuentoAplicado?: number;
+        notas?: string;
     }>;
 }
 
@@ -116,6 +119,7 @@ export type UpdateOrdenPayload = {
     descripcion?: string;
     estado?: string;
     notasInternas?: string;
+    serviciosCambios?: OrdenServicioCambioPayload[];
     productosCambios?: OrdenProductoCambioPayload[];
 }
 
@@ -129,6 +133,24 @@ export type OrdenEstadoChangePayload = {
     codigo: string;
     observacion?: string;
 }
+
+export type OrdenServicioCambioPayload =
+    | {
+        accion: "AGREGAR";
+        servicioId: string;
+        notas?: string;
+    }
+    | {
+        accion: "ACTUALIZAR";
+        lineaId: string;
+        precioAplicado: number;
+        descuentoAplicado: number;
+        notas?: string;
+    }
+    | {
+        accion: "ELIMINAR";
+        lineaId: string;
+    }
 
 export type OrdenProductoCambioPayload =
     | {

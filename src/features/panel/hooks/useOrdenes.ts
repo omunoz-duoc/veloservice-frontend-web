@@ -6,9 +6,10 @@ import { ordenesService } from "@/features/panel/services/ordenes.provider"
 import { ESTADO_TO_API_MAP, mapApiOrden } from "@/features/panel/services/ordenes.service"
 import type {
   BulkUpdateOrdenPayload,
+  OrdenProductoCambioPayload,
   UpdateOrdenPayload,
 } from "@/features/panel/types/ordenes.types"
-import type { EstadoOT, OrdenTrabajo, Prioridad, TipoOT } from "@/features/panel/components/ordenes/ordenes.types"
+import type { EstadoOT, OrdenTrabajo, Prioridad } from "@/features/panel/components/ordenes/ordenes.types"
 
 export const ordenesQueryKey = ["ordenes", "list"] as const
 
@@ -19,13 +20,17 @@ type BulkChanges = {
   mecanicoId?: string
 }
 
-const TIPO_TO_API_MAP: Record<TipoOT, string> = {
+type UpdateOrdenDraft = OrdenTrabajo & {
+  productosCambios?: OrdenProductoCambioPayload[]
+}
+
+const TIPO_TO_API_MAP: Record<string, string> = {
   personalizacion: "revision",
   mantencion: "mantencion",
   reparacion: "reparacion",
   revision: "revision",
-  diagnostico: "diagnostico",
-  overhaul: "overhaul",
+  diagnostico: "revision",
+  overhaul: "revision",
   garantia: "garantia",
   armado: "armado",
 }
@@ -37,14 +42,16 @@ const PRIORIDAD_TO_API_MAP: Record<Prioridad, string> = {
   urgente: "urgente",
 }
 
-function toUpdatePayload(orden: OrdenTrabajo): UpdateOrdenPayload {
-  return {
+function toUpdatePayload(orden: UpdateOrdenDraft): UpdateOrdenPayload {
+  const payload: UpdateOrdenPayload = {
     estadoCodigo: ESTADO_TO_API_MAP[orden.estado],
     estadoObservacion: "Cambio de estado desde panel web",
-    tipoCodigo: orden.tipo?.codigo ? TIPO_TO_API_MAP[orden.tipo.codigo as TipoOT] : undefined,
+    tipoCodigo: orden.tipo?.codigo ? TIPO_TO_API_MAP[orden.tipo.codigo] ?? "revision" : undefined,
     prioridad: PRIORIDAD_TO_API_MAP[orden.prioridad],
     mecanicoId: orden.mecanicoId,
   }
+  if (orden.productosCambios && orden.productosCambios.length > 0) payload.productosCambios = orden.productosCambios
+  return payload
 }
 
 export function nextOrdenId(ordenes: OrdenTrabajo[]) {
@@ -105,9 +112,11 @@ export function useUpdateOrdenMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (orden: OrdenTrabajo) => {
+    mutationFn: async (orden: UpdateOrdenDraft) => {
       await ordenesService.updateOrden(orden.backendId ?? orden.id, toUpdatePayload(orden))
-      return orden
+      const { productosCambios, ...updated } = orden
+      void productosCambios
+      return updated
     },
     onSuccess: updated => {
       const updatedLookupId = updated.backendId ?? updated.id

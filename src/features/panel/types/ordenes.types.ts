@@ -81,6 +81,9 @@ export type OrdenTrabajoDetalle = {
         sku: string;
         cantidad: number;
         precioVenta: number;
+        precioAplicado?: number;
+        notas?: string;
+        proporcionadoPorCliente?: boolean;
     }>;
     servicios: Array<{
         id: string;
@@ -113,6 +116,7 @@ export type UpdateOrdenPayload = {
     descripcion?: string;
     estado?: string;
     notasInternas?: string;
+    productosCambios?: OrdenProductoCambioPayload[];
 }
 
 export type BulkUpdateOrdenPayload = {
@@ -125,6 +129,26 @@ export type OrdenEstadoChangePayload = {
     codigo: string;
     observacion?: string;
 }
+
+export type OrdenProductoCambioPayload =
+    | {
+        accion: "AGREGAR";
+        productoId: string;
+        cantidad: number;
+        notas?: string;
+        proporcionadoPorCliente: boolean;
+    }
+    | {
+        accion: "ACTUALIZAR";
+        lineaId: string;
+        cantidad: number;
+        notas?: string;
+        proporcionadoPorCliente: boolean;
+    }
+    | {
+        accion: "ELIMINAR";
+        lineaId: string;
+    }
 
 export type TipoOT = "Mantención" | "Diagnóstico" | "Garantía" | "Armado" | "Otro";
 export type EstadoOT = "recibida" | "en_diagnostico" | "esperando_repuestos" | "en_reparacion" | "control_calidad" | "lista_para_entrega" | "entregada" | "cancelada";

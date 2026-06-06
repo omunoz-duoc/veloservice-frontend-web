@@ -27,6 +27,42 @@ const CAT_ICONS: Record<CatKey, LucideIcon> = {
   logistica:  Package,
 }
 
+const DEFAULT_CAT: CatKey = "mantencion"
+
+type RawServicioForPage = Partial<Servicio> & {
+  descripcion?: string
+  precioBase?: number
+}
+
+function isValidCat(value: unknown): value is CatKey {
+  return typeof value === "string" && CATEGORIAS.some(c => c.key === value)
+}
+
+function toSafeNumber(value: unknown, fallback = 0) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback
+}
+
+function toStringList(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
+}
+
+function normalizeServicioForPage(raw: RawServicioForPage): Servicio {
+  return {
+    id: raw.id ?? "SV-SIN-ID",
+    cat: isValidCat(raw.cat) ? raw.cat : DEFAULT_CAT,
+    nombre: raw.nombre ?? "Servicio sin nombre",
+    precio: toSafeNumber(raw.precio ?? raw.precioBase),
+    precio2: raw.precio2,
+    dur: toSafeNumber(raw.dur),
+    desc: raw.desc ?? raw.descripcion ?? "",
+    incluye: toStringList(raw.incluye),
+    skills: toStringList(raw.skills),
+    activo: raw.activo ?? true,
+    popular: raw.popular,
+    ots30: toSafeNumber(raw.ots30),
+  }
+}
+
 export function CatIcon({ catKey, size = 18 }: { catKey: CatKey; size?: number }) {
   const Icon = CAT_ICONS[catKey]
   return <Icon size={size} strokeWidth={1.6} />
@@ -302,7 +338,7 @@ type DrawerState = { servicio: Servicio; mode: "view" | "edit" } | null
 type ModalState = { defaultCat?: CatKey } | null
 
 export function ServiciosPage() {
-  const { data: servicios = [], isLoading, isError, error } = useServiciosQuery()
+  const { data: rawServicios = [], isLoading, isError, error } = useServiciosQuery()
   const createServicio = useCreateServicioMutation()
   const updateServicio = useUpdateServicioCacheMutation()
   const [view, setView] = useState<"grid" | "list">("grid")
@@ -311,6 +347,10 @@ export function ServiciosPage() {
   const [collapsed, setCollapsed] = useState<Set<CatKey>>(new Set())
   const [drawer, setDrawer] = useState<DrawerState>(null)
   const [modal, setModal] = useState<ModalState>(null)
+  const servicios = useMemo(
+    () => rawServicios.map(servicio => normalizeServicioForPage(servicio as RawServicioForPage)),
+    [rawServicios]
+  )
 
   const counts = useMemo(() => {
     const m: Record<string, number> = { all: servicios.length }
@@ -334,7 +374,10 @@ export function ServiciosPage() {
     const map: Record<CatKey, Servicio[]> = {
       rapidos: [], mantencion: [], ruedas: [], ebike: [], kids: [], logistica: [],
     }
-    filtered.forEach(s => map[s.cat].push(s))
+    filtered.forEach(s => {
+      const cat = isValidCat(s.cat) ? s.cat : DEFAULT_CAT
+      map[cat].push(s)
+    })
     return map
   }, [filtered])
 

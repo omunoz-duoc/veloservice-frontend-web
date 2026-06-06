@@ -7,6 +7,7 @@ import { ESTADO_TO_API_MAP, mapApiOrden } from "@/features/panel/services/ordene
 import type {
   BulkUpdateOrdenPayload,
   OrdenProductoCambioPayload,
+  OrdenServicioCambioPayload,
   UpdateOrdenPayload,
 } from "@/features/panel/types/ordenes.types"
 import type { EstadoOT, OrdenTrabajo, Prioridad } from "@/features/panel/components/ordenes/ordenes.types"
@@ -22,6 +23,7 @@ type BulkChanges = {
 
 type UpdateOrdenDraft = OrdenTrabajo & {
   productosCambios?: OrdenProductoCambioPayload[]
+  serviciosCambios?: OrdenServicioCambioPayload[]
 }
 
 const TIPO_TO_API_MAP: Record<string, string> = {
@@ -50,6 +52,7 @@ function toUpdatePayload(orden: UpdateOrdenDraft): UpdateOrdenPayload {
     prioridad: PRIORIDAD_TO_API_MAP[orden.prioridad],
     mecanicoId: orden.mecanicoId,
   }
+  if (orden.serviciosCambios && orden.serviciosCambios.length > 0) payload.serviciosCambios = orden.serviciosCambios
   if (orden.productosCambios && orden.productosCambios.length > 0) payload.productosCambios = orden.productosCambios
   return payload
 }
@@ -114,8 +117,9 @@ export function useUpdateOrdenMutation() {
   return useMutation({
     mutationFn: async (orden: UpdateOrdenDraft) => {
       await ordenesService.updateOrden(orden.backendId ?? orden.id, toUpdatePayload(orden))
-      const { productosCambios, ...updated } = orden
+      const { productosCambios, serviciosCambios, ...updated } = orden
       void productosCambios
+      void serviciosCambios
       return updated
     },
     onSuccess: updated => {

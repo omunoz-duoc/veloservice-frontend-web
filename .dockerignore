@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+Dockerfile
+docker-compose.yml
+cloudflare-env.d.ts
+.env*
+.dev.vars
+*.log

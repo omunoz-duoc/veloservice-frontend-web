@@ -15,6 +15,10 @@ export const inventarioService: IInventarioService = {
   async getProductos() {
     return (await loadInventarioService()).getProductos()
   },
+
+  async getStockBajo() {
+  return (await loadInventarioService()).getStockBajo()
+ },
   async getMetricas() {
     return (await loadInventarioService()).getMetricas()
   },

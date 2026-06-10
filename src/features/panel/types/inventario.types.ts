@@ -1,8 +1,10 @@
 export interface IInventarioService {
   getProductos(): Promise<ProductosListResponse>
   getMetricas(): Promise<InventarioMetricas>
+  getStockBajo(): Promise<ProductosListResponse>
   createProducto(payload: CreateProductoPayload): Promise<void>
 }
+
 
 export type Producto = {
   id: string

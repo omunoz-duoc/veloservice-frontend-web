@@ -8,7 +8,11 @@ export const inventarioService: IInventarioService = {
   async getMetricas() {
     return httpClient.get<InventarioMetricas>("productos/metricas")
   },
+  async getStockBajo() {
+    return httpClient.get<ProductosListResponse>("productos/stock-bajo")
+  },
   async createProducto(payload: CreateProductoPayload) {
     return httpClient.post("productos", payload)
   },
 }
+

@@ -11,6 +11,12 @@ export const inventarioMock: IInventarioService = {
   async getProductos() {
     return mockFetch(productosData as ProductosListResponse)
   },
+
+  async getStockBajo() {
+  const { productos } = await this.getProductos()
+  const bajos = productos.filter(p => p.stock <= 5)
+  return mockFetch({ total: bajos.length, productos: bajos })
+  },
   async getMetricas() {
     return mockFetch(metricasData as InventarioMetricas)
   },

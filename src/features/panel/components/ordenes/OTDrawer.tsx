@@ -165,6 +165,10 @@ function normalizePrioridad(prioridad: string | null | undefined): Prioridad {
   return "media"
 }
 
+function isUuid(value: string | null | undefined) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value ?? "")
+}
+
 function formatFecha(iso: string | null | undefined): string {
   if (!iso) return "-"
   const d = new Date(iso)
@@ -316,7 +320,7 @@ function detalleToDraft(orden: OrdenTrabajoDetalle): OrdenTrabajo {
     prioridad: normalizePrioridad(orden.prioridad),
     fechaIngreso: formatFecha(orden.fechaIngreso),
     fechaEstimada: orden.fechaPrometida ?? "",
-    mecanicoId: orden.mecanico?.id || fullName(orden.mecanico),
+    mecanicoId: isUuid(orden.mecanico?.id) ? orden.mecanico.id : "",
     clienteNombre: fullName(orden.cliente),
     clienteTelefono: orden.cliente?.telefono,
     clienteEmail: orden.cliente?.email,

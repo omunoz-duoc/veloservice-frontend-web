@@ -27,7 +27,8 @@ export function BulkReasignarModal({
   useEffect(() => {
     mecanicosService
       .getMecanicosActivos()
-      .then(({ mecanicos }) => setMecanicos(mecanicos))
+      .then(data => {const lista = Array.isArray(data) ? data : data.mecanicos ?? []
+       setMecanicos(lista)})
       .catch(() => setFetchError("No se pudo cargar la lista de mecánicos."))
       .finally(() => setFetchLoading(false))
   }, [])
@@ -76,8 +77,9 @@ export function BulkReasignarModal({
         {!fetchLoading && !fetchError && (
           <div className="space-y-1.5 mb-5 max-h-[300px] overflow-y-auto pr-1">
             {mecanicos.map(mec => {
-              const carga = mec.ordenesCursando.length
-              const pct = Math.min(100, Math.round((carga / mec.capacidad) * 100))
+              const carga = mec.ordenesCursando?.length ?? 0
+              const capacidad = mec.capacidad || 1
+              const pct = Math.min(100, Math.round((carga / capacidad) * 100))
               return (
                 <button
                   key={mec.id}
@@ -100,7 +102,7 @@ export function BulkReasignarModal({
                       {mec.nombre} {mec.apellido}
                     </div>
                     <div className="text-[11px] text-[#a59682]">
-                      {mec.especialidad} · {carga}/{mec.capacidad} OTs ({pct}%)
+                      {mec.especialidad ?? "Mecánico"} · {carga}/{capacidad} OTs ({pct}%)
                     </div>
                   </div>
                   {selected?.id === mec.id && (

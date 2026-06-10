@@ -22,14 +22,17 @@ export function BulkEstadoModal({
   const [error, setError] = useState<string | null>(null)
 
   const handleConfirm = async () => {
+    console.log("CONFIRM CLICK", selected, ids)
     if (!selected) return
     setLoading(true)
     setError(null)
     try {
       await bulkUpdateOrdenes.mutateAsync({ ids, changes: { estado: selected } })
       onSuccess()
-    } catch {
-      setError("Error al cambiar estado. Intenta de nuevo.")
+     } catch (err) {
+       console.error("BULK ESTADO ERROR", err)
+        setError("Error al cambiar estado. Intenta de nuevo.")
+        
     } finally {
       setLoading(false)
     }

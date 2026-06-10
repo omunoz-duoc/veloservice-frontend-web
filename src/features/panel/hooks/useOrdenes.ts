@@ -44,14 +44,16 @@ const PRIORIDAD_TO_API_MAP: Record<Prioridad, string> = {
   urgente: "urgente",
 }
 
+function isUuid(value: string | null | undefined) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value ?? "")
+}
+
 function toUpdatePayload(orden: UpdateOrdenDraft): UpdateOrdenPayload {
   const payload: UpdateOrdenPayload = {
-    estadoCodigo: ESTADO_TO_API_MAP[orden.estado],
-    estadoObservacion: "Cambio de estado desde panel web",
     tipoCodigo: orden.tipo?.codigo ? TIPO_TO_API_MAP[orden.tipo.codigo] ?? "revision" : undefined,
     prioridad: PRIORIDAD_TO_API_MAP[orden.prioridad],
-    mecanicoId: orden.mecanicoId,
   }
+  if (isUuid(orden.mecanicoId)) payload.mecanicoId = orden.mecanicoId
   if (orden.serviciosCambios && orden.serviciosCambios.length > 0) payload.serviciosCambios = orden.serviciosCambios
   if (orden.productosCambios && orden.productosCambios.length > 0) payload.productosCambios = orden.productosCambios
   return payload
@@ -130,11 +132,7 @@ export function useUpdateOrdenMutation() {
           return lookupId === updatedLookupId || o.id === updated.id ? { ...o, ...updated } : o
         })
       )
-      void queryClient.invalidateQueries({ queryKey: ordenesQueryKey })
-      void queryClient.invalidateQueries({ queryKey: ordenDetalleQueryKey(updatedLookupId) })
-      if (updatedLookupId !== updated.id) {
-        void queryClient.invalidateQueries({ queryKey: ordenDetalleQueryKey(updated.id) })
-      }
+      void queryClient.invalidateQueries({ queryKey: ["ordenes"] })
     },
   })
 }
@@ -173,10 +171,25 @@ export function useBulkUpdateOrdenesMutation() {
 
   return useMutation({
     mutationFn: async ({ ids, changes }: { ids: string[]; changes: BulkChanges }) => {
-      const payload: BulkUpdateOrdenPayload = { ids }
-      if (changes.estado !== undefined) payload.estado = ESTADO_TO_API_MAP[changes.estado]
-      if (changes.mecanicoId !== undefined) payload.mecanicoId = changes.mecanicoId
-      await ordenesService.bulkUpdateOrdenes(payload)
+      await Promise.all(
+        ids.map(id => {
+          if (changes.estado !== undefined) {
+            return ordenesService.cambiarEstado(id, {
+              codigo: ESTADO_TO_API_MAP[changes.estado],
+              observacion: "Cambio de estado desde panel web",
+            })
+          }
+
+          if (changes.mecanicoId !== undefined) {
+            return ordenesService.updateOrden(id, {
+              mecanicoId: changes.mecanicoId,
+            })
+          }
+
+          return Promise.resolve()
+        })
+      )
+
       return { ids, changes }
     },
     onSuccess: ({ ids, changes }) => {

@@ -13,6 +13,7 @@ import { useOrdenes } from "@/features/panel/context/OrdenesContext"
 import { useOrdenesQuery } from "@/features/panel/hooks/useOrdenes"
 import { BulkReasignarModal } from "./BulkReasignarModal"
 import { BulkEstadoModal } from "./BulkEstadoModal"
+import { useMecanicosActivos } from "@/features/panel/hooks/useMecanicosActivos"
 
 
 export const TIPO_CONFIG: Record<string, { label: string; fg: string; bg: string }> = {
@@ -21,7 +22,6 @@ export const TIPO_CONFIG: Record<string, { label: string; fg: string; bg: string
   reparacion:  { label: "Reparación",  fg: "#c85a2a", bg: "#fbeadd" },
   revision:    { label: "Revisión",    fg: "#111418", bg: "#ece7de" },
   diagnostico: { label: "Diagnostico", fg: "#3a6ea5", bg: "#e4eaf2" },
-  overhaul:    { label: "Overhaul",    fg: "#111418", bg: "#ece7de" },
   garantia:    { label: "Garantía",    fg: "#2f7d4f", bg: "#e4f1e8" },
   armado:      { label: "Armado",      fg: "#8c6a1e", bg: "#faecd6" },
 }
@@ -217,19 +217,9 @@ function parseFechaIngreso(s: string): Date | null {
   return new Date(year, month, +m[1], +m[3], +m[4])
 }
 
-const MECANICOS_MOCK = [
-  { id: "m-001", nombre: "Javier Bravo", iniciales: "JB", color: "#6b5bd1" },
-  { id: "m-002", nombre: "Rodrigo Soto", iniciales: "RS", color: "#2f7d4f" },
-  { id: "m-003", nombre: "Pablo Herrera", iniciales: "PH", color: "#c85a2a" },
-]
 
 function normalizeMecanicoId(value: string) {
-  const normalized = value.trim().toLowerCase()
-  const mec = MECANICOS_MOCK.find(m =>
-    m.id.toLowerCase() === normalized ||
-    m.nombre.toLowerCase() === normalized
-  )
-  return mec?.id ?? value
+  return value.trim().toLowerCase()
 }
 
 function FilterDropdown({ label, icon, options, selected, onChange }: {
@@ -403,12 +393,15 @@ function DateRangeFilter({ desde, hasta, onChange }: {
 type TabKey = "all" | EstadoOT
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: "all",      label: "Todas" },
+  { key: "all", label: "Todas" },
   { key: "recibido", label: "Recibidas" },
-  { key: "proceso",  label: "En proceso" },
-  { key: "espera",   label: "Esp. repuesto" },
-  { key: "listo",    label: "Listas" },
-  { key: "entregado",label: "Entregadas" },
+  { key: "diagnostico", label: "Diagnóstico" },
+  { key: "proceso", label: "En reparación" },
+  { key: "espera", label: "Esp. repuesto" },
+  { key: "calidad", label: "Control calidad" },
+  { key: "listo", label: "Listas" },
+  { key: "entregado", label: "Entregadas" },
+  { key: "cancelado", label: "Canceladas" },
 ]
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
@@ -425,6 +418,8 @@ export function OrdenesPage() {
   const [filterDesde, setFilterDesde] = useState("")
   const [filterHasta, setFilterHasta] = useState("")
   const [bulkModal, setBulkModal] = useState<"reasignar" | "estado" | null>(null)
+  const { data: mecanicosData } = useMecanicosActivos()
+  const mecanicos = Array.isArray(mecanicosData) ? mecanicosData : mecanicosData?.mecanicos ?? []
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: ordenes.length, recibido: 0, proceso: 0, espera: 0, listo: 0, entregado: 0 }
@@ -469,9 +464,11 @@ export function OrdenesPage() {
     })
 
   const toggleAll = () =>
-    setSelected(prev =>
-      prev.size === filtered.length ? new Set() : new Set(filtered.map(o => o.id))
-    )
+  setSelected(prev =>
+    prev.size === filtered.length
+      ? new Set()
+      : new Set(filtered.map(o => o.backendId ?? o.id))
+  )
 
   const allSelected = filtered.length > 0 && selected.size === filtered.length
 
@@ -558,7 +555,8 @@ export function OrdenesPage() {
           <FilterDropdown
             label="Mecánico"
             icon={<Wrench size={13} strokeWidth={1.6} />}
-            options={MECANICOS_MOCK.map(m => ({ value: m.id, label: m.nombre, color: m.color }))}
+            options={mecanicos.map(m => ({ value: `${m.nombre} ${m.apellido}`.trim().toLowerCase(),
+            label: `${m.nombre} ${m.apellido}`.trim(),color: "#6b5bd1",}))}
             selected={filterMecanicos}
             onChange={setFilterMecanicos}
           />
@@ -641,8 +639,8 @@ export function OrdenesPage() {
               <OTRow
                 key={orden.id}
                 orden={orden}
-                selected={selected.has(orden.id)}
-                onSelect={() => toggleSelect(orden.id)}
+                selected={selected.has(orden.backendId ?? orden.id)}
+                onSelect={() => toggleSelect(orden.backendId ?? orden.id)}
                 onView={() => setDrawer({ ordenId: orden.backendId ?? orden.id })}
                 onEdit={() => setDrawer({ ordenId: orden.backendId ?? orden.id })}
               />

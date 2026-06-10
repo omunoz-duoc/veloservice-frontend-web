@@ -166,7 +166,7 @@ export function mapApiOrden(apiOrden: ApiOrdenTrabajo | BackendOrdenTrabajo, idx
         prioridad: normalizePrioridad(orden.prioridad),
         fechaIngreso: formatFechaIngreso(orden.fechaIngreso),
         fechaEstimada: orden.fechaPrometida ?? "",
-        mecanicoId: typeof orden.mecanico === "object" ? orden.mecanico?.id ?? mecanico : mecanico,
+        mecanicoId: mecanico || "Sin asignar",
         clienteNombre: cliente || "Sin cliente",
         clienteTelefono: typeof orden.cliente === "object" ? orden.cliente?.telefono ?? undefined : undefined,
         clienteEmail: typeof orden.cliente === "object" ? orden.cliente?.email ?? undefined : undefined,
@@ -194,7 +194,7 @@ function normalizeDetalle(orden: OrdenTrabajoDetalle): OrdenTrabajoDetalle {
     ...nullableOrden,
     diagnosticoInicial: nullableOrden.diagnosticoInicial ?? "Sin descripcion",
     observacionesCliente: nullableOrden.observacionesCliente ?? "Sin observaciones",
-    mecanico: nullableOrden.mecanico ?? { id: "--", nombre: "Sin", apellido: "asignar" },
+    mecanico: nullableOrden.mecanico ?? { id: "", nombre: "Sin", apellido: "asignar" },
     bicicleta: {
       ...nullableOrden.bicicleta,
       tipo: nullableOrden.bicicleta.tipo ?? "Otro",

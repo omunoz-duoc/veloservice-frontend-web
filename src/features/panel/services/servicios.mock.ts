@@ -24,4 +24,10 @@ export const serviciosMock: IServiciosService = {
     ]
     return mockFetch(undefined as void)
   },
+  async updateServicio(id: string, payload: CreateServicioPayload) {
+    servicios = servicios.map(servicio => servicio.id === id
+      ? { ...servicio, ...payload }
+      : servicio)
+    return mockFetch(undefined as void)
+  },
 }

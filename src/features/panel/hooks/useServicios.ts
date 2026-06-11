@@ -36,11 +36,15 @@ export function useUpdateServicioCacheMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (servicio: Servicio) => servicio,
+    mutationFn: async (servicio: Servicio) => {
+      await serviciosService.updateServicio(servicio.id, servicio)
+      return servicio
+    },
     onSuccess: servicio => {
       queryClient.setQueryData<Servicio[]>(serviciosQueryKey, current =>
         (current ?? []).map(s => s.id === servicio.id ? servicio : s)
       )
+      void queryClient.invalidateQueries({ queryKey: serviciosQueryKey })
     },
   })
 }

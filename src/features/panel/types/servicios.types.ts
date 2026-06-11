@@ -3,27 +3,40 @@ export type CatKey = "rapidos" | "mantencion" | "ruedas" | "ebike" | "kids" | "l
 export interface IServiciosService {
   getServicios(): Promise<ServiciosListResponse>
   createServicio(payload: CreateServicioPayload): Promise<void>
+  updateServicio(id: string, payload: CreateServicioPayload): Promise<void>
 }
 
 export type Servicio = {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  precioBase: number;
-  activo: true;
+  id: string
+  nombre: string
+  descripcion?: string
+  precioBase?: number
+  activo: boolean
+  cat?: CatKey
+  precio?: number
+  precio2?: number
+  dur?: number
+  desc?: string
+  incluye?: string[]
+  skills?: string[]
+  popular?: boolean
+  ots30?: number
 }
 
 export type ServiciosListResponse = { total: number; servicios: Servicio[] }
 
 export type CreateServicioPayload = {
-  cat: CatKey
+  id?: string
+  cat?: CatKey
   nombre: string
-  precio: number
+  descripcion?: string
+  precioBase?: number
+  precio?: number
   precio2?: number
-  dur: number
-  desc: string
-  incluye: string[]
-  skills: string[]
-  activo: boolean
+  dur?: number
+  desc?: string
+  incluye?: string[]
+  skills?: string[]
+  activo?: boolean
   popular?: boolean
 }

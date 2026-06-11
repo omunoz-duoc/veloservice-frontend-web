@@ -18,4 +18,7 @@ export const serviciosService: IServiciosService = {
   async createServicio(payload) {
     return (await loadServiciosService()).createServicio(payload)
   },
+  async updateServicio(id, payload) {
+    return (await loadServiciosService()).updateServicio(id, payload)
+  },
 }

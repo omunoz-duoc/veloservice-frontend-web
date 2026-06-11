@@ -392,8 +392,8 @@ export function ServiciosPage() {
       return next
     })
 
-  const handleSave = (updated: Servicio) => {
-    updateServicio.mutate(updated)
+  const handleSave = async (updated: Servicio) => {
+    await updateServicio.mutateAsync(updated)
     setDrawer(null)
   }
 
@@ -443,7 +443,7 @@ export function ServiciosPage() {
         actions={ACTIONS}
       />
 
-      {(isError || createServicio.isError) && (
+      {(isError || createServicio.isError || updateServicio.isError) && (
         <div className="bg-vs-warn-bg border border-vs-warn/20 text-vs-warn rounded-[16px] px-4 py-3 mb-4 text-[13px]">
           {isError && error instanceof Error
             ? error.message

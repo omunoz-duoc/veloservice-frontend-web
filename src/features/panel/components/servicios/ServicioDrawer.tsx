@@ -94,11 +94,12 @@ export function ServicioDrawer({
   servicio: Servicio
   mode: "view" | "edit"
   onClose: () => void
-  onSave: (updated: Servicio) => void
+  onSave: (updated: Servicio) => void | Promise<void>
   onNuevaOT: () => void
 }) {
   const [mode, setMode] = useState<"view" | "edit">(initialMode)
   const [draft, setDraft] = useState<Servicio>({ ...initial, incluye: [...initial.incluye] })
+  const [error, setError] = useState<string | null>(null)
 
   const set = <K extends keyof Servicio>(key: K, val: Servicio[K]) =>
     setDraft(prev => ({ ...prev, [key]: val }))
@@ -127,6 +128,15 @@ export function ServicioDrawer({
   const isEdit = mode === "edit"
 
   const catOptions = CATEGORIAS.map(c => ({ value: c.key, label: c.label }))
+
+  const handleSave = async () => {
+    try {
+      await onSave(draft)
+      setError(null)
+    } catch {
+      setError("No se pudo guardar el servicio.")
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex vs-fade-in">
@@ -162,7 +172,7 @@ export function ServicioDrawer({
             )}
             {isEdit && (
               <button
-                onClick={() => onSave(draft)}
+                onClick={handleSave}
                 className="flex items-center gap-1.5 bg-vs-ink text-white px-4 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#1e2228] active:scale-95 transition-all duration-150"
               >
                 <Check size={13} strokeWidth={2} />
@@ -178,6 +188,11 @@ export function ServicioDrawer({
           </div>
 
           <div className="p-5 space-y-5">
+            {error && (
+              <div className="rounded-xl border border-vs-warn bg-vs-warn-bg px-3 py-2 text-[12px] text-vs-warn">
+                {error}
+              </div>
+            )}
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3">
               <StatBox

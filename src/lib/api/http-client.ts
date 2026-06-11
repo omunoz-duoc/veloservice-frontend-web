@@ -4,18 +4,21 @@ import { ApiError } from "./api-error";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://veloservice-backend-337hberz7q-tl.a.run.app/api/v1/";
 
-function isAuthEndpoint(endpoint: string): boolean {
-  return endpoint.startsWith("auth");
+function isPublicAuthEndpoint(endpoint: string): boolean {
+  return endpoint === "auth/login"
+    || endpoint === "auth/login_admin"
+    || endpoint === "auth/reset-password"
+    || endpoint === "auth/change-password";
 }
 
 function authHeader(endpoint: string): Record<string, string> {
-  if (isAuthEndpoint(endpoint)) return {};
+  if (isPublicAuthEndpoint(endpoint)) return {};
   const token = useAuthStore.getState().user?.token;
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 function shouldAttachSucursal(endpoint: string): boolean {
-  if (isAuthEndpoint(endpoint)) return false;
+  if (endpoint.startsWith("auth")) return false;
   const user = useAuthStore.getState().user;
   return user?.ambito === "taller";
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Field } from "@/components/common/Field"
+import { getApiErrorMessage } from "@/lib/api/api-error"
 import { configuracionService } from "../../services/configuracion.provider"
 import type { MiPerfil } from "../../types/configuracion.types"
 
@@ -58,7 +59,7 @@ export function MiPerfilSection() {
       setPwNueva("")
       setPwConfirm("")
     } catch (err) {
-      showToast("error", err instanceof Error ? err.message : "Error al cambiar contraseña")
+      showToast("error", getApiErrorMessage(err) ?? "Error al cambiar contraseña")
     } finally {
       setSavingPw(false)
     }
@@ -103,11 +104,7 @@ export function MiPerfilSection() {
 
       <div>
         <h3 className="text-base font-semibold text-[#0f1114] mb-1">Cambiar contraseña</h3>
-        <p className="text-sm text-[#8a7f70] mb-4">
-          Usa{" "}
-          <span className="font-mono text-xs bg-[#f7f3eb] px-1 rounded">mock-password</span>{" "}
-          como contraseña actual en modo demo.
-        </p>
+        <p className="text-sm text-[#8a7f70] mb-4">Actualiza tu contraseña con tu clave actual.</p>
 
         <form onSubmit={handleCambiarPassword} className="space-y-4">
           <div>

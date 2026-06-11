@@ -39,7 +39,10 @@ function mapPerfilToTaller(data: PerfilNegocio) {
   }
 }
 
-export const configuracionRealService: Pick<ConfiguracionService, "getPerfilNegocio" | "guardarPerfilNegocio"> = {
+export const configuracionRealService: Pick<
+  ConfiguracionService,
+  "getPerfilNegocio" | "guardarPerfilNegocio" | "cambiarPassword"
+> = {
   async getPerfilNegocio() {
     const taller = await httpClient.get<ConfiguracionTallerResponse>("configuracion/taller")
     return mapTallerToPerfil(taller)
@@ -47,5 +50,9 @@ export const configuracionRealService: Pick<ConfiguracionService, "getPerfilNego
 
   async guardarPerfilNegocio(data) {
     await httpClient.patch<ConfiguracionTallerResponse>("configuracion/taller", mapPerfilToTaller(data))
+  },
+
+  async cambiarPassword(actual, nueva) {
+    await httpClient.post<void>("auth/me/change-password", { actual, nueva })
   },
 }

@@ -13,6 +13,7 @@ export type Tier = {
 
 export type Cliente = {
   id: string
+  backendId?: string
   nombre: string
   idType: IdType
   idNum: string

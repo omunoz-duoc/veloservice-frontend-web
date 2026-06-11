@@ -5,20 +5,32 @@ import type { Cliente, TierKey } from "../components/clientes/clientes.mock"
 
 export const clientesQueryKey = ["clientes"] as const
 
-export function toClienteUI(s: ServiceCliente): Cliente {
+function isUuid(value: string | undefined) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value ?? "")
+}
+
+function clienteVisualId(cliente: ServiceCliente, idx: number) {
+  if (cliente.codigoCliente) return cliente.codigoCliente
+  if (cliente.clienteId) return cliente.clienteId
+  if (!cliente.backendId && cliente.id && !isUuid(cliente.id)) return cliente.id
+  return `CL-${String(idx + 1).padStart(4, "0")}`
+}
+
+export function toClienteUI(s: ServiceCliente, idx: number): Cliente {
   return {
-    id: s.id,
+    id: clienteVisualId(s, idx),
+    backendId: s.backendId ?? (isUuid(s.id) ? s.id : undefined),
     nombre: `${s.nombre} ${s.apellido}`,
     idType: "RUT",
     idNum: s.rut,
     email: s.email,
     tel: s.telefono,
-    ciudad: s.ciudad ?? "",
+    ciudad: s.ciudad ?? s.direccion ?? "",
     fechaReg: s.fechaReg ?? "",
     tier: s.tipo.toLowerCase() as TierKey,
-    bicis: s.bicicletasCount,
-    ots: s.ordenesCount,
-    gasto: s.totalGastado,
+    bicis: s.bicicletasCount ?? s.bicicletas_count ?? 0,
+    ots: s.ordenesCount ?? s.ordenes_count ?? 0,
+    gasto: s.totalGastado ?? s.total_gastado ?? 0,
     ultima: s.ultimaVisita ?? "",
     canal: s.canal ?? "Email",
     notas: s.notas ?? "",
@@ -48,6 +60,7 @@ function toCreatePayload(cliente: Cliente) {
     rut: cliente.idNum,
     email: cliente.email,
     telefono: cliente.tel,
+    direccion: cliente.ciudad,
   }
 }
 
@@ -70,11 +83,17 @@ export function useUpdateClienteCacheMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (cliente: Cliente) => cliente,
+    mutationFn: async (cliente: Cliente) => {
+      if (cliente.backendId) {
+        await clientesService.updateCliente(cliente.backendId, toCreatePayload(cliente))
+      }
+      return cliente
+    },
     onSuccess: cliente => {
       queryClient.setQueryData<Cliente[]>(clientesQueryKey, current =>
-        (current ?? []).map(c => c.id === cliente.id ? cliente : c)
+        (current ?? []).map(c => (c.backendId ?? c.id) === (cliente.backendId ?? cliente.id) ? cliente : c)
       )
+      void queryClient.invalidateQueries({ queryKey: clientesQueryKey })
     },
   })
 }

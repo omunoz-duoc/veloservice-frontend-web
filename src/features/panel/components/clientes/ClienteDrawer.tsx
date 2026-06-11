@@ -1,14 +1,18 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { X, Check, Plus, Mail, Phone, MapPin, User, Pencil, Bike, Trash2, Star, Copy, CheckCheck, ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useMockServices } from "@/lib/api/service-mode"
 import {
   TIERS, CANALES, ID_TYPES, BICIS_MOCK, fmtGastoK, avatarInitials, avatarColor,
   type Cliente, type Bicicleta, type TierKey, type CanalKey, type IdType,
 } from "./clientes.mock"
 import { NuevaOTModal } from "../ordenes/NuevaOTModal"
 import { useInvalidateOrdenes } from "../../hooks/useOrdenes"
+import { clientesQueryKey } from "../../hooks/useClientes"
+import { bicicletasClienteQueryKey, bicicletasService } from "../../services/bicicletas.service"
 import type { ClienteResult } from "../ordenes/ordenes.types"
 import { TIPOS_BICI } from "../ordenes/ordenes.constants"
 
@@ -793,13 +797,15 @@ export function ClienteDrawer({
   cliente: Cliente
   mode: DrawerMode
   onClose: () => void
-  onSave: (updated: Cliente) => void
+  onSave: (updated: Cliente) => void | Promise<void>
 }) {
   const [mode, setMode] = useState<DrawerMode>(initialMode)
   const [draft, setDraft] = useState<Cliente>({ ...initial })
-  const [bicis, setBicis] = useState<Bicicleta[]>(BICIS_MOCK[initial.id] ?? [])
+  const [localBicis, setLocalBicis] = useState<Bicicleta[]>(BICIS_MOCK[initial.id] ?? [])
   const [showNuevaOT, setShowNuevaOT] = useState(false)
   const [contactAlert, setContactAlert] = useState<{ type: "phone" | "email"; value: string } | null>(null)
+  const [biciError, setBiciError] = useState<string | null>(null)
+  const [clienteError, setClienteError] = useState<string | null>(null)
 
   // Bike form drawer state
   const [showBiciDrawer, setShowBiciDrawer] = useState(false)
@@ -809,25 +815,45 @@ export function ClienteDrawer({
   const [deleteBici, setDeleteBici] = useState<Bicicleta | null>(null)
 
   const invalidateOrdenes = useInvalidateOrdenes()
+  const queryClient = useQueryClient()
+  const clienteIdReal = draft.backendId ?? draft.id
+  const useBackendBicis = !useMockServices && !!draft.backendId
+  const bicisQuery = useQuery({
+    queryKey: bicicletasClienteQueryKey(clienteIdReal),
+    queryFn: () => bicicletasService.listarPorCliente(clienteIdReal),
+    enabled: useBackendBicis,
+  })
+  const bicis = useBackendBicis ? bicisQuery.data ?? [] : localBicis
 
   const prefillCliente: ClienteResult = useMemo(() => ({
-    id: draft.id,
+    id: draft.backendId ?? draft.id,
     nombre: draft.nombre,
     rut: draft.idNum,
-  }), [draft.id, draft.nombre, draft.idNum])
+  }), [draft.backendId, draft.id, draft.nombre, draft.idNum])
 
   const set = <K extends keyof Cliente>(key: K, val: Cliente[K]) =>
     setDraft(prev => ({ ...prev, [key]: val }))
 
   const modeLabel = mode === "edit" ? "Editar datos" : mode === "bikes" ? "Bicicletas" : "Gestionar cliente"
 
+  const handleSaveCliente = async () => {
+    try {
+      await onSave(draft)
+      setClienteError(null)
+    } catch {
+      setClienteError("No se pudo guardar el cliente.")
+    }
+  }
+
   const handleAddBici = () => {
     setEditingBici(null)
+    setBiciError(null)
     setShowBiciDrawer(true)
   }
 
   const handleEditBici = (b: Bicicleta) => {
     setEditingBici(b)
+    setBiciError(null)
     setShowBiciDrawer(true)
   }
 
@@ -835,24 +861,61 @@ export function ClienteDrawer({
     setDeleteBici(b)
   }
 
-  const handleSaveBici = (bici: Bicicleta) => {
+  const refreshBicis = async () => {
+    await queryClient.invalidateQueries({ queryKey: bicicletasClienteQueryKey(clienteIdReal) })
+    await queryClient.invalidateQueries({ queryKey: clientesQueryKey })
+  }
+
+  const handleSaveBici = async (bici: Bicicleta) => {
+    if (useBackendBicis) {
+      try {
+        if (editingBici) {
+          await bicicletasService.actualizar(editingBici.id, bici)
+        } else {
+          await bicicletasService.crear(clienteIdReal, bici)
+        }
+        await refreshBicis()
+        setShowBiciDrawer(false)
+        setEditingBici(null)
+        setBiciError(null)
+      } catch {
+        setBiciError("No se pudo guardar la bicicleta.")
+      }
+      return
+    }
+
     if (editingBici) {
       // Update existing
-      setBicis(prev => prev.map(b => (b.id === editingBici.id ? { ...bici, id: editingBici.id } : b)))
+      setLocalBicis(prev => prev.map(b => (b.id === editingBici.id ? { ...bici, id: editingBici.id } : b)))
     } else {
       // Create new - generate ID
       const nums = bicis.map(b => parseInt(b.id.replace(/\D/g, ""))).filter(n => !isNaN(n))
       const nextNum = nums.length ? Math.max(...nums) + 1 : 501
       const newId = `BC-${nextNum.toString().padStart(4, "0")}`
-      setBicis(prev => [...prev, { ...bici, id: newId }])
+      setLocalBicis(prev => [...prev, { ...bici, id: newId }])
     }
     setShowBiciDrawer(false)
     setEditingBici(null)
+    setBiciError(null)
   }
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
+    if (!deleteBici) return
+
+    if (useBackendBicis) {
+      try {
+        await bicicletasService.eliminar(deleteBici.id)
+        await refreshBicis()
+        setDeleteBici(null)
+        setBiciError(null)
+      } catch {
+        setBiciError("No se pudo eliminar la bicicleta.")
+      }
+      return
+    }
+
     if (deleteBici) {
-      setBicis(prev => prev.filter(b => b.id !== deleteBici.id))
+      setLocalBicis(prev => prev.filter(b => b.id !== deleteBici.id))
       setDeleteBici(null)
     }
   }
@@ -891,7 +954,7 @@ export function ClienteDrawer({
 
             {(mode === "edit" || mode === "bikes") && (
               <button
-                onClick={() => onSave(draft)}
+                onClick={handleSaveCliente}
                 className="flex items-center gap-1.5 bg-vs-ink text-white px-4 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#1e2228] active:scale-95 transition-all duration-150"
               >
                 <Check size={13} strokeWidth={2} />
@@ -908,6 +971,21 @@ export function ClienteDrawer({
           </div>
 
           <div className="p-5">
+            {clienteError && (
+              <div className="mb-3 rounded-xl border border-vs-warn bg-vs-warn-bg px-3 py-2 text-[12px] text-vs-warn">
+                {clienteError}
+              </div>
+            )}
+            {biciError && (
+              <div className="mb-3 rounded-xl border border-vs-warn bg-vs-warn-bg px-3 py-2 text-[12px] text-vs-warn">
+                {biciError}
+              </div>
+            )}
+            {useBackendBicis && bicisQuery.isLoading && (
+              <div className="mb-3 rounded-xl border border-vs-line-2 bg-vs-chip px-3 py-2 text-[12px] text-[#8a7f70]">
+                Cargando bicicletas...
+              </div>
+            )}
             {mode === "manage" && (
               <ManageView
                 client={draft}

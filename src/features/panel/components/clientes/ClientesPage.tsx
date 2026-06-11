@@ -124,6 +124,10 @@ function ClienteRow({
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
+function clienteKey(cliente: Cliente) {
+  return cliente.backendId ?? cliente.id
+}
+
 export function ClientesPage() {
   const { data: clientes = [], isLoading, isError, error } = useClientes()
   const createCliente = useCreateClienteMutation()
@@ -164,7 +168,7 @@ export function ClientesPage() {
     })
 
   const toggleAll = () =>
-    setSel(prev => prev.size === filtered.length ? new Set() : new Set(filtered.map(c => c.id)))
+    setSel(prev => prev.size === filtered.length ? new Set() : new Set(filtered.map(clienteKey)))
 
   const allSelected = filtered.length > 0 && sel.size === filtered.length
 
@@ -177,8 +181,8 @@ export function ClientesPage() {
     }
   }
 
-  const updateCliente = (updated: Cliente) => {
-    updateClienteMutation.mutate(updated)
+  const updateCliente = async (updated: Cliente) => {
+    await updateClienteMutation.mutateAsync(updated)
     setDrawer(null)
   }
 
@@ -260,7 +264,7 @@ export function ClientesPage() {
         </button>
       </div>
 
-      {(isError || createCliente.isError) && (
+      {(isError || createCliente.isError || updateClienteMutation.isError) && (
         <div className="bg-vs-warn-bg border border-vs-warn/20 text-vs-warn rounded-[16px] px-4 py-3 mb-4 text-[13px]">
           {isError && error instanceof Error
             ? error.message
@@ -308,10 +312,10 @@ export function ClientesPage() {
           <tbody>
             {filtered.map(c => (
               <ClienteRow
-                key={c.id}
+                key={clienteKey(c)}
                 c={c}
-                selected={sel.has(c.id)}
-                onSelect={() => toggleSel(c.id)}
+                selected={sel.has(clienteKey(c))}
+                onSelect={() => toggleSel(clienteKey(c))}
                 onManage={() => setDrawer({ cliente: c, mode: "manage" })}
                 onBikes={() => setDrawer({ cliente: c, mode: "bikes" })}
                 onEdit={() => setDrawer({ cliente: c, mode: "edit" })}

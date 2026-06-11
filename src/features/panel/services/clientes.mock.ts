@@ -38,4 +38,10 @@ export const clientesMock: IClientesService = {
     ]
     return mockFetch(undefined as void)
   },
+  async updateCliente(id: string, payload: CreateClientePayload) {
+    clientes = clientes.map(cliente => cliente.id === id || cliente.backendId === id
+      ? { ...cliente, ...payload }
+      : cliente)
+    return mockFetch(undefined as void)
+  },
 }

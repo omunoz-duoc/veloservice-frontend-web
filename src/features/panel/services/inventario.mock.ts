@@ -1,4 +1,4 @@
-import type { IInventarioService, ProductosListResponse, InventarioMetricas, CreateProductoPayload } from "../types/inventario.types"
+import type { IInventarioService, ProductosListResponse, InventarioMetricas, ProductoWritePayload, Producto } from "../types/inventario.types"
 import productosData from "./inventario.mock.data.json"
 import metricasData from "./inventario.metricas.mock.data.json"
 
@@ -20,7 +20,30 @@ export const inventarioMock: IInventarioService = {
   async getMetricas() {
     return mockFetch(metricasData as InventarioMetricas)
   },
-  async createProducto(_payload: CreateProductoPayload) {
-    return mockFetch(undefined as void)
+  async createProducto(payload: ProductoWritePayload) {
+    return mockFetch({
+      id: crypto.randomUUID(),
+      nombre: payload.nombre,
+      sku: payload.sku,
+      marca: payload.marca,
+      categoria: "",
+      precioCosto: payload.precioCosto,
+      precioVenta: payload.precioVenta,
+      stock: payload.stock,
+      stockMinimo: payload.stockMinimo,
+    } as Producto)
+  },
+  async updateProducto(id: string, payload: ProductoWritePayload) {
+    return mockFetch({
+      id,
+      nombre: payload.nombre,
+      sku: payload.sku,
+      marca: payload.marca,
+      categoria: "",
+      precioCosto: payload.precioCosto,
+      precioVenta: payload.precioVenta,
+      stock: payload.stock,
+      stockMinimo: payload.stockMinimo,
+    } as Producto)
   },
 }

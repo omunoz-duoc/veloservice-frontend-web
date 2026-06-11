@@ -85,13 +85,16 @@ export function NuevoProductoModal({
   nextId,
   onClose,
   onCreate,
+  saving = false,
 }: {
   nextId: string
   onClose: () => void
-  onCreate: (producto: Producto) => void
+  onCreate: (producto: Producto) => void | Promise<void>
+  saving?: boolean
 }) {
   const [form, setForm] = useState<NuevoProductoPayload>(emptyPayload)
   const [errors, setErrors] = useState<Set<string>>(new Set())
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const set = <K extends keyof NuevoProductoPayload>(key: K, val: NuevoProductoPayload[K]) => {
     setForm(prev => ({ ...prev, [key]: val }))
@@ -105,8 +108,9 @@ export function NuevoProductoModal({
     return errs.size === 0
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return
+    setSubmitError(null)
     const producto: Producto = {
       id: nextId,
       nombre: form.nombre.trim(),
@@ -119,7 +123,11 @@ export function NuevoProductoModal({
       prov: form.prov.trim(),
       ubic: form.ubic.trim(),
     }
-    onCreate(producto)
+    try {
+      await onCreate(producto)
+    } catch {
+      setSubmitError("No se pudo crear el producto.")
+    }
   }
 
   const cat = getCategoriaConfig(form.cat)
@@ -258,22 +266,30 @@ export function NuevoProductoModal({
           {/* Footer */}
           <div className="flex items-center gap-3 p-5 border-t border-vs-line-2 bg-[#faf6f0] rounded-b-[24px]">
             <div className="text-[11.5px] text-[#8a7f70]">
-              Categoría:{" "}
-              <span className="font-semibold" style={{ color: cat.fg }}>{cat.label}</span>
+              {submitError ? (
+                <span className="font-semibold text-vs-warn">{submitError}</span>
+              ) : (
+                <>
+                  Categoría:{" "}
+                  <span className="font-semibold" style={{ color: cat.fg }}>{cat.label}</span>
+                </>
+              )}
             </div>
             <div className="flex-1" />
             <button
               onClick={onClose}
+              disabled={saving}
               className="px-4 py-2 rounded-full bg-vs-chip text-vs-ink text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150"
             >
               Cancelar
             </button>
             <button
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-5 py-2 rounded-full bg-vs-ink text-white text-[13px] font-medium hover:bg-[#1e2228] active:scale-95 transition-all duration-150"
+              disabled={saving}
+              className="flex items-center gap-2 px-5 py-2 rounded-full bg-vs-ink text-white text-[13px] font-medium hover:bg-[#1e2228] active:scale-95 disabled:opacity-60 transition-all duration-150"
             >
               <Plus size={15} strokeWidth={2} />
-              Crear producto
+              {saving ? "Creando..." : "Crear producto"}
             </button>
           </div>
         </div>

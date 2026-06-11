@@ -1,5 +1,5 @@
 import { httpClient } from "@/lib/api/http-client"
-import type { IInventarioService, ProductosListResponse, InventarioMetricas, CreateProductoPayload } from "../types/inventario.types"
+import type { IInventarioService, ProductosListResponse, InventarioMetricas, ProductoWritePayload, Producto } from "../types/inventario.types"
 
 export const inventarioService: IInventarioService = {
   async getProductos() {
@@ -11,8 +11,11 @@ export const inventarioService: IInventarioService = {
   async getStockBajo() {
     return httpClient.get<ProductosListResponse>("productos/stock-bajo")
   },
-  async createProducto(payload: CreateProductoPayload) {
-    return httpClient.post("productos", payload)
+  async createProducto(payload: ProductoWritePayload) {
+    return httpClient.post<Producto>("productos", payload)
+  },
+  async updateProducto(id: string, payload: ProductoWritePayload) {
+    return httpClient.put<Producto>(`productos/${id}`, payload)
   },
 }
 

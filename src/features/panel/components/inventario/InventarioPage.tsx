@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useInventarioProductos } from "../../hooks/useInventarioProductos"
+import { useCreateProducto, useInventarioProductos, useUpdateProducto } from "../../hooks/useInventarioProductos"
 import { Search, Plus, Filter, Package, Bell, TrendingUp, ChevronLeft, ChevronRight, Barcode, Building2, Eye, Pencil, PlusCircle, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -160,8 +160,9 @@ function ProductoRow({
 
 export function InventarioPage() {
   const { data: fetched = [] } = useInventarioProductos()
-  const [localProductos, setLocalProductos] = useState<Producto[]>([])
-  const productos = localProductos.length > 0 ? localProductos : fetched
+  const createProducto = useCreateProducto()
+  const updateProductoMutation = useUpdateProducto()
+  const productos = fetched
   const [tab, setTab] = useState<"all" | "ok" | "low" | "out">("all")
   const [query, setQuery] = useState("")
   const [sel, setSel] = useState<Set<string>>(new Set())
@@ -215,15 +216,13 @@ export function InventarioPage() {
 
   const allSelected = filtered.length > 0 && sel.size === filtered.length
 
-  const addProducto = (p: Producto) => {
-    setLocalProductos(prev => [p, ...(prev.length > 0 ? prev : fetched)])
+  const addProducto = async (p: Producto) => {
+    await createProducto.mutateAsync(p)
     setShowModal(false)
   }
 
-  const updateProducto = (updated: Producto) => {
-    setLocalProductos(prev =>
-      (prev.length > 0 ? prev : fetched).map(p => p.id === updated.id ? updated : p)
-    )
+  const updateProducto = async (updated: Producto) => {
+    await updateProductoMutation.mutateAsync(updated)
     setDrawer(null)
   }
 
@@ -396,6 +395,7 @@ export function InventarioPage() {
           mode={drawer.mode}
           onClose={() => setDrawer(null)}
           onSave={updateProducto}
+          saving={updateProductoMutation.isPending}
         />
       )}
 
@@ -405,6 +405,7 @@ export function InventarioPage() {
           nextId={nextProductoId(productos)}
           onClose={() => setShowModal(false)}
           onCreate={addProducto}
+          saving={createProducto.isPending}
         />
       )}
     </div>

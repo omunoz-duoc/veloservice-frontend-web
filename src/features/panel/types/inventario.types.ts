@@ -2,7 +2,8 @@ export interface IInventarioService {
   getProductos(): Promise<ProductosListResponse>
   getMetricas(): Promise<InventarioMetricas>
   getStockBajo(): Promise<ProductosListResponse>
-  createProducto(payload: CreateProductoPayload): Promise<void>
+  createProducto(payload: ProductoWritePayload): Promise<Producto>
+  updateProducto(id: string, payload: ProductoWritePayload): Promise<Producto>
 }
 
 
@@ -32,4 +33,15 @@ export type InventarioMetricas = {
   agotados: number
 }
 
-export type CreateProductoPayload = Omit<Producto, "id">
+export type ProductoWritePayload = {
+  nombre: string
+  sku: string
+  marca?: string | null
+  unidadMedida: string
+  precioCosto: number
+  precioVenta: number
+  stock: number
+  stockMinimo: number
+  categoriaId?: string | null
+  activo?: boolean
+}

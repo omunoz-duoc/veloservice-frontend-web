@@ -107,14 +107,17 @@ export function ProductoDrawer({
   mode: initialMode,
   onClose,
   onSave,
+  saving = false,
 }: {
   producto: Producto
   mode: DrawerMode
   onClose: () => void
-  onSave: (updated: Producto) => void
+  onSave: (updated: Producto) => void | Promise<void>
+  saving?: boolean
 }) {
   const [mode, setMode] = useState<DrawerMode>(initialMode)
   const [draft, setDraft] = useState<Producto>({ ...initial })
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const set = <K extends keyof Producto>(key: K, val: Producto[K]) =>
     setDraft(prev => ({ ...prev, [key]: val }))
@@ -123,6 +126,15 @@ export function ProductoDrawer({
   const isEdit = mode === "edit"
   const m = margen(draft.precio, draft.costo)
   const visibleId = productoVisibleId(draft)
+
+  const handleSave = async () => {
+    setSubmitError(null)
+    try {
+      await onSave(draft)
+    } catch {
+      setSubmitError("No se pudo guardar el producto.")
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex vs-fade-in">
@@ -156,11 +168,12 @@ export function ProductoDrawer({
             )}
             {isEdit && (
               <button
-                onClick={() => onSave(draft)}
-                className="flex items-center gap-1.5 bg-vs-ink text-white px-4 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#1e2228] active:scale-95 transition-all duration-150"
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-1.5 bg-vs-ink text-white px-4 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#1e2228] active:scale-95 disabled:opacity-60 transition-all duration-150"
               >
                 <Check size={13} strokeWidth={2} />
-                Guardar
+                {saving ? "Guardando..." : "Guardar"}
               </button>
             )}
 
@@ -173,6 +186,12 @@ export function ProductoDrawer({
           </div>
 
           <div className="p-5 space-y-5">
+            {submitError && (
+              <div className="rounded-xl border border-vs-warn-bg bg-vs-warn-bg px-3 py-2 text-[12px] font-medium text-vs-warn">
+                {submitError}
+              </div>
+            )}
+
             {/* Stats */}
             <div className="grid grid-cols-3 gap-3">
               <StatBox label="Margen" value={`${m}%`} sub={`${fmt(draft.precio - draft.costo)} ganancia`} />

@@ -20,10 +20,31 @@ describe("inventarioMock", () => {
   it("createProducto resolves without error", async () => {
     await expect(
       inventarioMock.createProducto({
-        nombre: "Cadena Shimano", sku: "SH-CN-HG701", categoria: "transmision",
-        costoUnitario: 10000, precioAsignado: 15000, stock: 10
+        nombre: "Cadena Shimano",
+        sku: "SH-CN-HG701",
+        marca: "Shimano",
+        unidadMedida: "unidad",
+        precioCosto: 10000,
+        precioVenta: 15000,
+        stock: 10,
+        stockMinimo: 2,
       })
-    ).resolves.toBeUndefined()
+    ).resolves.toHaveProperty("id")
+  })
+
+  it("updateProducto resolves with updated product", async () => {
+    await expect(
+      inventarioMock.updateProducto("producto-1", {
+        nombre: "Cadena Shimano",
+        sku: "SH-CN-HG701",
+        marca: "Shimano",
+        unidadMedida: "unidad",
+        precioCosto: 10000,
+        precioVenta: 15000,
+        stock: 10,
+        stockMinimo: 2,
+      })
+    ).resolves.toHaveProperty("id", "producto-1")
   })
 })
 

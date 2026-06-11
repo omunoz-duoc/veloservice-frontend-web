@@ -25,4 +25,7 @@ export const inventarioService: IInventarioService = {
   async createProducto(payload) {
     return (await loadInventarioService()).createProducto(payload)
   },
+  async updateProducto(id, payload) {
+    return (await loadInventarioService()).updateProducto(id, payload)
+  },
 }

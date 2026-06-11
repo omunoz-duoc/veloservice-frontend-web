@@ -1,16 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Building2, User, Users, Bell, CreditCard } from "lucide-react"
+import { Building2, User, Users, CreditCard } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PerfilNegocioSection } from "./PerfilNegocioSection"
 import { MiPerfilSection } from "./MiPerfilSection"
 import { UsuariosSection } from "./UsuariosSection"
-import { NotificacionesSection } from "./NotificacionesSection"
 import { PlanSection } from "./PlanSection"
 import type { RolUsuario } from "../../types/configuracion.types"
 
-type SectionKey = "negocio" | "perfil" | "usuarios" | "notificaciones" | "plan"
+type SectionKey = "negocio" | "perfil" | "usuarios" | "plan"
 
 const SECTIONS: {
   key: SectionKey
@@ -21,7 +20,6 @@ const SECTIONS: {
   { key: "negocio", label: "Negocio", icon: Building2, roles: ["admin"] },
   { key: "perfil", label: "Mi perfil", icon: User, roles: ["admin", "mecanico", "recepcionista"] },
   { key: "usuarios", label: "Usuarios", icon: Users, roles: ["admin"] },
-  { key: "notificaciones", label: "Notificaciones", icon: Bell, roles: ["admin"] },
   { key: "plan", label: "Plan", icon: CreditCard, roles: ["admin"] },
 ]
 
@@ -67,7 +65,6 @@ export function ConfiguracionPage() {
         {active === "negocio" && <PerfilNegocioSection />}
         {active === "perfil" && <MiPerfilSection />}
         {active === "usuarios" && <UsuariosSection />}
-        {active === "notificaciones" && <NotificacionesSection />}
         {active === "plan" && <PlanSection />}
       </div>
     </div>

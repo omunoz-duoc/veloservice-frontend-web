@@ -6,8 +6,6 @@ import {
   mockGuardarMiPerfil,
   mockCambiarPassword,
   mockGetUsuarios,
-  mockGetNotifConfig,
-  mockGuardarNotifConfig,
 } from "./configuracion.mock"
 
 export const configuracionService: ConfiguracionService = {
@@ -17,6 +15,4 @@ export const configuracionService: ConfiguracionService = {
   guardarMiPerfil: mockGuardarMiPerfil,
   cambiarPassword: mockCambiarPassword,
   getUsuarios: mockGetUsuarios,
-  getNotifConfig: mockGetNotifConfig,
-  guardarNotifConfig: mockGuardarNotifConfig,
 }

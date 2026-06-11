@@ -2,7 +2,6 @@ import type {
   PerfilNegocio,
   MiPerfil,
   UsuarioPanel,
-  NotifConfig,
   PlanInfo,
 } from "../types/configuracion.types"
 
@@ -26,14 +25,6 @@ const _usuarios: UsuarioPanel[] = [
   { id: "2", nombre: "María Soto", email: "maria@autovelo.cl", rol: "mecanico", estado: "activo" },
   { id: "3", nombre: "Pedro Ruiz", email: "pedro@autovelo.cl", rol: "mecanico", estado: "activo" },
 ]
-
-let _notifConfig: NotifConfig = {
-  otCreada: true,
-  otCompletada: true,
-  otVencida: true,
-  stockBajo: true,
-  nuevoCliente: false,
-}
 
 export const PLAN_INFO: PlanInfo = {
   nombre: "Pro",
@@ -82,14 +73,4 @@ export async function mockCambiarPassword(actual: string, _nueva: string): Promi
 export async function mockGetUsuarios(): Promise<UsuarioPanel[]> {
   await delay(300)
   return [..._usuarios]
-}
-
-export async function mockGetNotifConfig(): Promise<NotifConfig> {
-  await delay(300)
-  return { ..._notifConfig }
-}
-
-export async function mockGuardarNotifConfig(data: NotifConfig): Promise<void> {
-  await delay(400)
-  _notifConfig = { ...data }
 }

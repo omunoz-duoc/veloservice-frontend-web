@@ -1,4 +1,4 @@
-import type { PerfilNegocio, MiPerfil, UsuarioPanel, NotifConfig } from "../types/configuracion.types"
+import type { PerfilNegocio, MiPerfil, UsuarioPanel } from "../types/configuracion.types"
 
 export interface ConfiguracionService {
   getPerfilNegocio(): Promise<PerfilNegocio>
@@ -7,6 +7,4 @@ export interface ConfiguracionService {
   guardarMiPerfil(data: Partial<MiPerfil>): Promise<void>
   cambiarPassword(actual: string, nueva: string): Promise<void>
   getUsuarios(): Promise<UsuarioPanel[]>
-  getNotifConfig(): Promise<NotifConfig>
-  guardarNotifConfig(data: NotifConfig): Promise<void>
 }

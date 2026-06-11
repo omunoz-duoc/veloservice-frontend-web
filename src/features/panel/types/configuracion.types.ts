@@ -21,14 +21,6 @@ export interface UsuarioPanel {
   estado: "activo"
 }
 
-export interface NotifConfig {
-  otCreada: boolean
-  otCompletada: boolean
-  otVencida: boolean
-  stockBajo: boolean
-  nuevoCliente: boolean
-}
-
 export interface PlanInfo {
   nombre: string
   precio: number

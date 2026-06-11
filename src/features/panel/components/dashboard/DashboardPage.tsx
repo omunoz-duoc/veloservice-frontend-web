@@ -6,6 +6,7 @@ import { KpiGrid } from "./KpiGrid"
 import { OrdenesKanban } from "./OrdenesKanban"
 import { RentabilidadPlaceholder } from "./RentabilidadPlaceholder"
 import { MecanicosCard } from "./MecanicosCard"
+import { UrgentesCard } from "./UrgentesCard"
 
 const ACTIONS = (
   <>
@@ -66,8 +67,11 @@ export function DashboardPage() {
 
       {/* Row 2: Kanban */}
       <div className="grid grid-cols-12 gap-4 mb-4">
-        <div className="col-span-12">
+        <div className="col-span-8">
           <OrdenesKanban />
+        </div>
+        <div className="col-span-4">
+          <UrgentesCard />
         </div>
       </div>
 

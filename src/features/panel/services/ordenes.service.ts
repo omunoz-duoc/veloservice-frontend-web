@@ -220,6 +220,10 @@ export const ordenesService: IOrdenesService = {
         return httpClient.get<BackendOrdenesListResponse>("ordenes") as unknown as Promise<OrdenesListResponse>;
     },
 
+  async getOrdenesUrgentes() {
+    return httpClient.get<BackendOrdenesListResponse>("ordenes/urgentes") as unknown as Promise<OrdenesListResponse>
+  },
+
   async getOrdenesMetricas() {
     return httpClient.get<OrdenesMetricas>("ordenes/metricas")
   },

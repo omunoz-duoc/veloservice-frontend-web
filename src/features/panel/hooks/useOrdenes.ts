@@ -131,6 +131,7 @@ export function useUpdateOrdenMutation() {
         })
       )
       void queryClient.invalidateQueries({ queryKey: ["ordenes"] })
+      void queryClient.invalidateQueries({ queryKey: ["ordenes", "urgentes"] })
     },
   })
 }
@@ -156,6 +157,7 @@ export function useChangeOrdenEstadoMutation() {
         })
       )
       void queryClient.invalidateQueries({ queryKey: ordenesQueryKey })
+      void queryClient.invalidateQueries({ queryKey: ["ordenes", "urgentes"] })
       void queryClient.invalidateQueries({ queryKey: ordenDetalleQueryKey(updatedLookupId) })
       if (updatedLookupId !== updated.id) {
         void queryClient.invalidateQueries({ queryKey: ordenDetalleQueryKey(updated.id) })
@@ -195,6 +197,7 @@ export function useBulkUpdateOrdenesMutation() {
         (current ?? []).map(o => ids.includes(o.id) ? { ...o, ...changes } : o)
       )
       void queryClient.invalidateQueries({ queryKey: ordenesQueryKey })
+      void queryClient.invalidateQueries({ queryKey: ["ordenes", "urgentes"] })
     },
   })
 }

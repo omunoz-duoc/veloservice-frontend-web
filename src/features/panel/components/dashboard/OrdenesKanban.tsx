@@ -139,6 +139,7 @@ export function OrdenesKanban() {
             })
               .then(() => {
                 void queryClient.invalidateQueries({ queryKey: ["ordenes"] })
+                void queryClient.invalidateQueries({ queryKey: ["ordenes", "urgentes"] })
                 void queryClient.invalidateQueries({ queryKey: ["mecanicos", "activos"] })
               })
               .catch(() => {

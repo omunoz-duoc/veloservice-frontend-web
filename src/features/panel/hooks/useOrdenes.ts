@@ -5,7 +5,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ordenesService } from "@/features/panel/services/ordenes.provider"
 import { ESTADO_TO_API_MAP, mapApiOrden } from "@/features/panel/services/ordenes.service"
 import type {
-  BulkUpdateOrdenPayload,
   OrdenProductoCambioPayload,
   OrdenServicioCambioPayload,
   UpdateOrdenPayload,
@@ -41,7 +40,6 @@ const PRIORIDAD_TO_API_MAP: Record<Prioridad, string> = {
   baja: "baja",
   media: "media",
   alta: "alta",
-  urgente: "urgente",
 }
 
 function isUuid(value: string | null | undefined) {

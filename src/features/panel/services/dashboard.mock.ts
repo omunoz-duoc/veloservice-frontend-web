@@ -16,15 +16,6 @@ export type PipelineColumn = {
   items: PipelineItem[]
 }
 
-export type OrdenUrgente = {
-  ot: string
-  cliente: string
-  bici: string
-  due: string
-  level: "crit" | "warn"
-  mecanico: string
-}
-
 export type MecanicoActivo = {
   id: string
   nombre: string

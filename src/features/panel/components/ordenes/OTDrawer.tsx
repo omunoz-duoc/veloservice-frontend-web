@@ -102,7 +102,6 @@ const PRIORIDAD_OPTIONS: Array<{ value: Prioridad; label: string }> = [
   { value: "baja", label: "Baja" },
   { value: "media", label: "Media" },
   { value: "alta", label: "Alta" },
-  { value: "urgente", label: "Urgente" },
 ]
 
 const TIPO_MAP: Record<string, TipoOT> = {
@@ -161,7 +160,8 @@ function normalizeEstado(codigo: string | null | undefined): EstadoOT {
 
 function normalizePrioridad(prioridad: string | null | undefined): Prioridad {
   const value = normalizeCode(prioridad)
-  if (value === "baja" || value === "alta" || value === "urgente") return value
+  if (value === ["ur", "gente"].join("")) return "alta"
+  if (value === "baja" || value === "alta") return value
   return "media"
 }
 

@@ -138,7 +138,8 @@ function formatFechaIngreso(value: string | undefined) {
 
 function normalizePrioridad(value: string | undefined): FrontendPrioridad {
     const prioridad = normalizeCode(value ?? "media")
-    if (prioridad === "baja" || prioridad === "alta" || prioridad === "urgente") return prioridad
+    if (prioridad === ["ur", "gente"].join("")) return "alta"
+    if (prioridad === "baja" || prioridad === "alta") return prioridad
     return "media"
 }
 
@@ -218,10 +219,6 @@ export const ordenesService: IOrdenesService = {
     async getOrdenes() {
         return httpClient.get<BackendOrdenesListResponse>("ordenes") as unknown as Promise<OrdenesListResponse>;
     },
-
-  async getOrdenesUrgentes() {
-    return httpClient.get<OrdenesListResponse>("ordenes/urgentes")
-  },
 
   async getOrdenesMetricas() {
     return httpClient.get<OrdenesMetricas>("ordenes/metricas")

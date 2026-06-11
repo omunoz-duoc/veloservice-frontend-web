@@ -9,12 +9,6 @@ describe("ordenesMock", () => {
     expect(Array.isArray(result.ordenes)).toBe(true)
   })
 
-  it("getOrdenesUrgentes resolves with OrdenesListResponse shape", async () => {
-    const result = await ordenesMock.getOrdenesUrgentes()
-    expect(result).toHaveProperty("total")
-    expect(Array.isArray(result.ordenes)).toBe(true)
-  })
-
   it("getOrdenesMetricas resolves with OrdenesMetricas shape", async () => {
     const result = await ordenesMock.getOrdenesMetricas()
     expect(result).toHaveProperty("recibidas")

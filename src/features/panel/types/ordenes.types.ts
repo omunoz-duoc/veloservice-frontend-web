@@ -1,6 +1,5 @@
 export interface IOrdenesService {
     getOrdenes(): Promise<OrdenesListResponse>;
-    getOrdenesUrgentes(): Promise<OrdenesListResponse>;
     getOrdenesMetricas(): Promise<OrdenesMetricas>;
     createOrden(payload: CreateOrdenPayload): Promise<void>;
     getOrdenById(id: string): Promise<OrdenTrabajoDetalle>;

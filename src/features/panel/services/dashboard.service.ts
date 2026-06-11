@@ -23,12 +23,6 @@ interface PipelineColumn {
     otCount: number;
 }
 
-interface OrdenUrgente {
-    id: string;
-    cliente: string;
-    fechaEntrega: string;
-}
-
 interface MecanicoActivo {
     id: string;
     nombre: string;
@@ -66,9 +60,6 @@ export const authService: IDashboardService = {
     async getPipelineColumns() {
         return httpClient.get<PipelineColumn[]>("dashboard/pipeline-columns");
     },
-    async getOrdenesUrgentes() {
-        return httpClient.get<OrdenUrgente[]>("dashboard/ordenes-urgentes");
-    },
     async getMecanicosActivos() {
         return httpClient.get<MecanicoActivo[]>("dashboard/mecanicos-activos");
     },
@@ -86,7 +77,6 @@ export interface IDashboardService {
     getDailyFinancialKpi(): Promise<DailyFinancialKpi>;
     getLowStockKpi(): Promise<LowStockKpi>;
     getPipelineColumns(): Promise<PipelineColumn[]>;
-    getOrdenesUrgentes(): Promise<OrdenUrgente[]>;
     getMecanicosActivos(): Promise<MecanicoActivo[]>;
     getActividadesRecientes(): Promise<ActividadItem[]>;
     getRentabilidadMensual(): Promise<RentabRow[]>;

@@ -102,10 +102,6 @@ export const ordenesMock: IOrdenesService = {
   async getOrdenes() {
     return mockFetch({ total: ordenes.length, ordenes } as OrdenesListResponse)
   },
-  async getOrdenesUrgentes() {
-    const urgentes = ordenes.filter(o => o.prioridad === "alta")
-    return mockFetch({ total: urgentes.length, ordenes: urgentes } as OrdenesListResponse)
-  },
   async getOrdenesMetricas() {
     return mockFetch(metricasData as OrdenesMetricas)
   },

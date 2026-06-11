@@ -44,7 +44,6 @@ export const PRIORIDAD_CONFIG: Record<string, { label: string; fg: string; bg: s
   baja:  { label: "Baja",  fg: "#6b5d46", bg: "#efe9df" },
   media: { label: "Media", fg: "#3a6ea5", bg: "#e4eaf2" },
   alta:  { label: "Alta",  fg: "#c85a2a", bg: "#fbeadd" },
-  urgente: { label: "Urgente", fg: "#8c1e1e", bg: "#f7dddd" },
 }
 
 

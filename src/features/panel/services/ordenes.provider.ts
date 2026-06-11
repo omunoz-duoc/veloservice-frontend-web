@@ -5,9 +5,6 @@ export const ordenesService: IOrdenesService = {
   async getOrdenes() {
     return realOrdenesService.getOrdenes()
   },
-  async getOrdenesUrgentes() {
-    return realOrdenesService.getOrdenesUrgentes()
-  },
   async getOrdenesMetricas() {
     return realOrdenesService.getOrdenesMetricas()
   },

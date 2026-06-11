@@ -4,7 +4,6 @@ import { PageHeader } from "@/components/common/PageHeader"
 import { useAuthStore } from "@/features/auth/store/auth.store"
 import { KpiGrid } from "./KpiGrid"
 import { OrdenesKanban } from "./OrdenesKanban"
-import { UrgentesCard } from "./UrgentesCard"
 import { RentabilidadPlaceholder } from "./RentabilidadPlaceholder"
 import { MecanicosCard } from "./MecanicosCard"
 
@@ -65,13 +64,10 @@ export function DashboardPage() {
       {/* Row 1: KPIs */}
       <KpiGrid />
 
-      {/* Row 2: Kanban + Urgentes */}
+      {/* Row 2: Kanban */}
       <div className="grid grid-cols-12 gap-4 mb-4">
-        <div className="col-span-8">
+        <div className="col-span-12">
           <OrdenesKanban />
-        </div>
-        <div className="col-span-4">
-          <UrgentesCard />
         </div>
       </div>
 

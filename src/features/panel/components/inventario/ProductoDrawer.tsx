@@ -4,7 +4,7 @@ import { useState } from "react"
 import { X, Check, Pencil, Package, TrendingUp, Plus, Minus, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-  CATEGORIAS, MOVIMIENTOS_MOCK, fmt, margen,
+  CATEGORIAS, MOVIMIENTOS_MOCK, fmt, getCategoriaConfig, margen, productoVisibleId,
   type Producto, type CatKey,
 } from "./inventario.mock"
 
@@ -73,8 +73,8 @@ function FSelect({
   )
 }
 
-export function CatChip({ catKey }: { catKey: CatKey }) {
-  const c = CATEGORIAS.find(x => x.key === catKey)!
+export function CatChip({ catKey }: { catKey: string | null | undefined }) {
+  const c = getCategoriaConfig(catKey)
   return (
     <span
       className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full"
@@ -119,9 +119,10 @@ export function ProductoDrawer({
   const set = <K extends keyof Producto>(key: K, val: Producto[K]) =>
     setDraft(prev => ({ ...prev, [key]: val }))
 
-  const cat = CATEGORIAS.find(c => c.key === draft.cat)!
+  const cat = getCategoriaConfig(draft.cat)
   const isEdit = mode === "edit"
   const m = margen(draft.precio, draft.costo)
+  const visibleId = productoVisibleId(draft)
 
   return (
     <div className="fixed inset-0 z-50 flex vs-fade-in">
@@ -139,7 +140,7 @@ export function ProductoDrawer({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">
-                {isEdit ? "Editando producto" : "Detalle de producto"} · <span className="font-mono">{draft.id}</span>
+                {isEdit ? "Editando producto" : "Detalle de producto"} · <span className="font-mono">{visibleId}</span>
               </div>
               <div className="text-[15px] font-semibold truncate">{draft.nombre}</div>
             </div>

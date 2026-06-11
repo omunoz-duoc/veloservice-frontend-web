@@ -5,7 +5,7 @@ import { useInventarioProductos } from "../../hooks/useInventarioProductos"
 import { Search, Plus, Filter, Package, Bell, TrendingUp, ChevronLeft, ChevronRight, Barcode, Building2, Eye, Pencil, PlusCircle, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-  CATEGORIAS, fmt, margen, stockEstado, nextProductoId,
+  fmt, getCategoriaConfig, margen, productoVisibleId, stockEstado, nextProductoId,
   type Producto,
 } from "./inventario.mock"
 import { ProductoDrawer, CatChip, StockBadge, type DrawerMode } from "./ProductoDrawer"
@@ -20,6 +20,15 @@ const TONES: Record<Tone, { fg: string; bg: string }> = {
   good:   { fg: "var(--vs-good, #2f7d4f)",   bg: "var(--vs-good-bg, #e4f1e8)"  },
   warn:   { fg: "var(--vs-warn, #c85a2a)",    bg: "var(--vs-warn-bg, #fbeadd)"  },
   info:   { fg: "var(--vs-info, #3a6ea5)",    bg: "var(--vs-info-bg, #e4eaf2)"  },
+}
+
+type ProductoBackendLike = Producto & {
+  precioAsignado?: number | null
+  precio_asignado?: number | null
+  precioVenta?: number | null
+  costoUnitario?: number | null
+  costo_unitario?: number | null
+  precioCosto?: number | null
 }
 
 function MiniStat({ label, value, icon, tone }: { label: string; value: string | number; icon: React.ReactNode; tone: Tone }) {
@@ -56,8 +65,12 @@ function ProductoRow({
   onView: () => void
   onEdit: () => void
 }) {
-  const cat = CATEGORIAS.find(c => c.key === p.cat)!
-  const m = margen(p.precio, p.costo)
+  const producto = p as ProductoBackendLike
+  const cat = getCategoriaConfig(p.cat)
+  const precio = producto.precioAsignado ?? producto.precio_asignado ?? producto.precioVenta ?? producto.precio ?? 0
+  const costo = producto.costoUnitario ?? producto.costo_unitario ?? producto.precioCosto ?? producto.costo ?? 0
+  const m = margen(precio, costo)
+  const visibleId = productoVisibleId(p)
 
   return (
     <tr className="border-b border-vs-line-2 hover:bg-[#faf7f1] transition-colors duration-100">
@@ -65,7 +78,7 @@ function ProductoRow({
         <input type="checkbox" checked={selected} onChange={onSelect} className="w-4 h-4 rounded accent-vs-ink" />
       </td>
       <td className="px-4 py-3.5 align-middle">
-        <span className="font-mono font-semibold text-[12.5px]">{p.id}</span>
+        <span className="font-mono font-semibold text-[12.5px]">{visibleId}</span>
       </td>
       <td className="px-4 py-3.5 align-middle">
         <div className="flex items-start gap-2.5">
@@ -96,10 +109,10 @@ function ProductoRow({
         <CatChip catKey={p.cat} />
       </td>
       <td className="px-4 py-3.5 align-middle text-right">
-        <div className="text-[12.5px] font-mono text-[#8a7f70]">{fmt(p.costo)}</div>
+        <div className="text-[12.5px] font-mono text-[#8a7f70]">{fmt(costo)}</div>
       </td>
       <td className="px-4 py-3.5 align-middle text-right">
-        <div className="text-[13px] font-semibold font-mono">{fmt(p.precio)}</div>
+        <div className="text-[13px] font-semibold font-mono">{fmt(precio)}</div>
         <div className="text-[10px] text-vs-good mt-0.5">+{m}% margen</div>
       </td>
       <td className="px-4 py-3.5 align-middle">
@@ -166,17 +179,20 @@ export function InventarioPage() {
     return c
   }, [productos])
 
-  const valorTotal = useMemo(() => productos.reduce((a, p) => a + p.stock * p.costo, 0), [productos])
+  const valorTotal = useMemo(
+    () => productos.reduce((a, p) => a + (Number.isFinite(p.stock) ? p.stock : 0) * (Number.isFinite(p.costo) ? p.costo : 0), 0),
+    [productos]
+  )
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const catLabel = (cat: string) => CATEGORIAS.find(c => c.key === cat)?.label ?? ""
+    const catLabel = (cat: string) => getCategoriaConfig(cat).label
     return productos.filter(p => {
       if (tab === "out" && p.stock !== 0) return false
       if (tab === "low" && !(p.stock > 0 && p.stock < p.min)) return false
       if (tab === "ok" && !(p.stock >= p.min)) return false
       if (q) {
-        const hay = (p.id + " " + p.nombre + " " + p.ref + " " + p.prov + " " + catLabel(p.cat)).toLowerCase()
+        const hay = (productoVisibleId(p) + " " + p.id + " " + p.nombre + " " + p.ref + " " + p.prov + " " + catLabel(p.cat)).toLowerCase()
         if (!hay.includes(q)) return false
       }
       return true

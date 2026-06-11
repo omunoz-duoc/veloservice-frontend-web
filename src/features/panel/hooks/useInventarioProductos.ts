@@ -8,18 +8,27 @@ const CAT_MAP: Record<string, CatKey> = {
   cockpit: "accesorios",
 }
 
+function toNumber(value: number | null | undefined): number {
+  return Number.isFinite(value) ? Number(value) : 0
+}
+
 function toProductoUI(s: ServiceProducto): Producto {
   const cat = (CAT_MAP[s.categoria] ?? s.categoria) as CatKey
+  const costo = toNumber(s.costoUnitario ?? s.costo_unitario ?? s.precioCosto)
+  const precio = toNumber(s.precioAsignado ?? s.precio_asignado ?? s.precioVenta)
+  const stock = toNumber(s.stock)
+  const min = toNumber(s.stockMinimo ?? s.stock_minimo)
+
   return {
     id: s.id,
     nombre: s.nombre,
     ref: s.sku,
     cat,
-    costo: s.costoUnitario,
-    precio: s.precioAsignado,
-    stock: s.stock,
-    min: 5,
-    prov: "",
+    costo,
+    precio,
+    stock,
+    min,
+    prov: s.marca ?? "",
     ubic: "",
   }
 }

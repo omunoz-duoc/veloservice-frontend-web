@@ -9,13 +9,20 @@ export type Categoria = {
   bg: string
 }
 
+export type CategoriaConfig = Categoria | {
+  key: string
+  label: string
+  fg: string
+  bg: string
+}
+
 export type StockEstado = "ok" | "low" | "out"
 
 export type Producto = {
   id: string
   nombre: string
   ref: string
-  cat: CatKey
+  cat: string
   costo: number
   precio: number
   stock: number
@@ -55,6 +62,15 @@ export const CATEGORIAS: Categoria[] = [
   { key: "herramientas", label: "Herramientas", fg: "#3a6ea5", bg: "#e4eaf2" },
 ]
 
+export function getCategoriaConfig(categoria?: string | null): CategoriaConfig {
+  return CATEGORIAS.find(c => c.key === categoria) ?? {
+    key: categoria || "sin_categoria",
+    label: categoria || "Sin categoría",
+    bg: "#efe9df",
+    fg: "#6b5d46",
+  }
+}
+
 // ─── Mock data ─────────────────────────────────────────────────────────────────
 export const MOVIMIENTOS_MOCK: Movimiento[] = [
   { texto: "Salida · OT-0339 (Overhaul Rockhopper)", fecha: "22 Abr · 15:20", qty: -2 },
@@ -64,11 +80,13 @@ export const MOVIMIENTOS_MOCK: Movimiento[] = [
 
 // ─── Utils ─────────────────────────────────────────────────────────────────────
 
-export function fmt(n: number): string {
-  return "$ " + n.toLocaleString("es-CL")
+export function fmt(n?: number | null): string {
+  const value = Number.isFinite(n) ? Number(n) : 0
+  return "$ " + value.toLocaleString("es-CL")
 }
 
 export function margen(precio: number, costo: number): number {
+  if (!Number.isFinite(precio) || !Number.isFinite(costo) || precio <= 0) return 0
   return Math.round(((precio - costo) / precio) * 100)
 }
 
@@ -76,6 +94,11 @@ export function stockEstado(stock: number, min: number): StockEstado {
   if (stock === 0) return "out"
   if (stock < min) return "low"
   return "ok"
+}
+
+export function productoVisibleId(producto: Pick<Producto, "id" | "ref">): string {
+  if (producto.ref?.trim()) return producto.ref
+  return producto.id.length > 12 ? `${producto.id.slice(0, 8)}...` : producto.id
 }
 
 export function nextProductoId(productos: Producto[]): string {

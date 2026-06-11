@@ -10,10 +10,17 @@ export type Producto = {
   id: string
   nombre: string
   sku: string
+  marca?: string | null
   categoria: string
-  costoUnitario: number
-  precioAsignado: number
-  stock: number
+  costoUnitario?: number | null
+  costo_unitario?: number | null
+  precioCosto?: number | null
+  precioAsignado?: number | null
+  precio_asignado?: number | null
+  precioVenta?: number | null
+  stock: number | null
+  stockMinimo?: number | null
+  stock_minimo?: number | null
 }
 
 export type ProductosListResponse = { total: number; productos: Producto[] }

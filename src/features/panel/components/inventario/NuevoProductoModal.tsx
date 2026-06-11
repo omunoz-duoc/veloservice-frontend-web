@@ -4,7 +4,7 @@ import { useState } from "react"
 import { X, Plus, Package } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-  CATEGORIAS,
+  CATEGORIAS, getCategoriaConfig,
   type Producto, type CatKey, type NuevoProductoPayload,
 } from "./inventario.mock"
 import { CatChip } from "./ProductoDrawer"
@@ -122,7 +122,7 @@ export function NuevoProductoModal({
     onCreate(producto)
   }
 
-  const cat = CATEGORIAS.find(c => c.key === form.cat)!
+  const cat = getCategoriaConfig(form.cat)
 
   return (
     <div className="fixed inset-0 z-50 flex vs-fade-in">

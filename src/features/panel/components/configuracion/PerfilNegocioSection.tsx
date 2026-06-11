@@ -1,25 +1,42 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Field } from "@/components/common/Field"
 import { configuracionService } from "../../services/configuracion.provider"
 import type { PerfilNegocio } from "../../types/configuracion.types"
 
 const EMPTY: PerfilNegocio = { nombre: "", rut: "", direccion: "", telefono: "", email: "" }
+const TALLER_QUERY_KEY = ["configuracion", "taller"] as const
 
 type Toast = { type: "success" | "error"; message: string }
 
 export function PerfilNegocioSection() {
-  const [form, setForm] = useState<PerfilNegocio>(EMPTY)
-  const [loading, setLoading] = useState(false)
+  const queryClient = useQueryClient()
+  const [draft, setDraft] = useState<Partial<PerfilNegocio>>({})
   const [toast, setToast] = useState<Toast | null>(null)
 
-  useEffect(() => {
-    configuracionService.getPerfilNegocio().then(setForm)
-  }, [])
+  const tallerQuery = useQuery({
+    queryKey: TALLER_QUERY_KEY,
+    queryFn: () => configuracionService.getPerfilNegocio(),
+  })
+
+  const guardarTaller = useMutation({
+    mutationFn: (data: PerfilNegocio) => configuracionService.guardarPerfilNegocio(data),
+    onSuccess: () => {
+      setDraft({})
+      void queryClient.invalidateQueries({ queryKey: TALLER_QUERY_KEY })
+      showToast("success", "Cambios guardados correctamente")
+    },
+    onError: () => {
+      showToast("error", "Error al guardar los cambios")
+    },
+  })
+
+  const form: PerfilNegocio = { ...EMPTY, ...(tallerQuery.data ?? {}), ...draft }
 
   function set<K extends keyof PerfilNegocio>(key: K, value: string) {
-    setForm((prev) => ({ ...prev, [key]: value }))
+    setDraft((prev) => ({ ...prev, [key]: value }))
   }
 
   function showToast(type: Toast["type"], message: string) {
@@ -27,23 +44,21 @@ export function PerfilNegocioSection() {
     setTimeout(() => setToast(null), 4000)
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
-    try {
-      await configuracionService.guardarPerfilNegocio(form)
-      showToast("success", "Cambios guardados correctamente")
-    } catch {
-      showToast("error", "Error al guardar los cambios")
-    } finally {
-      setLoading(false)
-    }
+    guardarTaller.mutate(form)
   }
 
   return (
     <div>
       <h2 className="text-xl font-bold text-[#0f1114]">Perfil del negocio</h2>
-      <p className="text-sm text-[#8a7f70] mt-1 mb-6">Información de tu taller</p>
+      <p className="text-sm text-[#8a7f70] mt-1 mb-6">Informacion de tu taller</p>
+
+      {tallerQuery.isError && (
+        <div className="mb-4 max-w-lg rounded-lg bg-[#fff4ee] px-4 py-3 text-sm font-medium text-[#c85a2a]">
+          No se pudieron cargar los datos del taller.
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="max-w-lg space-y-4">
         <div>
@@ -62,14 +77,26 @@ export function PerfilNegocioSection() {
 
         <div>
           <label htmlFor="direccion" className="block text-sm font-medium text-[#0f1114] mb-1">
-            Dirección
+            Direccion
           </label>
-          <Field id="direccion" placeholder="Av. Providencia 1234, Santiago" value={form.direccion} onChange={(v) => set("direccion", v)} />
+          <div className="bg-[#f7f3eb] border border-vs-line-2 rounded-[14px] px-[14px] py-3 flex items-center gap-2.5 opacity-70">
+            <input
+              id="direccion"
+              type="text"
+              placeholder="No disponible en datos de taller"
+              value={form.direccion}
+              disabled
+              className="bg-transparent outline-none flex-1 text-[14px] text-vs-ink placeholder:text-[#a59682] min-w-0"
+            />
+          </div>
+          <p className="mt-1 text-xs text-[#8a7f70]">
+            La direccion pertenece a sucursales y no se guarda en el perfil del taller.
+          </p>
         </div>
 
         <div>
           <label htmlFor="telefono" className="block text-sm font-medium text-[#0f1114] mb-1">
-            Teléfono
+            Telefono
           </label>
           <Field id="telefono" placeholder="+56 9 1234 5678" value={form.telefono} onChange={(v) => set("telefono", v)} />
         </div>
@@ -84,16 +111,16 @@ export function PerfilNegocioSection() {
         <div>
           <label className="block text-sm font-medium text-[#0f1114] mb-1">Logo</label>
           <div className="w-24 h-24 rounded-xl border-2 border-dashed border-[#eae2d6] flex items-center justify-center text-[#a59682] text-xs text-center p-2">
-            Próximamente
+            Proximamente
           </div>
         </div>
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={guardarTaller.isPending || tallerQuery.isLoading}
           className="bg-[#2d2926] text-white px-5 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
         >
-          {loading ? "Guardando…" : "Guardar cambios"}
+          {guardarTaller.isPending ? "Guardando..." : "Guardar cambios"}
         </button>
       </form>
 

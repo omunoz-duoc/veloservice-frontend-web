@@ -6,6 +6,7 @@ export interface PerfilNegocio {
   direccion: string
   telefono: string
   email: string
+  logoUrl?: string | null
 }
 
 export interface MiPerfil {

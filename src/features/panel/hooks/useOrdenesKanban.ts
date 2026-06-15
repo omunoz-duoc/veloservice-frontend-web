@@ -12,6 +12,7 @@ type KanbanColumna = {
 }
 
 const COLUMNAS: KanbanColumna[] = [
+  { key: "col-urgente",  label: "Urgente",     color: "#c85a2a", estado: "urgente" },
   { key: "col-recibido",  label: "Recibido",    color: "#a59682", estado: "recibido" },
   { key: "col-proceso",   label: "En proceso",  color: "#6b5bd1", estado: "proceso" },
   { key: "col-listo",     label: "Listo",       color: "#2f7d4f", estado: "listo" },
@@ -32,6 +33,11 @@ function ordenesToBoardData(ordenes: OrdenTrabajo[]): BoardData {
   const byEstado: Record<string, OrdenTrabajo[]> = {}
   for (const col of COLUMNAS) byEstado[col.estado] = []
   for (const o of ordenes) {
+    if (o.prioridad === "alta" && o.estado !== "entregado" && o.estado !== "cancelado") {
+      byEstado.urgente.push(o)
+      continue
+    }
+
     const estado = estadoKanban(o.estado)
     if (estado && byEstado[estado]) byEstado[estado].push(o)
   }
@@ -73,6 +79,7 @@ function ordenesToBoardData(ordenes: OrdenTrabajo[]): BoardData {
           bici: `${o.biciMarca} - ${o.biciTipo}`,
           mecanico: o.mecanicoId,
           prioridad: o.prioridad,
+          estado: o.estado,
           color: col.color,
         },
       }

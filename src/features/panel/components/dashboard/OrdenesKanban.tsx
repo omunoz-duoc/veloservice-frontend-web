@@ -13,6 +13,8 @@ const PRIORIDAD_COLOR: Record<string, string> = {
   baja:  "#a59682",
 }
 
+const URGENTE_COLUMN_ID = "col-urgente"
+
 const ESTADO_BACKEND_BY_COLUMN: Record<string, string> = {
   "col-recibido": "recibida",
   "col-proceso": "en_reparacion",
@@ -26,6 +28,7 @@ type OrdenCardContent = {
   cliente?: string
   bici?: string
   mecanico?: string
+  estado?: string
 }
 
 type OrdenBoardItem = BoardItem & {
@@ -68,14 +71,23 @@ export function OrdenesKanban() {
       render: ({ data }) => {
         const card = data as OrdenBoardItem
         const prioridad = card.content?.prioridad
+        const isAlta = prioridad === "alta"
         return (
-          <div className="bg-white border border-vs-line-2 rounded-[12px] p-3 shadow-sm hover:shadow-md transition-shadow">
+          <div
+            className={[
+              "rounded-[12px] border p-3 shadow-sm transition-shadow hover:shadow-md",
+              isAlta ? "border-[#e0a35d]/70 bg-[#fffaf2]" : "border-vs-line-2 bg-white",
+            ].join(" ")}
+          >
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[11px] font-mono font-semibold text-vs-ink">{card.title}</span>
               {prioridad && (
                 <span
-                  className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full text-white"
-                  style={{ background: PRIORIDAD_COLOR[prioridad] ?? "#a59682" }}
+                  className={[
+                    "rounded-full px-1.5 py-0.5 text-[9px] font-semibold",
+                    isAlta ? "bg-[#c85a2a] text-white shadow-[0_4px_12px_rgba(200,90,42,0.2)]" : "text-white",
+                  ].join(" ")}
+                  style={isAlta ? undefined : { background: PRIORIDAD_COLOR[prioridad] ?? "#a59682" }}
                 >
                   {prioridad}
                 </span>
@@ -108,6 +120,7 @@ export function OrdenesKanban() {
           configMap={configMap}
           cardsGap={6}
           columnWrapperStyle={() => ({ width: `${colWidth}px`, minWidth: `${MIN_COL_WIDTH}px` })}
+          columnListContentStyle={() => ({ maxHeight: "430px", overflowY: "auto", paddingRight: "2px" })}
           onCardMove={(move) => {
             const previousBoard = board
             const nextBoard = dropHandler(
@@ -119,24 +132,45 @@ export function OrdenesKanban() {
             )
 
             setError(null)
+
+            const movedCard = nextBoard[move.cardId] as OrdenBoardItem | undefined
+            if (move.toColumnId === URGENTE_COLUMN_ID && movedCard?.content) {
+              nextBoard[move.cardId] = {
+                ...movedCard,
+                content: {
+                  ...movedCard.content,
+                  prioridad: "alta",
+                },
+              }
+            }
+
             setDataSource(nextBoard)
 
             if (move.fromColumnId === move.toColumnId) return
 
             const card = previousBoard[move.cardId] as OrdenBoardItem | undefined
             const ordenId = card?.content?.ordenId
-            const codigo = ESTADO_BACKEND_BY_COLUMN[move.toColumnId]
 
-            if (!ordenId || !codigo) {
+            if (!ordenId) {
+              setDataSource(previousBoard)
+              setError("No se pudo actualizar la orden.")
+              return
+            }
+
+            if (move.toColumnId !== URGENTE_COLUMN_ID && !ESTADO_BACKEND_BY_COLUMN[move.toColumnId]) {
               setDataSource(previousBoard)
               setError("No se pudo cambiar el estado de la orden.")
               return
             }
 
-            void ordenesService.cambiarEstado(ordenId, {
-              codigo,
-              observacion: "Cambio de estado desde dashboard pipeline",
-            })
+            const request = move.toColumnId === URGENTE_COLUMN_ID
+              ? ordenesService.updateOrden(ordenId, { prioridad: "alta" })
+              : ordenesService.cambiarEstado(ordenId, {
+                  codigo: ESTADO_BACKEND_BY_COLUMN[move.toColumnId],
+                  observacion: "Cambio de estado desde dashboard pipeline",
+                })
+
+            void request
               .then(() => {
                 void queryClient.invalidateQueries({ queryKey: ["ordenes"] })
                 void queryClient.invalidateQueries({ queryKey: ["ordenes", "urgentes"] })
@@ -144,7 +178,7 @@ export function OrdenesKanban() {
               })
               .catch(() => {
                 setDataSource(previousBoard)
-                setError("No se pudo cambiar el estado de la orden.")
+                setError("No se pudo actualizar la orden.")
               })
           }}
         />

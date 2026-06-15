@@ -1,12 +1,52 @@
 "use client"
 
+import { useMemo, useSyncExternalStore } from "react"
 import { PageHeader } from "@/components/common/PageHeader"
 import { useAuthStore } from "@/features/auth/store/auth.store"
+import { getSucursalesStorage, type SucursalesStorage } from "@/lib/sucursales"
 import { KpiGrid } from "./KpiGrid"
 import { OrdenesKanban } from "./OrdenesKanban"
 import { RentabilidadPlaceholder } from "./RentabilidadPlaceholder"
 import { MecanicosCard } from "./MecanicosCard"
 import { UrgentesCard } from "./UrgentesCard"
+
+const SUCURSALES_STORAGE_EVENT = "vs-sucursales-change"
+
+function subscribeToSucursalesStorage(callback: () => void) {
+  if (typeof window === "undefined") return () => {}
+
+  window.addEventListener("storage", callback)
+  window.addEventListener(SUCURSALES_STORAGE_EVENT, callback)
+
+  return () => {
+    window.removeEventListener("storage", callback)
+    window.removeEventListener(SUCURSALES_STORAGE_EVENT, callback)
+  }
+}
+
+function getSucursalesSnapshot() {
+  const storage = getSucursalesStorage()
+  return storage ? JSON.stringify(storage) : null
+}
+
+function getServerSucursalesSnapshot() {
+  return null
+}
+
+function parseSucursalesSnapshot(snapshot: string | null): SucursalesStorage | null {
+  if (!snapshot) return null
+  try {
+    return JSON.parse(snapshot) as SucursalesStorage
+  } catch {
+    return null
+  }
+}
+
+function getActiveSucursalName(storage: SucursalesStorage | null) {
+  const activeSucursalId = storage?.activa
+  const activeSucursal = storage?.sucursales.find((sucursal) => sucursal.id === activeSucursalId)
+  return activeSucursal?.nombre ?? "Sucursal por confirmar"
+}
 
 const ACTIONS = (
   <>
@@ -25,7 +65,16 @@ const ACTIONS = (
 export function DashboardPage() {
   const { user } = useAuthStore()
   const userName = user?.nombre ?? "Usuario"
-  const sucursalName = user?.tallerId?.trim() || "Sucursal por confirmar"
+  const sucursalesSnapshot = useSyncExternalStore(
+    subscribeToSucursalesStorage,
+    getSucursalesSnapshot,
+    getServerSucursalesSnapshot
+  )
+  const sucursalesStorage = useMemo(
+    () => parseSucursalesSnapshot(sucursalesSnapshot),
+    [sucursalesSnapshot]
+  )
+  const sucursalName = getActiveSucursalName(sucursalesStorage)
 
   const now = new Date()
   

@@ -1,11 +1,164 @@
 "use client"
 
-import { useRef, useState } from "react"
-import { Bell, Settings, Search, Plus, ChevronDown, LogOut, KeyRound, Mail } from "lucide-react"
+import { useMemo, useRef, useState, useSyncExternalStore } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { Bell, Settings, Search, Plus, ChevronDown, LogOut, KeyRound, Mail, MapPin, Check } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useOrdenes } from "@/features/panel/context/OrdenesContext"
 import { useAuthStore } from "@/features/auth/store/auth.store"
 import { useClickOutside } from "@/lib/hooks/use-click-outside"
+import {
+  getSucursalesStorage,
+  setSucursalesStorage,
+  type SucursalesStorage,
+} from "@/lib/sucursales"
+
+const SUCURSALES_STORAGE_EVENT = "vs-sucursales-change"
+
+function subscribeToSucursalesStorage(callback: () => void) {
+  if (typeof window === "undefined") return () => {}
+
+  window.addEventListener("storage", callback)
+  window.addEventListener(SUCURSALES_STORAGE_EVENT, callback)
+
+  return () => {
+    window.removeEventListener("storage", callback)
+    window.removeEventListener(SUCURSALES_STORAGE_EVENT, callback)
+  }
+}
+
+function getSucursalesSnapshot() {
+  const storage = getSucursalesStorage()
+  return storage ? JSON.stringify(storage) : null
+}
+
+function getServerSucursalesSnapshot() {
+  return null
+}
+
+function parseSucursalesSnapshot(snapshot: string | null): SucursalesStorage | null {
+  if (!snapshot) return null
+  try {
+    return JSON.parse(snapshot) as SucursalesStorage
+  } catch {
+    return null
+  }
+}
+
+function SucursalActivaSelector() {
+  const router = useRouter()
+  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false)
+  const [changing, setChanging] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const sucursalesSnapshot = useSyncExternalStore(
+    subscribeToSucursalesStorage,
+    getSucursalesSnapshot,
+    getServerSucursalesSnapshot
+  )
+  const sucursalesStorage = useMemo(
+    () => parseSucursalesSnapshot(sucursalesSnapshot),
+    [sucursalesSnapshot]
+  )
+  const sucursales = sucursalesStorage?.sucursales ?? []
+  const activeSucursalId = sucursalesStorage?.activa ?? null
+  const activeSucursal = sucursales.find((sucursal) => sucursal.id === activeSucursalId)
+
+  useClickOutside(dropdownRef, () => setOpen(false), open)
+
+  async function handleSucursalChange(nuevaSucursalId: string) {
+    if (!nuevaSucursalId || nuevaSucursalId === activeSucursalId) {
+      setOpen(false)
+      return
+    }
+
+    setChanging(true)
+    setSucursalesStorage(sucursales, nuevaSucursalId)
+    window.dispatchEvent(new Event(SUCURSALES_STORAGE_EVENT))
+
+    try {
+      await queryClient.invalidateQueries()
+      router.refresh()
+      setOpen(false)
+    } finally {
+      setChanging(false)
+    }
+  }
+
+  if (sucursales.length === 0 || !activeSucursal) return null
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {sucursales.length > 1 ? (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center gap-2 rounded-[24px] border border-vs-line bg-vs-card px-3 py-2 text-left hover:border-[#c4b89a] transition-colors"
+          aria-haspopup="listbox"
+          aria-expanded={open}
+        >
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-vs-chip text-[#5f5549]">
+            <MapPin size={14} strokeWidth={1.8} />
+          </span>
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block text-[10px] font-medium uppercase tracking-[0.08em] text-[#a59682]">
+              Sucursal activa
+            </span>
+            <span className="block truncate text-[12px] font-semibold text-[#2b2f36]">
+              {changing ? "Cambiando..." : activeSucursal.nombre}
+            </span>
+          </span>
+          <ChevronDown
+            size={14}
+            className={`shrink-0 text-[#8a7f70] transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+      ) : (
+        <div className="flex w-full items-center gap-2 rounded-[24px] border border-vs-line bg-vs-card px-3 py-2">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-vs-chip text-[#5f5549]">
+            <MapPin size={14} strokeWidth={1.8} />
+          </span>
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block text-[10px] font-medium uppercase tracking-[0.08em] text-[#a59682]">
+              Sucursal activa
+            </span>
+            <span className="block truncate text-[12px] font-semibold text-[#2b2f36]">
+              {activeSucursal.nombre}
+            </span>
+          </span>
+        </div>
+      )}
+
+      {open && sucursales.length > 1 && (
+        <div
+          className="absolute right-0 top-full z-50 mt-2 w-full min-w-56 rounded-2xl border border-vs-line bg-vs-card p-1.5 shadow-lg"
+          role="listbox"
+        >
+          {sucursales.map((sucursal) => {
+            const isActive = sucursal.id === activeSucursalId
+            return (
+              <button
+                key={sucursal.id}
+                type="button"
+                onClick={() => void handleSucursalChange(sucursal.id)}
+                className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors ${
+                  isActive ? "bg-vs-chip text-[#2b2f36]" : "text-[#5f5549] hover:bg-vs-chip"
+                }`}
+                role="option"
+                aria-selected={isActive}
+              >
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+                  {isActive && <Check size={14} strokeWidth={2.2} />}
+                </span>
+                <span className="min-w-0 flex-1 truncate">{sucursal.nombre}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function Topbar() {
   const { openNuevaOT } = useOrdenes()
@@ -79,24 +232,35 @@ export function Topbar() {
         <Settings size={18} strokeWidth={1.6} />
       </button>
 
+      <div className="flex w-[260px] flex-col items-stretch gap-1.5">
       {/* User */}
       <div className="relative" ref={dropdownRef}>
-        <button
-          onClick={() => setDropdownOpen((v) => !v)}
-          className="flex items-center gap-3 pl-3 pr-2 py-1.5 rounded-full bg-vs-card border border-vs-line hover:border-[#c4b89a] transition-colors"
-        >
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#d9c7a8] to-[#b39573] flex items-center justify-center text-white text-sm font-semibold">
+        <div className="flex w-full items-center gap-3 pl-3 pr-2 py-2 rounded-[24px] bg-vs-card border border-vs-line hover:border-[#c4b89a] transition-colors">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#d9c7a8] to-[#b39573] flex items-center justify-center text-white text-sm font-semibold shrink-0">
             {initials}
           </div>
-          <div className="leading-tight pr-2">
-            <div className="text-[13px] font-semibold">{fullName}</div>
-            <div className="text-[11px] text-[#8a7f70]">{cargo}</div>
+          <div className="min-w-0 flex-1 leading-tight pr-1">
+            <button
+              type="button"
+              onClick={() => setDropdownOpen((v) => !v)}
+              className="block w-full text-left"
+            >
+              <div className="truncate text-[13px] font-semibold">{fullName}</div>
+              <div className="truncate text-[11px] text-[#8a7f70]">{cargo}</div>
+            </button>
           </div>
-          <ChevronDown
-            size={16}
-            className={`text-[#8a7f70] transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
-          />
-        </button>
+          <button
+            type="button"
+            onClick={() => setDropdownOpen((v) => !v)}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-[#8a7f70] hover:bg-vs-chip transition-colors"
+            aria-label="Abrir menu de usuario"
+          >
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+        </div>
 
         {dropdownOpen && (
           <div className="absolute right-0 top-full mt-2 w-48 bg-vs-card border border-vs-line rounded-2xl shadow-lg py-1 z-50">
@@ -117,6 +281,8 @@ export function Topbar() {
             </button>
           </div>
         )}
+      </div>
+      <SucursalActivaSelector />
       </div>
     </div>
 

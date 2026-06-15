@@ -55,7 +55,7 @@ export function OrdenesKanban() {
 
   if (isLoading || !board) {
     return (
-      <div className="bg-vs-card border border-vs-line rounded-[24px] p-5 animate-pulse min-h-[300px]" />
+      <div className="min-h-[300px] min-w-0 animate-pulse rounded-[24px] border border-vs-line bg-vs-card p-5" />
     )
   }
 
@@ -104,7 +104,7 @@ export function OrdenesKanban() {
   }
 
   return (
-    <div className="bg-vs-card border border-vs-line rounded-[24px] p-4">
+    <div className="min-w-0 overflow-hidden rounded-[24px] border border-vs-line bg-vs-card p-4">
       <div className="mb-3">
         <div className="text-[10px] font-semibold uppercase tracking-widest text-[#a59682]">Pipeline</div>
         <div className="text-[15px] font-semibold text-vs-ink">Ordenes de trabajo</div>
@@ -114,7 +114,7 @@ export function OrdenesKanban() {
           {error}
         </div>
       )}
-      <div ref={containerRef} className="overflow-x-auto">
+      <div ref={containerRef} className="min-w-0 max-w-full overflow-x-auto">
         <Kanban
           dataSource={board}
           configMap={configMap}

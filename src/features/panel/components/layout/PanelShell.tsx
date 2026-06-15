@@ -4,9 +4,9 @@ import { Topbar } from "./Topbar"
 
 export function PanelShell({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex bg-vs-bg">
+    <div className="flex min-h-screen min-w-0 overflow-x-hidden bg-vs-bg">
       <Sidebar />
-      <main className="flex-1 px-8 py-7 min-w-0">
+      <main className="w-0 min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         <Topbar />
         {children}
       </main>

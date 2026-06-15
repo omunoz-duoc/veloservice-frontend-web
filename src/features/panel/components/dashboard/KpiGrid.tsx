@@ -20,7 +20,7 @@ export function KpiGrid() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-4 gap-4 mb-4">
+      <div className="mb-4 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map(i => (
           <div
             key={i}
@@ -32,7 +32,7 @@ export function KpiGrid() {
   }
 
   return (
-    <div className="grid grid-cols-4 gap-4 mb-4">
+    <div className="mb-4 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {kpis.map(kpi => (
         <KpiCard
           key={kpi.id}

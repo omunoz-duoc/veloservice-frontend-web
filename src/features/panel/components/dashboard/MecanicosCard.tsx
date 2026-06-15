@@ -43,14 +43,14 @@ export function MecanicosCard() {
 
   if (isLoading) {
     return (
-      <div className="bg-vs-card border border-vs-line rounded-[24px] p-5 animate-pulse min-h-[200px]" />
+      <div className="min-h-[200px] min-w-0 animate-pulse rounded-[24px] border border-vs-line bg-vs-card p-5" />
     )
   }
 
   const totalOTs = mecanicos.reduce((sum, m) => sum + ordenesActivas(m), 0)
 
   return (
-    <div className="bg-vs-card border border-vs-line rounded-[24px] p-5">
+    <div className="min-w-0 rounded-[24px] border border-vs-line bg-vs-card p-5">
       <SectionHeader
         overline="Equipo en turno"
         title="Mecanicos activos"

@@ -103,7 +103,7 @@ export function DashboardPage() {
       : "Buenas noches"
 
   return (
-    <div>
+    <div className="min-w-0">
       <PageHeader
         breadcrumb={[{ label: "Panel", href: "/dashboard" }, { label: "Resumen del día" }]}
         title={`${greeting}, ${userName}`}
@@ -115,21 +115,21 @@ export function DashboardPage() {
       <KpiGrid />
 
       {/* Row 2: Kanban */}
-      <div className="grid grid-cols-12 gap-4 mb-4">
-        <div className="col-span-8">
+      <div className="mb-4 grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-12">
+        <div className="min-w-0 xl:col-span-8">
           <OrdenesKanban />
         </div>
-        <div className="col-span-4">
+        <div className="min-w-0 xl:col-span-4">
           <UrgentesCard />
         </div>
       </div>
 
       {/* Row 3: Rentabilidad + Mecánicos */}
-      <div className="grid grid-cols-12 gap-4 mb-4">
-        <div className="col-span-7">
+      <div className="mb-4 grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-12">
+        <div className="min-w-0 xl:col-span-7">
           <RentabilidadPlaceholder />
         </div>
-        <div className="col-span-5">
+        <div className="min-w-0 xl:col-span-5">
           <MecanicosCard />
         </div>
       </div>

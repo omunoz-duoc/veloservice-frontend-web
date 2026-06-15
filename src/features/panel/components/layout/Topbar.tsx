@@ -194,25 +194,25 @@ export function Topbar() {
 
   return (
     <>
-    <div className="flex items-center gap-4 mb-6">
+    <div className="mb-6 flex min-w-0 flex-wrap items-start justify-end gap-3 lg:gap-4">
       {/* Search */}
-      <div className="flex-1 max-w-[420px] bg-vs-card border border-vs-line rounded-[24px] flex items-center gap-3 px-4 py-2.5 invisible">
+      <div className="hidden max-w-[420px] flex-1 items-center gap-3 rounded-[24px] border border-vs-line bg-vs-card px-4 py-2.5 invisible xl:flex">
         <Search size={16} className="text-[#a59682] shrink-0" />
         <input
           placeholder="Buscar OT, marca, ciclista…"
-          className="bg-transparent outline-none flex-1 text-sm placeholder:text-[#a59682]"
+          className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#a59682]"
         />
         <span className="text-[11px] text-[#a59682] font-mono bg-vs-chip px-2 py-0.5 rounded-full">
           ⌘K
         </span>
       </div>
 
-      <div className="flex-1" />
+      <div className="hidden flex-1 xl:block" />
 
       {/* Nueva OT */}
       <button
         onClick={openNuevaOT}
-        className="flex items-center gap-2 bg-vs-ink text-white pl-4 pr-2 py-2 rounded-full text-sm font-medium hover:bg-[#1e2228] transition-colors"
+        className="flex shrink-0 items-center gap-2 rounded-full bg-vs-ink py-2 pl-4 pr-2 text-sm font-medium text-white transition-colors hover:bg-[#1e2228]"
       >
         <Plus size={16} />
         Nueva OT
@@ -232,7 +232,7 @@ export function Topbar() {
         <Settings size={18} strokeWidth={1.6} />
       </button>
 
-      <div className="flex w-[260px] flex-col items-stretch gap-1.5">
+      <div className="flex w-full max-w-[260px] flex-col items-stretch gap-1.5 sm:w-[260px]">
       {/* User */}
       <div className="relative" ref={dropdownRef}>
         <div className="flex w-full items-center gap-3 pl-3 pr-2 py-2 rounded-[24px] bg-vs-card border border-vs-line hover:border-[#c4b89a] transition-colors">

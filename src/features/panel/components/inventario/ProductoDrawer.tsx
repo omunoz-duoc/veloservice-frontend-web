@@ -140,7 +140,7 @@ export function ProductoDrawer({
     <div className="fixed inset-0 z-50 flex vs-fade-in">
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
 
-      <div className="flex h-full w-full max-w-[540px] flex-col overflow-y-auto bg-vs-bg vs-slide-in-right">
+      <div className="flex h-full w-full max-w-[540px] flex-col overflow-y-auto bg-black/30 backdrop-blur-sm vs-slide-in-right">
         <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0">
           {/* Header */}
           <div className="flex flex-wrap items-center gap-3 border-b border-vs-line-2 p-5">

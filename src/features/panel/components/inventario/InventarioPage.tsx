@@ -140,7 +140,7 @@ function ProductoRow({
           </button>
           <button
             title="Ajustar stock"
-            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-violet active:scale-90 transition-all duration-150"
+            className="hidden w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-violet active:scale-90 transition-all duration-150"
           >
             <PlusCircle size={13} strokeWidth={1.6} />
           </button>

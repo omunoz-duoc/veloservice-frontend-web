@@ -156,7 +156,11 @@ export function ServicioDrawer({
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">
-                {isEdit ? "Editando servicio" : "Detalle"} · <span className="font-mono">{draft.id}</span>
+                {isEdit ? "Editando servicio" : "Detalle"}
+                <span className={isEdit ? "hidden" : undefined}>
+                  {" · "}
+                  <span className="font-mono">{draft.id}</span>
+                </span>
               </div>
               <div className="text-[15px] font-semibold truncate">{draft.nombre}</div>
             </div>
@@ -239,7 +243,7 @@ export function ServicioDrawer({
                   )
                 }
               </div>
-              <div>
+              <div className={isEdit ? "hidden" : undefined}>
                 <FieldLabel>Código</FieldLabel>
                 <div className="text-[13px] font-mono font-semibold text-[#4a4438]">{draft.id}</div>
               </div>
@@ -261,7 +265,7 @@ export function ServicioDrawer({
                   : <div className="text-[13px] font-mono">{draft.precio2 ? fmt(draft.precio2) : "—"}</div>
                 }
               </div>
-              <div>
+              <div className={isEdit ? "hidden" : undefined}>
                 <FieldLabel required={isEdit}>Duración (min)</FieldLabel>
                 {isEdit
                   ? <FieldText value={String(draft.dur)} onChange={v => set("dur", parseInt(v) || 0)} mono />

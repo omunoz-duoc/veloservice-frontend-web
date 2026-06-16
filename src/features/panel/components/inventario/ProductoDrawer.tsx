@@ -304,7 +304,7 @@ export function ProductoDrawer({
                   : <div className="text-[13px] font-mono">{draft.min}</div>
                 }
               </div>
-              <div>
+              <div className={isEdit ? "hidden" : undefined}>
                 <FLabel required={isEdit}>Ubicación</FLabel>
                 {isEdit
                   ? <FInput value={draft.ubic} onChange={v => set("ubic", v)} mono />

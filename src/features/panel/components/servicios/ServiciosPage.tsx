@@ -288,7 +288,7 @@ function CategorySection({
       >
         <div className="min-w-0 overflow-hidden">
           {view === "grid" ? (
-            <div className="grid min-w-0 grid-cols-1 gap-3 pb-1 md:grid-cols-2 2xl:grid-cols-3">
+            <div className="grid min-w-0 grid-cols-1 gap-3 p-1 md:grid-cols-2 2xl:grid-cols-3">
               {items.map(s => (
                 <ServicioCard
                   key={s.id}

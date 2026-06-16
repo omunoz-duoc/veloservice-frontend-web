@@ -6,7 +6,9 @@ import { Field } from "@/components/common/Field";
 import { PasswordMeter } from "./PasswordMeter";
 import { StepIndicator } from "./shared/StepIndicator";
 import { useRegister } from "@/features/auth/hooks/useAuth";
+import { authService } from "@/features/auth/services/auth.service";
 import type { RegisterPayload } from "@/features/auth/services/auth.service";
+import Swal from "sweetalert2";
 import { cn } from "@/lib/utils";
 import { removeSeparators, useRut } from "react-rut-formatter";
 import { PhoneField } from "@/components/common/PhoneField";
@@ -56,6 +58,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
   const { rut, updateRut, isValid: rutIsValid } = useRut();
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [checkingRut, setCheckingRut] = useState(false);
   const [data, setData] = useState<FormData>({
     nombre: "",
     apellido: "",
@@ -82,7 +85,7 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
     setErrors((prev) => ({ ...prev, rut: undefined }));
   };
 
-  const validateStep1 = (): boolean => {
+  const validateStep1 = async (): Promise<boolean> => {
     const e: FormErrors = {};
     if (!data.nombre.trim()) e.nombre = "Ingresa tu nombre";
     else if (data.nombre.length > 50) e.nombre = "Máximo 50 caracteres";
@@ -99,8 +102,36 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
     if (!data.telefono) e.telefono = "Ingresa tu teléfono";
     else if (phoneDigits.length < 9) e.telefono = "Debe tener 9 dígitos (sin +56)";
 
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    if (Object.keys(e).length > 0) {
+      setErrors(e);
+      return false;
+    }
+
+    try {
+      setCheckingRut(true);
+      const exists = await authService.checkRutExists(rut.raw);
+      if (exists) {
+        setErrors({ rut: "Este RUT ya está registrado" });
+        await Swal.fire({
+          icon: "error",
+          title: "RUT ya registrado",
+          text: "Ya existe una cuenta con este RUT.",
+          confirmButtonColor: "#2a2e35",
+        });
+        return false;
+      }
+      return true;
+    } catch {
+      await Swal.fire({
+        icon: "error",
+        title: "Ocurrió un error",
+        text: "No pudimos validar el RUT. Inténtalo nuevamente.",
+        confirmButtonColor: "#2a2e35",
+      });
+      return false;
+    } finally {
+      setCheckingRut(false);
+    }
   };
 
   const validateStep2 = (): boolean => {
@@ -178,10 +209,15 @@ export function RegisterForm({ onBack }: RegisterFormProps) {
             error={errors.telefono}
           />
           <button
-            onClick={() => { if (validateStep1()) setStep(2); }}
-            className="w-full flex items-center justify-center gap-2 bg-vs-ink text-white py-3 rounded-full text-[13.5px] font-semibold hover:bg-black transition-colors"
+            onClick={async () => { if (await validateStep1()) setStep(2); }}
+            disabled={checkingRut}
+            className="w-full flex items-center justify-center gap-2 bg-vs-ink text-white py-3 rounded-full text-[13.5px] font-semibold hover:bg-black transition-colors disabled:opacity-50"
           >
-            Continuar <ArrowRight size={18} />
+            {checkingRut ? (
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <>Continuar <ArrowRight size={18} /></>
+            )}
           </button>
         </>
       )}

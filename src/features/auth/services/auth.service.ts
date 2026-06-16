@@ -38,6 +38,10 @@ export const authService: IAuthService = {
   async register(payload) {
     return httpClient.post("auth/register", payload);
   },
+
+  async checkRutExists(rut) {
+    return httpClient.get<boolean>(`auth/rut-exists?rut=${encodeURIComponent(rut)}`);
+  },
 };
 
 export interface IAuthService {
@@ -47,4 +51,5 @@ export interface IAuthService {
   verifyCode(code: string): Promise<boolean>;
   resetPassword(newPassword: string): Promise<void>;
   register(payload: RegisterPayload): Promise<void>;
+  checkRutExists(rut: string): Promise<boolean>;
 }

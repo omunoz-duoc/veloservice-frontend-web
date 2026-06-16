@@ -34,4 +34,7 @@ export const authMock: IAuthService = {
   async register(_payload: RegisterPayload) {
     return mockFetch(undefined as void)
   },
+  async checkRutExists(_rut) {
+    return mockFetch(false)
+  },
 }

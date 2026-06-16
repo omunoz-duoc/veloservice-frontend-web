@@ -14,6 +14,7 @@ import {
   type CreateOTPayload,
   type CreateOTResponse,
 } from "../components/ordenes/ordenes.types"
+import Swal from "sweetalert2"
 import { nuevaOTService } from "../services/nuevaOT.provider"
 import { serviciosService } from "../services/servicios.provider"
 import type { Servicio } from "../types/servicios.types"
@@ -382,10 +383,23 @@ export function useNuevaOT({
       }
 
       const result = await nuevaOTService.createOrden(payload)
+      await Swal.fire({
+        icon: "success",
+        title: "Orden creada",
+        text: "La orden de trabajo se creó correctamente.",
+        confirmButtonColor: "#2a2e35",
+      })
       onCreate(result)
       onClose()
     } catch (err: unknown) {
-      setSubmitError(getApiErrorMessage(err) ?? "Error al crear la orden. Intenta nuevamente.")
+      const msg = getApiErrorMessage(err) ?? "Error al crear la orden. Intenta nuevamente."
+      setSubmitError(msg)
+      await Swal.fire({
+        icon: "error",
+        title: "No se pudo crear la orden",
+        text: msg,
+        confirmButtonColor: "#2a2e35",
+      })
     } finally {
       setSubmitting(false)
     }

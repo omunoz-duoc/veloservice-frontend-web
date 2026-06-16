@@ -186,11 +186,20 @@ export function Topbar() {
     setSentOpen(true)
   }
 
+  const CARGO_MAP: Record<string, string> = {
+    admin_taller: "Administrador",
+    jefe_taller: "Jefe de taller",
+    mecanico: "Mecánico",
+    recepcionista: "Recepcionista",
+  }
+
   const initials = user
     ? `${user.nombre[0]}${user.apellido[0]}`.toUpperCase()
     : "MA"
   const fullName = user ? `${user.nombre} ${user.apellido}` : "Martín Álvarez"
-  const cargo = user?.rol ?? "Jefe de taller"
+  const cargo = user?.rol && CARGO_MAP[user.rol] ? CARGO_MAP[user.rol] : "Jefe de taller"
+
+
 
   return (
     <>
@@ -212,7 +221,7 @@ export function Topbar() {
       {/* Nueva OT */}
       <button
         onClick={openNuevaOT}
-        className="flex items-center gap-2 bg-vs-ink text-white pl-4 pr-2 py-2 rounded-full text-sm font-medium hover:bg-[#1e2228] transition-colors"
+        className="flex self-start items-center gap-2 bg-vs-ink text-white pl-4 pr-2 py-2 rounded-full text-sm font-medium hover:bg-[#1e2228] transition-colors"
       >
         <Plus size={16} />
         Nueva OT

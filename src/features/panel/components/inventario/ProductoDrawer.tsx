@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { X, Check, Pencil, Package, TrendingUp, Plus, Minus, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAjustarStockProducto } from "@/features/panel/hooks/useInventarioProductos"
+import type { MovimientoStockTipo } from "@/features/panel/types/inventario.types"
 import {
   CATEGORIAS, MOVIMIENTOS_MOCK, fmt, getCategoriaConfig, margen, productoVisibleId,
   type Producto, type CatKey,
@@ -118,6 +120,10 @@ export function ProductoDrawer({
   const [mode, setMode] = useState<DrawerMode>(initialMode)
   const [draft, setDraft] = useState<Producto>({ ...initial })
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [ajusteTipo, setAjusteTipo] = useState<MovimientoStockTipo | null>(null)
+  const [ajusteCantidad, setAjusteCantidad] = useState("")
+  const [ajusteError, setAjusteError] = useState<string | null>(null)
+  const ajustarStock = useAjustarStockProducto()
 
   const set = <K extends keyof Producto>(key: K, val: Producto[K]) =>
     setDraft(prev => ({ ...prev, [key]: val }))
@@ -133,6 +139,43 @@ export function ProductoDrawer({
       await onSave(draft)
     } catch {
       setSubmitError("No se pudo guardar el producto.")
+    }
+  }
+
+  const selectAjuste = (tipo: MovimientoStockTipo) => {
+    setAjusteTipo(tipo)
+    setAjusteCantidad("")
+    setAjusteError(null)
+  }
+
+  const handleConfirmAjuste = async () => {
+    if (!ajusteTipo) return
+
+    const cantidad = Number(ajusteCantidad)
+    if (!Number.isInteger(cantidad) || cantidad <= 0) {
+      setAjusteError("Ingresa una cantidad mayor que cero.")
+      return
+    }
+    if (ajusteTipo === "salida" && cantidad > draft.stock) {
+      setAjusteError("La salida no puede superar el stock actual.")
+      return
+    }
+
+    setAjusteError(null)
+    try {
+      const result = await ajustarStock.mutateAsync({
+        productoId: draft.id,
+        payload: {
+          tipo: ajusteTipo,
+          cantidad,
+          motivo: `Ajuste manual de ${ajusteTipo} desde detalle de producto`,
+        },
+      })
+      set("stock", result.stockPosterior)
+      setAjusteTipo(null)
+      setAjusteCantidad("")
+    } catch {
+      setAjusteError("No se pudo ajustar el stock.")
     }
   }
 
@@ -285,19 +328,57 @@ export function ProductoDrawer({
                 <div className="pt-3 border-t border-vs-line-2">
                   <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-3">Ajustar stock</div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+                    <button
+                      onClick={() => selectAjuste("salida")}
+                      className={cn(
+                        "flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150",
+                        ajusteTipo === "salida" && "bg-vs-warn-bg text-vs-warn"
+                      )}
+                    >
                       <Minus size={12} strokeWidth={2} />
                       Salida
                     </button>
-                    <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+                    <button
+                      onClick={() => selectAjuste("entrada")}
+                      className={cn(
+                        "flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150",
+                        ajusteTipo === "entrada" && "bg-vs-good-bg text-vs-good"
+                      )}
+                    >
                       <Plus size={12} strokeWidth={2} />
                       Entrada
                     </button>
-                    <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+                    <button className="hidden flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
                       <TrendingUp size={12} strokeWidth={1.6} />
                       Orden compra
                     </button>
                   </div>
+                  {ajusteTipo && (
+                    <div className="mt-3 rounded-xl border border-vs-line-2 bg-vs-chip p-3">
+                      <div className="mb-2 text-[11px] font-medium text-[#8a7f70]">
+                        {ajusteTipo === "entrada" ? "Cantidad a agregar" : "Cantidad a quitar"}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          value={ajusteCantidad}
+                          onChange={e => setAjusteCantidad(e.target.value)}
+                          className="w-28 rounded-xl border border-vs-line-2 bg-white px-3 py-2 text-[12.5px] font-mono outline-none focus:border-[#a59682]"
+                        />
+                        <button
+                          onClick={handleConfirmAjuste}
+                          disabled={ajustarStock.isPending}
+                          className="rounded-full bg-vs-ink px-4 py-2 text-[12px] font-medium text-white transition-colors hover:bg-[#1e2228] disabled:opacity-60"
+                        >
+                          {ajustarStock.isPending ? "Guardando..." : "Confirmar"}
+                        </button>
+                      </div>
+                      {ajusteError && (
+                        <div className="mt-2 text-[11.5px] font-medium text-vs-warn">{ajusteError}</div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-3 border-t border-vs-line-2">

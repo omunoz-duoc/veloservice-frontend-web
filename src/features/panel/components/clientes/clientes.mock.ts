@@ -14,6 +14,7 @@ export type Tier = {
 export type Cliente = {
   id: string
   backendId?: string
+  codigoCliente?: string | null
   nombre: string
   idType: IdType
   idNum: string
@@ -110,7 +111,3 @@ export function avatarColor(initials: string): string {
   return colors[initials.charCodeAt(0) % colors.length]
 }
 
-export function nextClienteId(clientes: Cliente[]): string {
-  const nums = clientes.map(c => parseInt(c.id.split("-")[1] ?? "0"))
-  return `CL-${(Math.max(...nums, 132) + 1).toString().padStart(5, "0")}`
-}

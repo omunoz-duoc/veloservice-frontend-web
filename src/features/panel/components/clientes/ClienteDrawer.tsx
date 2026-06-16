@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { X, Check, Plus, Mail, Phone, MapPin, User, Pencil, Bike, Trash2, Star, Copy, CheckCheck, ChevronLeft } from "lucide-react"
+import { X, Check, Plus, Mail, Phone, User, Pencil, Bike, Trash2, Star, Copy, CheckCheck, ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMockServices } from "@/lib/api/service-mode"
 import {
@@ -322,7 +322,6 @@ function ManageView({
         <div className="space-y-1">
           <RowInfo icon={<Mail size={14} strokeWidth={1.6} />} label="Email" value={client.email} />
           <RowInfo icon={<Phone size={14} strokeWidth={1.6} />} label="Teléfono" value={client.tel} />
-          <RowInfo icon={<MapPin size={14} strokeWidth={1.6} />} label="Ciudad" value={client.ciudad} />
           <RowInfo icon={<User size={14} strokeWidth={1.6} />} label={client.idType} value={client.idNum} mono />
         </div>
       </div>
@@ -412,7 +411,7 @@ function EditView({ draft, set }: { draft: Cliente; set: <K extends keyof Client
         </div>
         <div>
           <FLabel>Cliente ID</FLabel>
-          <FInput value={draft.id} mono readOnly />
+          <FInput value={draft.codigoCliente ?? ""} mono readOnly />
         </div>
       </div>
 
@@ -441,7 +440,7 @@ function EditView({ draft, set }: { draft: Cliente; set: <K extends keyof Client
         <FInput value={draft.tel} onChange={v => set("tel", v)} />
       </div>
 
-      <div>
+      <div className="hidden">
         <FLabel>Ciudad / Comuna</FLabel>
         <FInput value={draft.ciudad} onChange={v => set("ciudad", v)} />
       </div>
@@ -931,7 +930,7 @@ export function ClienteDrawer({
             <ClienteAvatar nombre={draft.nombre} tier={draft.tier} size={40} />
             <div className="flex-1 min-w-0">
               <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">
-                {modeLabel} · <span className="font-mono">{draft.id}</span>
+                {modeLabel} · <span className="font-mono">{draft.codigoCliente || "—"}</span>
               </div>
               <div className="text-[16px] font-semibold truncate">{draft.nombre}</div>
             </div>

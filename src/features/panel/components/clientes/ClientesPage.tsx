@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { Search, Plus, Filter, ChevronLeft, ChevronRight, Mail, Bike, Settings, Pencil, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
-  fmtGasto, nextClienteId,
+  fmtGasto,
   type Cliente, type TierKey,
 } from "./clientes.mock"
 import { ClienteDrawer, TierChip, ClienteAvatar, type DrawerMode } from "./ClienteDrawer"
@@ -49,7 +49,7 @@ function ClienteRow({
         />
       </td>
       <td className="px-4 py-3.5 align-middle">
-        <span className="font-mono font-semibold text-[12.5px]">{c.id}</span>
+        <span className="font-mono font-semibold text-[12.5px]">{c.codigoCliente || "—"}</span>
       </td>
       <td className="px-4 py-3.5 align-middle">
         <div className="flex items-center gap-3">
@@ -58,7 +58,6 @@ function ClienteRow({
             <div className="text-[13px] font-semibold truncate">{c.nombre}</div>
             <div className="flex items-center gap-1.5 mt-0.5">
               <TierChip tier={c.tier} />
-              <span className="text-[10.5px] text-[#a59682] font-mono">· {c.ciudad}</span>
             </div>
           </div>
         </div>
@@ -149,7 +148,7 @@ export function ClientesPage() {
     return clientes.filter(c => {
       if (tab !== "all" && c.tier !== tab) return false
       if (q) {
-        const hay = (c.id + " " + c.nombre + " " + c.idNum + " " + c.email + " " + c.tel).toLowerCase()
+        const hay = ((c.codigoCliente ?? "") + " " + c.nombre + " " + c.idNum + " " + c.email + " " + c.tel).toLowerCase()
         if (!hay.includes(q)) return false
       }
       return true
@@ -373,7 +372,6 @@ export function ClientesPage() {
       {/* Modal */}
       {showModal && (
         <NuevoClienteModal
-          nextId={nextClienteId(clientes)}
           onClose={() => setShowModal(false)}
           onCreate={addCliente}
         />

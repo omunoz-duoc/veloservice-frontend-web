@@ -9,17 +9,19 @@ function isUuid(value: string | undefined) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value ?? "")
 }
 
-function clienteVisualId(cliente: ServiceCliente, idx: number) {
+function clienteVisualId(cliente: ServiceCliente) {
   if (cliente.codigoCliente) return cliente.codigoCliente
   if (cliente.clienteId) return cliente.clienteId
   if (!cliente.backendId && cliente.id && !isUuid(cliente.id)) return cliente.id
-  return `CL-${String(idx + 1).padStart(4, "0")}`
+  return ""
 }
 
-export function toClienteUI(s: ServiceCliente, idx: number): Cliente {
+export function toClienteUI(s: ServiceCliente): Cliente {
+  const codigoCliente = clienteVisualId(s)
   return {
-    id: clienteVisualId(s, idx),
+    id: codigoCliente || s.id,
     backendId: s.backendId ?? (isUuid(s.id) ? s.id : undefined),
+    codigoCliente: codigoCliente || null,
     nombre: `${s.nombre} ${s.apellido}`,
     idType: "RUT",
     idNum: s.rut,

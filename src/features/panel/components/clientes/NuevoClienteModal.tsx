@@ -94,11 +94,9 @@ function emptyPayload(): NuevoClientePayload {
 // ─── Modal ─────────────────────────────────────────────────────────────────────
 
 export function NuevoClienteModal({
-  nextId,
   onClose,
   onCreate,
 }: {
-  nextId: string
   onClose: () => void
   onCreate: (cliente: Cliente) => void
 }) {
@@ -122,7 +120,7 @@ export function NuevoClienteModal({
     const now = new Date()
     const mes = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][now.getMonth()]
     const cliente: Cliente = {
-      id: nextId,
+      id: "",
       nombre: form.nombre.trim(),
       idType: form.idType,
       idNum: form.idNum.trim(),
@@ -155,7 +153,6 @@ export function NuevoClienteModal({
             <ClienteAvatar nombre={form.nombre || "NC"} tier={form.tier} size={44} />
             <div className="flex-1">
               <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">Nuevo ciclista</div>
-              <div className="text-[15px] font-semibold font-mono text-[#a59682]">{nextId}</div>
             </div>
             <button
               onClick={onClose}
@@ -221,7 +218,7 @@ export function NuevoClienteModal({
               <FInput value={form.tel} onChange={v => set("tel", v)} placeholder="+56 9 0000 0000" />
             </div>
 
-            <div>
+            <div className="hidden">
               <FLabel>Ciudad / Comuna</FLabel>
               <FInput value={form.ciudad} onChange={v => set("ciudad", v)} placeholder="ej. Providencia, Santiago" />
             </div>

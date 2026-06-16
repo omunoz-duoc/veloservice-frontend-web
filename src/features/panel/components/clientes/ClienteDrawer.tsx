@@ -329,8 +329,8 @@ function ManageView({
       <div>
         <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-2.5">Preferencias</div>
         <div className="flex flex-wrap gap-2">
-          <span className="bg-vs-chip px-3 py-1.5 rounded-full text-[11.5px]">Canal preferido: <b className="ml-1">{client.canal}</b></span>
-          <span className="bg-vs-chip px-3 py-1.5 rounded-full text-[11.5px]">Cliente desde: <b className="ml-1">{client.fechaReg}</b></span>
+          <span className="text-[11.5px]">Canal preferido: <b className="ml-1">{client.canal}</b></span>
+          <span className={cn("text-[11.5px]", !client.fechaReg && "hidden")}>Cliente desde: <b className="ml-1">{client.fechaReg}</b></span>
         </div>
         {client.notas && (
           <div className="mt-3 bg-vs-chip rounded-xl p-3 border border-vs-line-2 text-[12.5px] leading-relaxed text-[#4a4438]">
@@ -438,11 +438,6 @@ function EditView({ draft, set }: { draft: Cliente; set: <K extends keyof Client
       <div>
         <FLabel>Teléfono</FLabel>
         <FInput value={draft.tel} onChange={v => set("tel", v)} />
-      </div>
-
-      <div className="hidden">
-        <FLabel>Ciudad / Comuna</FLabel>
-        <FInput value={draft.ciudad} onChange={v => set("ciudad", v)} />
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

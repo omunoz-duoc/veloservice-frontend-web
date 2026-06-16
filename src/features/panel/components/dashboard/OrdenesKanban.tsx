@@ -13,8 +13,6 @@ const PRIORIDAD_COLOR: Record<string, string> = {
   baja:  "#a59682",
 }
 
-const URGENTE_COLUMN_ID = "col-urgente"
-
 const ESTADO_BACKEND_BY_COLUMN: Record<string, string> = {
   "col-recibido": "recibida",
   "col-proceso": "en_reparacion",
@@ -38,7 +36,7 @@ type OrdenBoardItem = BoardItem & {
 export function OrdenesKanban() {
   const { data: initialData, isLoading } = useOrdenesKanban()
   const queryClient = useQueryClient()
-  const [dataSource, setDataSource] = useState<BoardData | null>(null)
+  const [dataSource, setDataSource] = useState<{ base: BoardData | null; data: BoardData } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
@@ -51,7 +49,9 @@ export function OrdenesKanban() {
     return () => ro.disconnect()
   }, [])
 
-  const board = dataSource ?? initialData ?? null
+  const board = dataSource && dataSource.base === initialData
+    ? dataSource.data
+    : initialData ?? null
 
   if (isLoading || !board) {
     return (
@@ -132,19 +132,7 @@ export function OrdenesKanban() {
             )
 
             setError(null)
-
-            const movedCard = nextBoard[move.cardId] as OrdenBoardItem | undefined
-            if (move.toColumnId === URGENTE_COLUMN_ID && movedCard?.content) {
-              nextBoard[move.cardId] = {
-                ...movedCard,
-                content: {
-                  ...movedCard.content,
-                  prioridad: "alta",
-                },
-              }
-            }
-
-            setDataSource(nextBoard)
+            setDataSource({ base: initialData ?? null, data: nextBoard })
 
             if (move.fromColumnId === move.toColumnId) return
 
@@ -152,32 +140,28 @@ export function OrdenesKanban() {
             const ordenId = card?.content?.ordenId
 
             if (!ordenId) {
-              setDataSource(previousBoard)
+              setDataSource({ base: initialData ?? null, data: previousBoard })
               setError("No se pudo actualizar la orden.")
               return
             }
 
-            if (move.toColumnId !== URGENTE_COLUMN_ID && !ESTADO_BACKEND_BY_COLUMN[move.toColumnId]) {
-              setDataSource(previousBoard)
+            if (!ESTADO_BACKEND_BY_COLUMN[move.toColumnId]) {
+              setDataSource({ base: initialData ?? null, data: previousBoard })
               setError("No se pudo cambiar el estado de la orden.")
               return
             }
 
-            const request = move.toColumnId === URGENTE_COLUMN_ID
-              ? ordenesService.updateOrden(ordenId, { prioridad: "alta" })
-              : ordenesService.cambiarEstado(ordenId, {
-                  codigo: ESTADO_BACKEND_BY_COLUMN[move.toColumnId],
-                  observacion: "Cambio de estado desde dashboard pipeline",
-                })
-
-            void request
+            void ordenesService.cambiarEstado(ordenId, {
+              codigo: ESTADO_BACKEND_BY_COLUMN[move.toColumnId],
+              observacion: "Cambio de estado desde dashboard pipeline",
+            })
               .then(() => {
                 void queryClient.invalidateQueries({ queryKey: ["ordenes"] })
                 void queryClient.invalidateQueries({ queryKey: ["ordenes", "urgentes"] })
                 void queryClient.invalidateQueries({ queryKey: ["mecanicos", "activos"] })
               })
               .catch(() => {
-                setDataSource(previousBoard)
+                setDataSource({ base: initialData ?? null, data: previousBoard })
                 setError("No se pudo actualizar la orden.")
               })
           }}

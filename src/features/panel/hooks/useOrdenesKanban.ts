@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { ordenesService } from "@/features/panel/services/ordenes.provider"
 import { mapApiOrden } from "@/features/panel/services/ordenes.service"
+import { getActiveSucursalId } from "@/lib/sucursales"
 import type { BoardData } from "react-kanban-kit"
 import type { EstadoOT, OrdenTrabajo } from "@/features/panel/components/ordenes/ordenes.types"
 
@@ -12,7 +13,6 @@ type KanbanColumna = {
 }
 
 const COLUMNAS: KanbanColumna[] = [
-  { key: "col-urgente",  label: "Urgente",     color: "#c85a2a", estado: "urgente" },
   { key: "col-recibido",  label: "Recibido",    color: "#a59682", estado: "recibido" },
   { key: "col-proceso",   label: "En proceso",  color: "#6b5bd1", estado: "proceso" },
   { key: "col-listo",     label: "Listo",       color: "#2f7d4f", estado: "listo" },
@@ -33,11 +33,6 @@ function ordenesToBoardData(ordenes: OrdenTrabajo[]): BoardData {
   const byEstado: Record<string, OrdenTrabajo[]> = {}
   for (const col of COLUMNAS) byEstado[col.estado] = []
   for (const o of ordenes) {
-    if (o.prioridad === "alta" && o.estado !== "entregado" && o.estado !== "cancelado") {
-      byEstado.urgente.push(o)
-      continue
-    }
-
     const estado = estadoKanban(o.estado)
     if (estado && byEstado[estado]) byEstado[estado].push(o)
   }
@@ -90,8 +85,10 @@ function ordenesToBoardData(ordenes: OrdenTrabajo[]): BoardData {
 }
 
 export function useOrdenesKanban() {
+  const sucursalId = getActiveSucursalId()
+
   return useQuery({
-    queryKey: ["ordenes", "kanban"],
+    queryKey: ["ordenes", "kanban", sucursalId],
     queryFn: async () => {
       const res = await ordenesService.getOrdenes()
       return ordenesToBoardData(res.ordenes.map(mapApiOrden))

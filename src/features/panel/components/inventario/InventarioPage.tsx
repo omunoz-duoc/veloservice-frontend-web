@@ -34,7 +34,7 @@ type ProductoBackendLike = Producto & {
 function MiniStat({ label, value, icon, tone }: { label: string; value: string | number; icon: React.ReactNode; tone: Tone }) {
   const t = TONES[tone]
   return (
-    <div className="bg-vs-card border border-vs-line rounded-[18px] p-4 flex items-center gap-3">
+    <div className="flex min-w-0 items-center gap-3 rounded-[18px] border border-vs-line bg-vs-card p-4">
       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: t.bg, color: t.fg }}>
         {icon}
       </div>
@@ -234,16 +234,16 @@ export function InventarioPage() {
   ]
 
   return (
-    <div className="p-6">
+    <div className="min-w-0">
       {/* Page header */}
-      <div className="flex items-end justify-between mb-5">
-        <div>
+      <div className="mb-5 flex min-w-0 flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-[26px] font-semibold tracking-tight">Inventario</h1>
           <p className="text-[13px] text-[#8a7f70] mt-1">
             {productos.length} productos · Valor total {fmt(valorTotal)} · {counts.low + counts.out} alertas de stock
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
             Importar CSV
           </button>
@@ -261,7 +261,7 @@ export function InventarioPage() {
       </div>
 
       {/* Mini stats */}
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="mb-4 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MiniStat label="Valor inventario" value={fmt(valorTotal)} icon={<TrendingUp size={18} strokeWidth={1.6} />} tone="violet" />
         <MiniStat label="En stock" value={counts.ok} icon={<Package size={18} strokeWidth={1.6} />} tone="good" />
         <MiniStat label="Stock bajo" value={counts.low} icon={<Bell size={18} strokeWidth={1.6} />} tone="warn" />
@@ -269,8 +269,8 @@ export function InventarioPage() {
       </div>
 
       {/* Filter bar */}
-      <div className="bg-vs-card border border-vs-line rounded-[20px] p-3 mb-4 flex items-center gap-2 flex-wrap">
-        <div className="flex gap-1 bg-vs-chip p-1 rounded-full">
+      <div className="mb-4 flex min-w-0 flex-wrap items-center gap-2 rounded-[20px] border border-vs-line bg-vs-card p-3">
+        <div className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-vs-chip p-1">
           {tabs.map(t => (
             <button
               key={t.k}
@@ -288,15 +288,15 @@ export function InventarioPage() {
           ))}
         </div>
 
-        <div className="flex-1" />
+        <div className="hidden flex-1 sm:block" />
 
-        <div className="flex items-center gap-2 bg-vs-chip px-3 py-1.5 rounded-full min-w-[260px]">
+        <div className="flex w-full min-w-0 items-center gap-2 rounded-full bg-vs-chip px-3 py-1.5 sm:w-auto sm:min-w-[260px]">
           <Search size={14} strokeWidth={1.6} className="text-[#a59682] shrink-0" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Buscar producto, SKU, proveedor…"
-            className="bg-transparent outline-none text-[12.5px] flex-1 placeholder:text-[#a59682]"
+            className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-[#a59682]"
           />
         </div>
 
@@ -312,7 +312,7 @@ export function InventarioPage() {
 
       {/* Bulk bar */}
       {sel.size > 0 && (
-        <div className="bg-vs-ink text-white border border-vs-ink rounded-[16px] px-4 py-2.5 mb-3 flex items-center gap-3 vs-scale-in hidden">
+        <div className="mb-3 min-w-0 flex-wrap items-center gap-3 rounded-[16px] border border-vs-ink bg-vs-ink px-4 py-2.5 text-white vs-scale-in">
           <span className="text-[12.5px] font-semibold">{sel.size} seleccionado{sel.size > 1 ? "s" : ""}</span>
           <div className="flex-1" />
           <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors hidden">Generar OC</button>
@@ -323,9 +323,9 @@ export function InventarioPage() {
       )}
 
       {/* Table */}
-      <div className="bg-vs-card border border-vs-line rounded-[20px] overflow-hidden">
-        <div className="overflow-x-auto">
-        <table className="w-full text-left min-w-[860px]">
+      <div className="min-w-0 overflow-hidden rounded-[20px] border border-vs-line bg-vs-card">
+        <div className="max-w-full overflow-x-auto">
+        <table className="min-w-[900px] w-full text-left">
           <thead>
             <tr className="bg-[#faf6f0] border-b border-vs-line">
               <th className="px-4 py-3 w-10">
@@ -364,12 +364,12 @@ export function InventarioPage() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 px-4 py-3 border-t border-vs-line-2 bg-[#faf6f0]">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 border-t border-vs-line-2 bg-[#faf6f0] px-4 py-3">
           <div className="text-[12px] text-[#8a7f70]">
             Mostrando <b className="font-mono text-vs-ink">{filtered.length}</b> de{" "}
             <b className="font-mono text-vs-ink">{productos.length}</b> productos
           </div>
-          <div className="flex-1" />
+          <div className="hidden flex-1 sm:block" />
           <div className="flex items-center gap-1">
             <button className="w-8 h-8 rounded-full bg-vs-chip flex items-center justify-center text-[#8a7f70] hover:bg-[#ebe3d6] transition-colors">
               <ChevronLeft size={14} strokeWidth={1.6} />

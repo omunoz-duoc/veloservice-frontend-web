@@ -144,10 +144,10 @@ export function ServicioDrawer({
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
 
       {/* Panel */}
-      <div className="w-[540px] bg-vs-bg h-full overflow-y-auto flex flex-col vs-slide-in-right">
+      <div className="flex h-full w-full max-w-[540px] flex-col overflow-y-auto bg-vs-bg vs-slide-in-right">
         <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0">
           {/* Header */}
-          <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
+          <div className="flex flex-wrap items-center gap-3 border-b border-vs-line-2 p-5">
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300"
               style={{ background: cat.bg, color: cat.fg }}
@@ -194,7 +194,7 @@ export function ServicioDrawer({
               </div>
             )}
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <StatBox
                 label="Precio base"
                 value={fmt(draft.precio)}
@@ -223,7 +223,7 @@ export function ServicioDrawer({
             </div>
 
             {/* Categoría + Código */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FieldLabel required={isEdit}>Categoría</FieldLabel>
                 {isEdit
@@ -246,7 +246,7 @@ export function ServicioDrawer({
             </div>
 
             {/* Precio, precio alt, duración */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <FieldLabel required={isEdit}>Precio (CLP)</FieldLabel>
                 {isEdit
@@ -275,13 +275,13 @@ export function ServicioDrawer({
               <FieldLabel>Incluye</FieldLabel>
               <ul className="space-y-1.5">
                 {draft.incluye.map((item, i) => (
-                  <li key={i} className="flex items-center gap-2 vs-scale-in">
+                  <li key={i} className="flex min-w-0 items-center gap-2 vs-scale-in">
                     {isEdit ? (
                       <>
                         <input
                           value={item}
                           onChange={e => setIncluyeItem(i, e.target.value)}
-                          className="flex-1 bg-vs-chip rounded-xl px-3 py-1.5 text-[12px] outline-none border border-vs-line-2 focus:border-[#a59682] transition-colors"
+                          className="min-w-0 flex-1 rounded-xl border border-vs-line-2 bg-vs-chip px-3 py-1.5 text-[12px] outline-none transition-colors focus:border-[#a59682]"
                         />
                         <button
                           onClick={() => removeIncluye(i)}
@@ -346,7 +346,7 @@ export function ServicioDrawer({
 
             {/* View actions */}
             {!isEdit && (
-              <div className="pt-3 border-t border-vs-line-2 flex gap-2">
+              <div className="flex flex-wrap gap-2 border-t border-vs-line-2 pt-3">
                 <button
                   onClick={onNuevaOT}
                   className="flex-1 flex items-center justify-center gap-1.5 bg-vs-ink text-white px-4 py-2.5 rounded-full text-[12.5px] font-medium hover:bg-[#1e2228] active:scale-[0.98] transition-all duration-150 hidden"
@@ -363,7 +363,7 @@ export function ServicioDrawer({
 
             {/* Edit footer */}
             {isEdit && (
-              <div className="pt-3 border-t border-vs-line-2 flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-vs-line-2 pt-3">
                 <label className="flex items-center gap-2 text-[12px] cursor-pointer select-none">
                   <input
                     type="checkbox"

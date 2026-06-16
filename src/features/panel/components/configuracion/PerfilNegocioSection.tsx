@@ -50,7 +50,7 @@ export function PerfilNegocioSection() {
   }
 
   return (
-    <div>
+    <div className="min-w-0">
       <h2 className="text-xl font-bold text-[#0f1114]">Perfil del negocio</h2>
       <p className="text-sm text-[#8a7f70] mt-1 mb-6">Informacion de tu taller</p>
 
@@ -60,7 +60,7 @@ export function PerfilNegocioSection() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-lg space-y-4">
+      <form onSubmit={handleSubmit} className="max-w-lg min-w-0 space-y-4">
         <div>
           <label htmlFor="nombre" className="block text-sm font-medium text-[#0f1114] mb-1">
             Nombre del taller

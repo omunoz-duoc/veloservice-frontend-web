@@ -492,7 +492,7 @@ export function OrdenesPage() {
   )
 
   return (
-    <div>
+    <div className="min-w-0">
       <PageHeader
         breadcrumb={[{ label: "Panel", href: "/dashboard" }, { label: "Órdenes de servicio" }]}
         title="Órdenes de servicio"
@@ -507,9 +507,9 @@ export function OrdenesPage() {
       )}
 
       {/* Tab bar + search + filters */}
-      <div className="bg-vs-card border border-vs-line rounded-[24px] p-3 mb-4  items-center gap-2 flex-wrap">
-        <div className="flex mb-4">
-          <div className="flex gap-1 bg-vs-chip p-1 rounded-full overflow-x-auto shrink-0">
+      <div className="mb-4 flex min-w-0 flex-wrap items-center gap-2 rounded-[24px] border border-vs-line bg-vs-card p-3">
+        <div className="mb-4 flex min-w-0 flex-1 flex-wrap gap-2">
+          <div className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-vs-chip p-1">
             {TABS.map(tab => (
               <button
                 key={tab.key}
@@ -531,19 +531,19 @@ export function OrdenesPage() {
               </button>
             ))}
           </div>
-          <div className="flex-1" />
-          <div className="flex items-center gap-2 bg-vs-chip px-3 py-1.5 rounded-full min-w-[220px]">
+          <div className="hidden flex-1 sm:block" />
+          <div className="flex w-full min-w-0 items-center gap-2 rounded-full bg-vs-chip px-3 py-1.5 sm:w-auto sm:min-w-[220px]">
             <Search size={14} strokeWidth={1.6} className="text-[#a59682] shrink-0" />
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Buscar ID, cliente, marca…"
-              className="bg-transparent outline-none text-[12.5px] flex-1 placeholder:text-[#a59682]"
+              className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-[#a59682]"
             />
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <FilterDropdown
             label="Tipo"
             icon={<SlidersHorizontal size={13} strokeWidth={1.6} />}
@@ -569,11 +569,11 @@ export function OrdenesPage() {
 
       {/* Bulk selection bar */}
       {selected.size > 0 && (
-        <div className="bg-vs-ink text-white border border-vs-ink rounded-[24px] px-4 py-2.5 mb-3 flex items-center gap-3">
+        <div className="mb-3 flex min-w-0 flex-wrap items-center gap-3 rounded-[24px] border border-vs-ink bg-vs-ink px-4 py-2.5 text-white">
           <span className="text-[12.5px] font-semibold">
             {selected.size} seleccionada{selected.size > 1 ? "s" : ""}
           </span>
-          <div className="flex-1" />
+          <div className="hidden flex-1 sm:block" />
           <button
             onClick={() => setBulkModal("reasignar")}
             className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
@@ -599,13 +599,14 @@ export function OrdenesPage() {
       )}
 
       {/* Table */}
-      <div className="relative bg-vs-card border border-vs-line rounded-[24px] overflow-hidden">
+      <div className="relative min-w-0 overflow-hidden rounded-[24px] border border-vs-line bg-vs-card">
         {isFetching && !isLoading && (
           <div className="absolute left-0 right-0 top-0 z-10 border-b border-vs-line bg-[#faf6f0]/95 px-4 py-2 text-center text-[12px] font-medium text-[#6b5d46]">
             Actualizando...
           </div>
         )}
-        <table className="w-full text-left">
+        <div className="max-w-full overflow-x-auto">
+        <table className="min-w-[980px] w-full text-left">
           <thead>
             <tr className="bg-[#faf6f0] border-b border-vs-line">
               <th className="px-4 py-3 w-10">
@@ -653,9 +654,10 @@ export function OrdenesPage() {
             )}
           </tbody>
         </table>
+        </div>
 
         {/* Pagination footer */}
-        <div className="flex items-center gap-3 px-4 py-3 border-t border-vs-line-2 bg-[#faf6f0]">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 border-t border-vs-line-2 bg-[#faf6f0] px-4 py-3">
           <div className="text-[12px] text-[#8a7f70]">
             Mostrando{" "}
             <b className="font-mono text-vs-ink">{filtered.length}</b>{" "}
@@ -663,7 +665,7 @@ export function OrdenesPage() {
             <b className="font-mono text-vs-ink">{ordenes.length}</b>{" "}
             órdenes
           </div>
-          <div className="flex-1" />
+          <div className="hidden flex-1 sm:block" />
           <div className="flex items-center gap-1">
             <button className="w-8 h-8 rounded-full bg-vs-chip flex items-center justify-center text-[#8a7f70] hover:bg-[#ebe3d6] transition-colors">
               <ChevronLeft size={14} strokeWidth={1.8} />

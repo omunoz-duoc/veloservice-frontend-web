@@ -148,10 +148,10 @@ export function NuevoClienteModal({
     <div className="fixed inset-0 z-50 flex vs-fade-in">
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
 
-      <div className="w-[520px] bg-vs-bg h-full overflow-y-auto flex flex-col vs-slide-in-right">
+      <div className="flex h-full w-full max-w-[520px] flex-col overflow-y-auto bg-vs-bg vs-slide-in-right">
         <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0">
           {/* Header */}
-          <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
+          <div className="flex flex-wrap items-center gap-3 border-b border-vs-line-2 p-5">
             <ClienteAvatar nombre={form.nombre || "NC"} tier={form.tier} size={44} />
             <div className="flex-1">
               <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">Nuevo ciclista</div>
@@ -180,7 +180,7 @@ export function NuevoClienteModal({
               {errors.has("nombre") && <p className="text-[11px] text-vs-warn mt-1">Campo requerido</p>}
             </div>
 
-            <div className="grid grid-cols-[130px_1fr] gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[130px_1fr]">
               <div>
                 <FLabel>Tipo ID</FLabel>
                 <FSelect
@@ -228,7 +228,7 @@ export function NuevoClienteModal({
 
             <FSection title="Clasificación" />
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel>Canal preferido</FLabel>
                 <FSelect
@@ -277,7 +277,7 @@ export function NuevoClienteModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-3 p-5 border-t border-vs-line-2 bg-[#faf6f0] rounded-b-[24px]">
+          <div className="flex flex-wrap items-center gap-3 rounded-b-[24px] border-t border-vs-line-2 bg-[#faf6f0] p-5">
             <div className="text-[11.5px] text-[#8a7f70]">
               Tier:{" "}
               <span className="font-semibold" style={{ color: TIERS.find(t => t.key === form.tier)?.fg }}>

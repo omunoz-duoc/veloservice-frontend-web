@@ -38,13 +38,15 @@ export function UsuariosSection() {
   }, [])
 
   return (
-    <div>
+    <div className="min-w-0">
       <h2 className="text-xl font-bold text-[#0f1114]">Usuarios</h2>
       <p className="text-sm text-[#8a7f70] mt-1 mb-6">
         Miembros con acceso al panel. Para invitar o desactivar usuarios, contacta al administrador del sistema.
       </p>
 
-      <div className="max-w-2xl border border-[#eae2d6] rounded-xl overflow-hidden">
+      <div className="max-w-2xl min-w-0 overflow-hidden rounded-xl border border-[#eae2d6]">
+        <div className="max-w-full overflow-x-auto">
+        <div className="min-w-[560px]">
         <div className="grid grid-cols-[2rem_1fr_1fr_auto] gap-0 bg-[#f7f3eb] px-4 py-2 text-xs font-semibold text-[#8a7f70] uppercase tracking-wide border-b border-[#eae2d6]">
           <span />
           <span className="pl-3">Nombre</span>
@@ -65,6 +67,8 @@ export function UsuariosSection() {
             </span>
           </div>
         ))}
+        </div>
+        </div>
       </div>
     </div>
   )

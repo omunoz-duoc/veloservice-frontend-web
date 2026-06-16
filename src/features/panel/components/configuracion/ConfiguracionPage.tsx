@@ -29,11 +29,11 @@ export function ConfiguracionPage() {
   const [active, setActive] = useState<SectionKey>(visible[0].key)
 
   return (
-    <div className="flex h-full min-h-0">
+    <div className="flex h-full min-h-0 min-w-0 flex-col md:flex-row">
       <nav
         role="tablist"
         aria-label="Secciones de configuración"
-        className="w-48 shrink-0 border-r border-[#eae2d6] bg-[#f7f3eb] p-3 flex flex-col gap-1"
+        className="flex min-w-0 gap-1 overflow-x-auto border-b border-[#eae2d6] bg-[#f7f3eb] p-3 md:w-48 md:shrink-0 md:flex-col md:overflow-x-visible md:border-b-0 md:border-r"
       >
         {visible.map(({ key, label, icon: Icon }) => (
           <button
@@ -44,7 +44,7 @@ export function ConfiguracionPage() {
             aria-controls={`panel-${key}`}
             onClick={() => setActive(key)}
             className={cn(
-              "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-left transition-colors",
+              "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors md:w-full md:shrink",
               active === key
                 ? "bg-[#2d2926] text-white"
                 : "text-[#8a7f70] hover:bg-[#ece7e0] hover:text-[#2d2926]"
@@ -60,7 +60,7 @@ export function ConfiguracionPage() {
         id={`panel-${active}`}
         role="tabpanel"
         aria-labelledby={`tab-${active}`}
-        className="flex-1 overflow-y-auto p-8"
+        className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"
       >
         {active === "negocio" && <PerfilNegocioSection />}
         {active === "perfil" && <MiPerfilSection />}

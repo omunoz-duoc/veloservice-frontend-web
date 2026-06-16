@@ -197,16 +197,16 @@ export function ClientesPage() {
   const totalBicis = clientes.reduce((a, c) => a + c.bicis, 0)
 
   return (
-    <div className="p-6">
+    <div className="min-w-0">
       {/* Page header */}
-      <div className="flex items-end justify-between mb-5">
-        <div>
+      <div className="mb-5 flex min-w-0 flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-[26px] font-semibold tracking-tight">Ciclistas</h1>
           <p className="text-[13px] text-[#8a7f70] mt-1">
             {clientes.length} clientes registrados · {totalBicis} bicicletas en cartera · Sucursal Providencia
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
             Importar CSV
           </button>
@@ -224,8 +224,8 @@ export function ClientesPage() {
       </div>
 
       {/* Filter bar */}
-      <div className="bg-vs-card border border-vs-line rounded-[20px] p-3 mb-4 flex items-center gap-2 flex-wrap">
-        <div className="flex gap-1 bg-vs-chip p-1 rounded-full">
+      <div className="mb-4 flex min-w-0 flex-wrap items-center gap-2 rounded-[20px] border border-vs-line bg-vs-card p-3">
+        <div className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-vs-chip p-1">
           {tabs.map(t => (
             <button
               key={t.k}
@@ -243,15 +243,15 @@ export function ClientesPage() {
           ))}
         </div>
 
-        <div className="flex-1" />
+        <div className="hidden flex-1 sm:block" />
 
-        <div className="flex items-center gap-2 bg-vs-chip px-3 py-1.5 rounded-full min-w-[260px]">
+        <div className="flex w-full min-w-0 items-center gap-2 rounded-full bg-vs-chip px-3 py-1.5 sm:w-auto sm:min-w-[260px]">
           <Search size={14} strokeWidth={1.6} className="text-[#a59682] shrink-0" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Buscar nombre, RUT, email…"
-            className="bg-transparent outline-none text-[12.5px] flex-1 placeholder:text-[#a59682]"
+            className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-[#a59682]"
           />
         </div>
 
@@ -274,7 +274,7 @@ export function ClientesPage() {
 
       {/* Bulk selection bar */}
       {sel.size > 0 && (
-        <div className="bg-vs-ink text-white border border-vs-ink rounded-[16px] px-4 py-2.5 mb-3 flex items-center gap-3 vs-scale-in hidden">
+        <div className="mb-3 hidden min-w-0 flex-wrap items-center gap-3 rounded-[16px] border border-vs-ink bg-vs-ink px-4 py-2.5 text-white vs-scale-in">
           <span className="text-[12.5px] font-semibold">{sel.size} seleccionado{sel.size > 1 ? "s" : ""}</span>
           <div className="flex-1" />
           <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Enviar recordatorio</button>
@@ -288,8 +288,9 @@ export function ClientesPage() {
       {isLoading ? (
         <div className="text-center py-8 text-[13px] text-[#a59682]">Cargando ciclistas…</div>
       ) : (
-      <div className="bg-vs-card border border-vs-line rounded-[20px] overflow-hidden">
-        <table className="w-full text-left">
+      <div className="min-w-0 overflow-hidden rounded-[20px] border border-vs-line bg-vs-card">
+        <div className="max-w-full overflow-x-auto">
+        <table className="min-w-[900px] w-full text-left">
           <thead>
             <tr className="bg-[#faf6f0] border-b border-vs-line">
               <th className="px-4 py-3 w-10">
@@ -330,14 +331,15 @@ export function ClientesPage() {
             )}
           </tbody>
         </table>
+        </div>
 
         {/* Table footer */}
-        <div className="flex items-center gap-3 px-4 py-3 border-t border-vs-line-2 bg-[#faf6f0]">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 border-t border-vs-line-2 bg-[#faf6f0] px-4 py-3">
           <div className="text-[12px] text-[#8a7f70]">
             Mostrando <b className="font-mono text-vs-ink">{filtered.length}</b> de{" "}
             <b className="font-mono text-vs-ink">{clientes.length}</b> ciclistas
           </div>
-          <div className="flex-1" />
+          <div className="hidden flex-1 sm:block" />
           <div className="flex items-center gap-1">
             <button className="w-8 h-8 rounded-full bg-vs-chip flex items-center justify-center text-[#8a7f70] hover:bg-[#ebe3d6] transition-colors">
               <ChevronLeft size={14} strokeWidth={1.6} />

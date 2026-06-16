@@ -66,7 +66,7 @@ export function MiPerfilSection() {
   }
 
   return (
-    <div className="max-w-lg space-y-10">
+    <div className="max-w-lg min-w-0 space-y-10">
       <div>
         <h2 className="text-xl font-bold text-[#0f1114]">Mi perfil</h2>
         <p className="text-sm text-[#8a7f70] mt-1 mb-6">Tus datos personales</p>

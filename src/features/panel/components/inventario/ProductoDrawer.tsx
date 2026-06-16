@@ -140,10 +140,10 @@ export function ProductoDrawer({
     <div className="fixed inset-0 z-50 flex vs-fade-in">
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
 
-      <div className="w-[540px] bg-vs-bg h-full overflow-y-auto flex flex-col vs-slide-in-right">
+      <div className="flex h-full w-full max-w-[540px] flex-col overflow-y-auto bg-vs-bg vs-slide-in-right">
         <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0">
           {/* Header */}
-          <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
+          <div className="flex flex-wrap items-center gap-3 border-b border-vs-line-2 p-5">
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
               style={{ background: cat.bg, color: cat.fg }}
@@ -193,7 +193,7 @@ export function ProductoDrawer({
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <StatBox label="Margen" value={`${m}%`} sub={`${fmt(draft.precio - draft.costo)} ganancia`} />
               <StatBox label="Stock actual" value={draft.stock} sub={`mín ${draft.min}`} />
               <StatBox
@@ -213,7 +213,7 @@ export function ProductoDrawer({
             </div>
 
             {/* Ref + Categoría */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required={isEdit}>Referencia / SKU</FLabel>
                 {isEdit
@@ -235,7 +235,7 @@ export function ProductoDrawer({
             </div>
 
             {/* Costo + Precio */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required={isEdit}>Costo unitario</FLabel>
                 {isEdit
@@ -253,7 +253,7 @@ export function ProductoDrawer({
             </div>
 
             {/* Stock mín + Ubicación */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required={isEdit}>Stock mínimo</FLabel>
                 {isEdit
@@ -284,7 +284,7 @@ export function ProductoDrawer({
               <>
                 <div className="pt-3 border-t border-vs-line-2">
                   <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-3">Ajustar stock</div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
                       <Minus size={12} strokeWidth={2} />
                       Salida

@@ -457,7 +457,7 @@ function ClienteForm({
   return (
     <div className="space-y-3">
       <BackLink onClick={onBack} label="Buscar cliente existente" />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <Label required>Nombre</Label>
           <Input value={form.nombre} onChange={v => onChange("nombre", v)} placeholder="Nombre" error={errors["cliente_nombre"]} />
@@ -469,7 +469,7 @@ function ClienteForm({
           {errors["cliente_apellido"] && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <Label required>RUT</Label>
           <Input value={form.rut} onChange={v => onChange("rut", v)} placeholder="12.345.678-9" error={errors["cliente_rut"]} />
@@ -552,7 +552,7 @@ function BicicletaForm({
   return (
     <div className="space-y-3">
       {showBack && <BackLink onClick={onBack} label="Seleccionar bicicleta existente" />}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <Label required>Marca</Label>
           <Input value={form.marca} onChange={v => onChange("marca", v)} placeholder="ej. Trek" error={errors["bici_marca"]} />
@@ -564,7 +564,7 @@ function BicicletaForm({
           {errors["bici_modelo"] && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <Label required>Tipo</Label>
           <Select value={form.tipo} onChange={v => onChange("tipo", v)} options={tipoOptions} />
@@ -575,7 +575,7 @@ function BicicletaForm({
           {errors["bici_aro"] && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <Label required>Color</Label>
           <Input value={form.color} onChange={v => onChange("color", v)} placeholder="ej. Rojo Volcán" error={errors["bici_color"]} />
@@ -586,7 +586,7 @@ function BicicletaForm({
           <Input value={form.numSerie} onChange={v => onChange("numSerie", v)} placeholder="Opcional" />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <Label>Año</Label>
           <Input value={form.anio} onChange={v => onChange("anio", v)} placeholder="ej. 2024" type="number" />
@@ -666,7 +666,7 @@ export function NuevaOTModal({
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
 
       {/* Panel */}
-      <div className="w-[540px] bg-black/30 backdrop-blur-sm h-full overflow-y-auto flex flex-col">
+      <div className="flex h-full w-full max-w-[540px] flex-col overflow-y-auto bg-black/30 backdrop-blur-sm">
         <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col">
 
           {/* Header */}
@@ -788,7 +788,7 @@ export function NuevaOTModal({
               </div>
 
               {/* Prioridad + Fecha */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <Label required>Prioridad</Label>
                   <Select

@@ -154,7 +154,7 @@ function BikeCard({
           <div className="text-[11.5px] text-[#8a7f70] mt-0.5">{b.tipo} · Talla {b.talla} · {b.color}</div>
           {expanded && (
             <>
-              <div className="grid grid-cols-2 gap-2 mt-3">
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div className="text-[10.5px]"><span className="text-[#a59682]">Serie: </span><span className="font-mono">{b.serial}</span></div>
                 <div className="text-[10.5px]"><span className="text-[#a59682]">Año compra: </span><span className="font-mono">{b.añoCompra}</span></div>
               </div>
@@ -216,7 +216,7 @@ function ContactAlert({
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center vs-fade-in">
       <div onClick={onClose} className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-      <div className="relative bg-vs-card border border-vs-line rounded-[24px] p-6 w-[340px] shadow-xl vs-scale-in">
+      <div className="relative w-[calc(100vw-2rem)] max-w-[340px] rounded-[24px] border border-vs-line bg-vs-card p-6 shadow-xl vs-scale-in">
         <div className="text-[13px] font-semibold text-vs-ink mb-1">
           {type === "phone" ? "Contactar por teléfono" : "Contactar por email"}
         </div>
@@ -265,7 +265,7 @@ function DeleteConfirmAlert({
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center vs-fade-in">
       <div onClick={onCancel} className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-      <div className="relative bg-vs-card border border-vs-line rounded-[24px] p-6 w-[340px] shadow-xl vs-scale-in">
+      <div className="relative w-[calc(100vw-2rem)] max-w-[340px] rounded-[24px] border border-vs-line bg-vs-card p-6 shadow-xl vs-scale-in">
         <div className="text-[13px] font-semibold text-vs-ink mb-1">¿Eliminar bicicleta?</div>
         <div className="text-[12px] text-[#8a7f70] mb-4">
           Estás a punto de eliminar <span className="font-semibold text-vs-ink">{itemName}</span>. Esta acción no se puede deshacer.
@@ -311,7 +311,7 @@ function ManageView({
 }) {
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatBox label="Bicicletas" value={bicis.length} sub="registradas" />
         <StatBox label="OTs históricas" value={client.ots} sub="desde el inicio" />
         <StatBox label="Gasto total" value={fmtGastoK(client.gasto)} sub={`últ. ${client.ultima}`} />
@@ -405,7 +405,7 @@ function ManageView({
 function EditView({ draft, set }: { draft: Cliente; set: <K extends keyof Cliente>(k: K, v: Cliente[K]) => void }) {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <FLabel required>Nombre completo</FLabel>
           <FInput value={draft.nombre} onChange={v => set("nombre", v)} />
@@ -416,7 +416,7 @@ function EditView({ draft, set }: { draft: Cliente; set: <K extends keyof Client
         </div>
       </div>
 
-      <div className="grid grid-cols-[130px_1fr] gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[130px_1fr]">
         <div>
           <FLabel>Tipo ID</FLabel>
           <FSelect
@@ -446,7 +446,7 @@ function EditView({ draft, set }: { draft: Cliente; set: <K extends keyof Client
         <FInput value={draft.ciudad} onChange={v => set("ciudad", v)} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <FLabel>Canal preferido</FLabel>
           <FSelect
@@ -657,7 +657,7 @@ function BicicletaFormDrawer({
   return (
     <div className="fixed inset-0 z-[60] flex vs-fade-in">
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
-      <div className="w-[480px] bg-vs-bg h-full overflow-y-auto flex flex-col vs-slide-in-right">
+      <div className="flex h-full w-full max-w-[480px] flex-col overflow-y-auto bg-vs-bg vs-slide-in-right">
         <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col">
           {/* Header */}
           <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
@@ -679,7 +679,7 @@ function BicicletaFormDrawer({
 
           {/* Form */}
           <div className="p-5 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required>Marca</FLabel>
                 <FInput
@@ -700,7 +700,7 @@ function BicicletaFormDrawer({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required>Tipo</FLabel>
                 <FSelect value={form.tipo} onChange={v => setField("tipo", v)} options={tipoOptions} />
@@ -728,7 +728,7 @@ function BicicletaFormDrawer({
               {errors.color && <p className="text-[11px] text-vs-warn mt-1">Requerido</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel>Número de serie</FLabel>
                 <FInput
@@ -761,7 +761,7 @@ function BicicletaFormDrawer({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-3 p-5 border-t border-vs-line-2 bg-[#faf6f0] rounded-b-[24px]">
+          <div className="flex flex-wrap items-center gap-3 rounded-b-[24px] border-t border-vs-line-2 bg-[#faf6f0] p-5">
             <div className="flex-1" />
             <button
               onClick={onClose}
@@ -924,10 +924,10 @@ export function ClienteDrawer({
     <div className="fixed inset-0 z-50 flex vs-fade-in">
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
 
-      <div className="w-[560px] bg-vs-bg h-full overflow-y-auto flex flex-col vs-slide-in-right">
+      <div className="flex h-full w-full max-w-[560px] flex-col overflow-y-auto bg-vs-bg vs-slide-in-right">
         <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0">
           {/* Header */}
-          <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
+          <div className="flex flex-wrap items-center gap-3 border-b border-vs-line-2 p-5">
             <ClienteAvatar nombre={draft.nombre} tier={draft.tier} size={40} />
             <div className="flex-1 min-w-0">
               <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">
@@ -937,7 +937,7 @@ export function ClienteDrawer({
             </div>
 
             {/* Mode tabs */}
-            <div className="flex items-center gap-1 bg-vs-chip rounded-full p-1">
+            <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-full bg-vs-chip p-1">
               {(["manage", "edit", "bikes"] as DrawerMode[]).map(m => (
                 <button
                   key={m}

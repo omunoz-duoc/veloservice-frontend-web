@@ -154,13 +154,13 @@ export function NuevoServicioModal({
   const catOptions = CATEGORIAS.map(c => ({ value: c.key, label: c.label }))
 
   return (
-    <div className="fixed inset-0 z-50 flex vs-fade-in">
+    <div className="fixed inset-0 z-50 flex">
       {/* Backdrop */}
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
 
       {/* Panel */}
-      <div className="flex h-full w-full max-w-[540px] flex-col overflow-y-auto bg-vs-bg vs-slide-in-right">
-        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0">
+      <div className="flex h-full w-full max-w-[540px] flex-col overflow-y-auto bg-black/30 backdrop-blur-sm">
+        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col">
           {/* Header */}
           <div className="flex flex-wrap items-center gap-3 border-b border-vs-line-2 p-5">
             <div

@@ -15,6 +15,7 @@ import {
   type CreateOTResponse,
 } from "../components/ordenes/ordenes.types"
 import Swal from "sweetalert2"
+import { uploadFileToR2, isAcceptedMime, MAX_FILE_BYTES } from "@/lib/api/upload-client"
 import { nuevaOTService } from "../services/nuevaOT.provider"
 import { serviciosService } from "../services/servicios.provider"
 import type { Servicio } from "../types/servicios.types"
@@ -108,6 +109,9 @@ export function useNuevaOT({
 
   // OT
   const [otForm, setOTForm] = useState<OTForm>(EMPTY_OT)
+
+  // Optional attachment (uploaded to R2 after the order is created)
+  const [file, setFile] = useState<File | null>(null)
 
   // Submit state
   const [errors, setErrors] = useState<Errors>({})
@@ -263,6 +267,11 @@ export function useNuevaOT({
     setErrors(prev => ({ ...prev, [key]: false }))
   }, [])
 
+  const setArchivo = useCallback((f: File | null) => {
+    setFile(f)
+    setErrors(prev => ({ ...prev, archivo: false }))
+  }, [])
+
   const addServicio = useCallback((id: string) => {
     setOTForm(prev => prev.servicioIds.includes(id)
       ? prev
@@ -330,9 +339,14 @@ export function useNuevaOT({
     if (!otForm.fechaPrometida.trim()) { next["fechaPrometida"] = true; valid = false }
     if (!otForm.diagnosticoInicial.trim()) { next["diagnosticoInicial"] = true; valid = false }
 
+    // Attachment is optional, but if present it must be an accepted type and within size.
+    if (file && (!isAcceptedMime(file.type) || file.size > MAX_FILE_BYTES)) {
+      next["archivo"] = true; valid = false
+    }
+
     setErrors(next)
     return valid
-  }, [biciMode, clienteMode, newBiciForm, newClienteForm, otForm, selectedBicicleta, selectedCliente])
+  }, [biciMode, clienteMode, file, newBiciForm, newClienteForm, otForm, selectedBicicleta, selectedCliente])
 
   // ─── Submit ───────────────────────────────────────────────────────────────────
 
@@ -383,6 +397,25 @@ export function useNuevaOT({
       }
 
       const result = await nuevaOTService.createOrden(payload)
+
+      // Optional attachment: order already exists, so upload + link it now.
+      // On failure we keep the order and only warn — there is no rollback path.
+      if (file) {
+        try {
+          await uploadFileToR2(result.id, file, { etapa: "ingreso" })
+        } catch (uploadErr: unknown) {
+          await Swal.fire({
+            icon: "warning",
+            title: "Orden creada, pero el archivo no se subió",
+            text: getApiErrorMessage(uploadErr) ?? "Puedes adjuntarlo luego desde la orden.",
+            confirmButtonColor: "#2a2e35",
+          })
+          onCreate(result)
+          onClose()
+          return
+        }
+      }
+
       await Swal.fire({
         icon: "success",
         title: "Orden creada",
@@ -403,7 +436,7 @@ export function useNuevaOT({
     } finally {
       setSubmitting(false)
     }
-  }, [validate, clienteMode, biciMode, newClienteForm, newBiciForm, otForm, selectedCliente, selectedBicicleta, tipos, onCreate, onClose])
+  }, [validate, clienteMode, biciMode, file, newClienteForm, newBiciForm, otForm, selectedCliente, selectedBicicleta, tipos, onCreate, onClose])
 
   return {
     // Cliente
@@ -435,6 +468,8 @@ export function useNuevaOT({
     loadProductos,
     // OT
     otForm, setOTField,
+    // Attachment
+    file, setArchivo,
     // Submit
     errors, submitting, submitError,
     submit,

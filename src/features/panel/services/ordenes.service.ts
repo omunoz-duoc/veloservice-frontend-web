@@ -238,7 +238,7 @@ export const ordenesService: IOrdenesService = {
   },
 
     async updateOrden(id: string, payload: UpdateOrdenPayload) {
-        return httpClient.patch<ApiOrdenTrabajo>(`ordenes/${id}`, payload);
+        return httpClient.patch<OrdenTrabajoDetalle>(`ordenes/${id}`, payload);
     },
 
     async cambiarEstado(id: string, payload: OrdenEstadoChangePayload) {

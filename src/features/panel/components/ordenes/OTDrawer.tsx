@@ -1009,12 +1009,14 @@ export function OTDrawer({
       const serviciosCambios = buildServiciosCambios()
       const productosCambios = buildProductosCambios()
       await updateOrden.mutateAsync({
-        ...draft,
-        serviciosCambios: serviciosCambios.length > 0 ? serviciosCambios : undefined,
-        productosCambios: productosCambios.length > 0 ? productosCambios : undefined,
+        draft: {
+          ...draft,
+          serviciosCambios: serviciosCambios.length > 0 ? serviciosCambios : undefined,
+          productosCambios: productosCambios.length > 0 ? productosCambios : undefined,
+        },
+        original: detalleToDraft(orden),
       })
       setMode("view")
-      await query.refetch()
     } catch {
       setSaveError("No se pudo guardar la orden. Intenta nuevamente.")
     }

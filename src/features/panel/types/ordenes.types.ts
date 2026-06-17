@@ -4,7 +4,7 @@ export interface IOrdenesService {
     getOrdenesMetricas(): Promise<OrdenesMetricas>;
     createOrden(payload: CreateOrdenPayload): Promise<void>;
     getOrdenById(id: string): Promise<OrdenTrabajoDetalle>;
-    updateOrden(id: string, payload: UpdateOrdenPayload): Promise<OrdenTrabajo>;
+    updateOrden(id: string, payload: UpdateOrdenPayload): Promise<OrdenTrabajoDetalle>;
     cambiarEstado(id: string, payload: OrdenEstadoChangePayload): Promise<OrdenTrabajoDetalle>;
     bulkUpdateOrdenes(payload: BulkUpdateOrdenPayload): Promise<void>;
     deleteOrden(id: string): Promise<void>;

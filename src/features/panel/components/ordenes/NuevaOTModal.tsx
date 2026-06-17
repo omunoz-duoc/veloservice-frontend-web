@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { X, Plus, Minus, Bike, Wrench, Search, User, ChevronLeft, Loader2, ChevronDown } from "lucide-react"
+import { X, Plus, Minus, Bike, Wrench, Search, User, ChevronLeft, Loader2, ChevronDown, Paperclip } from "lucide-react"
+import { ACCEPTED_MIME } from "@/lib/api/upload-client"
 import { TIPOS_BICI } from "./ordenes.constants"
 import type {
   Prioridad, ClienteResult, BicicletaResult, ProductoResult, ProductoSeleccionado, CreateOTResponse,
@@ -95,6 +96,72 @@ function BackLink({ onClick, label }: { onClick: () => void; label: string }) {
       <ChevronLeft size={13} strokeWidth={2} />
       {label}
     </button>
+  )
+}
+
+// ─── ArchivoInput ─────────────────────────────────────────────────────────────
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function ArchivoInput({
+  file, onChange, error, disabled,
+}: {
+  file: File | null
+  onChange: (f: File | null) => void
+  error?: boolean
+  disabled?: boolean
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  if (file) {
+    return (
+      <div className={`flex items-center gap-2 bg-vs-chip rounded-xl px-3 py-2 border ${
+        error ? "border-vs-warn ring-2 ring-vs-warn/30" : "border-vs-line-2"
+      }`}>
+        <Paperclip size={14} strokeWidth={1.8} className="text-[#8a7f70] shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="text-[12.5px] font-medium text-vs-ink truncate">{file.name}</div>
+          <div className="text-[11px] text-[#8a7f70]">{formatBytes(file.size)}</div>
+        </div>
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          disabled={disabled}
+          className="text-[#8a7f70] hover:text-vs-warn transition-colors shrink-0 disabled:opacity-50"
+          aria-label="Quitar archivo"
+        >
+          <X size={13} strokeWidth={2.2} />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <input
+        ref={inputRef}
+        type="file"
+        accept={ACCEPTED_MIME.join(",")}
+        disabled={disabled}
+        onChange={e => onChange(e.target.files?.[0] ?? null)}
+        className="hidden"
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={disabled}
+        className={`w-full flex items-center gap-2 bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] border transition-colors hover:border-[#a59682] disabled:opacity-50 ${
+          error ? "border-vs-warn ring-2 ring-vs-warn/30" : "border-vs-line-2"
+        }`}
+      >
+        <Paperclip size={14} strokeWidth={1.8} className="text-[#8a7f70] shrink-0" />
+        <span className="text-[#b8a88d]">Adjuntar imagen, video o PDF…</span>
+      </button>
+    </>
   )
 }
 
@@ -639,6 +706,7 @@ export function NuevaOTModal({
     addProducto, removeProducto, updateProductoCantidad,
     loadProductos,
     otForm, setOTField,
+    file, setArchivo,
     errors, submitting, submitError,
     submit,
   } = useNuevaOT({ onClose, onCreate, prefillCliente })
@@ -849,6 +917,22 @@ export function NuevaOTModal({
                   placeholder="Notas visibles solo para el equipo del taller…"
                   className="w-full bg-vs-chip rounded-xl px-3 py-2 text-[12.5px] outline-none border border-vs-line-2 leading-relaxed resize-none placeholder:text-[#b8a88d] focus:border-[#a59682] transition-colors"
                 />
+              </div>
+
+              {/* Archivo adjunto (opcional) → R2 + multimedia */}
+              <div>
+                <Label>Archivo adjunto</Label>
+                <ArchivoInput
+                  file={file}
+                  onChange={setArchivo}
+                  error={errors["archivo"]}
+                  disabled={submitting}
+                />
+                {errors["archivo"] && (
+                  <p className="text-[11px] text-vs-warn mt-1">
+                    Formato no soportado o archivo demasiado grande (máx. 50 MB)
+                  </p>
+                )}
               </div>
             </Section>
           </div>

@@ -10,7 +10,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const hydrated = useAuthHydrated()
 
-  const isAdmin = user?.rol === "sysadmin" || user?.rol === "admin"
+  const isAdmin = user?.rol === "sysadmin" || user?.rol === "admin" || user?.rol === "plataforma"
 
   useEffect(() => {
     if (hydrated) {

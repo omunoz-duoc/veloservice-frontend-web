@@ -6,13 +6,28 @@ import {
 import type { LucideIcon } from "lucide-react"
 import { KpiCard } from "@/components/common/KpiCard"
 import { useDashboardKpis } from "@/features/panel/hooks/useDashboardKpis"
-import type { KpiIconKey } from "@/features/panel/types/dashboard.types"
+import type { DashboardKpi, KpiIconKey } from "@/features/panel/types/dashboard.types"
 
 const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   ordenes: ClipboardList,
   listas:  CheckCircle2,
   cobros:  Coins,
   stock:   AlertTriangle,
+}
+
+function parsePeso(value: string) {
+  return Number.parseInt(value.replace(/\D/g, ""), 10) || 0
+}
+
+function kpiInsight(kpi: DashboardKpi) {
+  if (kpi.id === "ordenes-activas") return "Taller ocupado"
+  if (kpi.id === "bicis-listas") return "Pendiente de retiro"
+  if (kpi.id === "cobros-dia") return parsePeso(kpi.value) === 0 ? "Sin movimientos" : "Cobros registrados"
+  if (kpi.id === "stock-bajo") {
+    const stockBajo = Number.parseInt(kpi.value, 10) || 0
+    return stockBajo === 0 ? "Todo en regla" : `${stockBajo} productos por revisar`
+  }
+  return kpi.sub
 }
 
 export function KpiGrid() {
@@ -43,8 +58,7 @@ export function KpiGrid() {
           sub={kpi.sub}
           accent={kpi.accent}
           icon={ICON_MAP[kpi.iconKey]}
-          spark={kpi.spark}
-          progress={kpi.progress}
+          insight={kpiInsight(kpi)}
         />
       ))}
     </div>

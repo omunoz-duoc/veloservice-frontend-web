@@ -60,11 +60,12 @@ export function OrdenesKanban() {
   }
 
   const colCount = board.root.children.length
-  const MIN_COL_WIDTH = 159
-  const BOARD_GAP = 8
+  const MIN_COL_WIDTH = 200
+  const BOARD_GAP = 12
   const colWidth = containerWidth > 0
     ? Math.max(MIN_COL_WIDTH, (containerWidth - BOARD_GAP * (colCount - 1)) / colCount)
     : MIN_COL_WIDTH
+  const boardMinWidth = colCount * MIN_COL_WIDTH + BOARD_GAP * Math.max(colCount - 1, 0)
 
   const configMap: BoardProps["configMap"] = {
     card: {
@@ -118,8 +119,14 @@ export function OrdenesKanban() {
         <Kanban
           dataSource={board}
           configMap={configMap}
+          rootStyle={{ width: "100%", minWidth: `${boardMinWidth}px`, gap: `${BOARD_GAP}px`, overflow: "visible" }}
           cardsGap={6}
-          columnWrapperStyle={() => ({ width: `${colWidth}px`, minWidth: `${MIN_COL_WIDTH}px` })}
+          columnWrapperStyle={() => ({
+            width: `${colWidth}px`,
+            minWidth: `${MIN_COL_WIDTH}px`,
+            maxWidth: `${colWidth}px`,
+            flex: `1 0 ${MIN_COL_WIDTH}px`,
+          })}
           columnListContentStyle={() => ({ maxHeight: "430px", overflowY: "auto", paddingRight: "2px" })}
           onCardMove={(move) => {
             const previousBoard = board

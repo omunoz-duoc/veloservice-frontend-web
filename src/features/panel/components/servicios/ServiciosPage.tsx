@@ -46,6 +46,14 @@ function toStringList(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
 }
 
+function isUuid(value: string | null | undefined) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value ?? "")
+}
+
+function displayServicioCodigo(value: string) {
+  return isUuid(value) ? "Sin código" : value
+}
+
 function normalizeServicioForPage(raw: RawServicioForPage): Servicio {
   return {
     id: raw.id ?? "SV-SIN-ID",
@@ -80,6 +88,8 @@ function ServicioCard({
   onEdit: () => void
 }) {
   const cat = CATEGORIAS.find(c => c.key === servicio.cat)!
+  const codigo = displayServicioCodigo(servicio.id)
+
   return (
     <div
       onClick={onView}
@@ -97,7 +107,7 @@ function ServicioCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-mono text-[10.5px] text-[#a59682]">{servicio.id}</span>
+            <span className="font-mono text-[10.5px] text-[#a59682]">{codigo}</span>
             {servicio.popular && (
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[#faecd6] text-[#8c6a1e] vs-scale-in">
                 POPULAR
@@ -154,10 +164,12 @@ function ServicioRow({
   onView: () => void
   onEdit: () => void
 }) {
+  const codigo = displayServicioCodigo(servicio.id)
+
   return (
     <tr className="border-b border-vs-line-2 hover:bg-[#faf6f0] transition-colors group">
       <td className="px-4 py-3.5 align-middle font-mono font-semibold text-[12.5px]">
-        {servicio.id}
+        {codigo}
       </td>
       <td className="px-4 py-3.5 align-middle">
         <div className="text-[13px] font-semibold">{servicio.nombre}</div>

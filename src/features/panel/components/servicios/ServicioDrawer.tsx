@@ -84,6 +84,14 @@ function FieldSelect({
 
 // ─── Drawer ────────────────────────────────────────────────────────────────────
 
+function isUuid(value: string | null | undefined) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value ?? "")
+}
+
+function displayServicioCodigo(value: string) {
+  return isUuid(value) ? "Sin código" : value
+}
+
 export function ServicioDrawer({
   servicio: initial,
   mode: initialMode,
@@ -126,6 +134,7 @@ export function ServicioDrawer({
 
   const cat = CATEGORIAS.find(c => c.key === draft.cat)!
   const isEdit = mode === "edit"
+  const codigo = displayServicioCodigo(draft.id)
 
   const catOptions = CATEGORIAS.map(c => ({ value: c.key, label: c.label }))
 
@@ -159,7 +168,7 @@ export function ServicioDrawer({
                 {isEdit ? "Editando servicio" : "Detalle"}
                 <span className={isEdit ? "hidden" : undefined}>
                   {" · "}
-                  <span className="font-mono">{draft.id}</span>
+                  <span className="font-mono">{codigo}</span>
                 </span>
               </div>
               <div className="text-[15px] font-semibold truncate">{draft.nombre}</div>
@@ -245,7 +254,7 @@ export function ServicioDrawer({
               </div>
               <div className={isEdit ? "hidden" : undefined}>
                 <FieldLabel>Código</FieldLabel>
-                <div className="text-[13px] font-mono font-semibold text-[#4a4438]">{draft.id}</div>
+                <div className="text-[13px] font-mono font-semibold text-[#4a4438]">{codigo}</div>
               </div>
             </div>
 

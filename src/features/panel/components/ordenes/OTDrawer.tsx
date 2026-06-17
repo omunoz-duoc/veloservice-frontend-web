@@ -634,7 +634,7 @@ function DrawerFrame({
   return (
     <div className="fixed inset-0 z-50 flex">
       <div onClick={disableClose ? undefined : onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
-      <div className="flex h-full w-full max-w-[560px] flex-col overflow-y-auto bg-vs-bg">
+      <div className="flex h-full w-full max-w-[560px] flex-col overflow-y-auto bg-black/30 backdrop-blur-sm">
         <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col">
           {children}
         </div>

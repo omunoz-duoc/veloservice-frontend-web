@@ -73,7 +73,7 @@ function emptyPayload(cat?: CatKey): NuevoServicioPayload {
     nombre: "",
     precio: "",
     precio2: "",
-    dur: "",
+    dur: "0",
     desc: "",
     incluye: [""],
     skills: [],
@@ -245,7 +245,7 @@ export function NuevoServicioModal({
                   inputMode="numeric"
                 />
               </div>
-              <div>
+              <div className="hidden">
                 <Label required>Duración (min)</Label>
                 <FInput
                   value={form.dur}

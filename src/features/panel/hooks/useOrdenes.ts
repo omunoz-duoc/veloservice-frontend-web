@@ -21,6 +21,7 @@ type BulkChanges = {
 }
 
 type UpdateOrdenDraft = OrdenTrabajo & {
+  estadoOriginal?: EstadoOT
   productosCambios?: OrdenProductoCambioPayload[]
   serviciosCambios?: OrdenServicioCambioPayload[]
 }
@@ -50,6 +51,10 @@ function toUpdatePayload(orden: UpdateOrdenDraft): UpdateOrdenPayload {
   const payload: UpdateOrdenPayload = {
     tipoCodigo: orden.tipo?.codigo ? TIPO_TO_API_MAP[orden.tipo.codigo] ?? "revision" : undefined,
     prioridad: PRIORIDAD_TO_API_MAP[orden.prioridad],
+  }
+  if (orden.estadoOriginal && orden.estado !== orden.estadoOriginal) {
+    payload.estadoCodigo = ESTADO_TO_API_MAP[orden.estado]
+    payload.estadoObservacion = "Cambio de estado desde panel web"
   }
   if (isUuid(orden.mecanicoId)) payload.mecanicoId = orden.mecanicoId
   if (orden.serviciosCambios && orden.serviciosCambios.length > 0) payload.serviciosCambios = orden.serviciosCambios
@@ -117,7 +122,8 @@ export function useUpdateOrdenMutation() {
   return useMutation({
     mutationFn: async (orden: UpdateOrdenDraft) => {
       await ordenesService.updateOrden(orden.backendId ?? orden.id, toUpdatePayload(orden))
-      const { productosCambios, serviciosCambios, ...updated } = orden
+      const { estadoOriginal, productosCambios, serviciosCambios, ...updated } = orden
+      void estadoOriginal
       void productosCambios
       void serviciosCambios
       return updated
@@ -132,6 +138,8 @@ export function useUpdateOrdenMutation() {
       )
       void queryClient.invalidateQueries({ queryKey: ["ordenes"] })
       void queryClient.invalidateQueries({ queryKey: ["ordenes", "urgentes"] })
+      void queryClient.invalidateQueries({ queryKey: ["ordenes", "kanban"] })
+      void queryClient.invalidateQueries({ queryKey: ["ordenes", "metricas"] })
     },
   })
 }

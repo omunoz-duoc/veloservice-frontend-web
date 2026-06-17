@@ -1010,6 +1010,7 @@ export function OTDrawer({
       const productosCambios = buildProductosCambios()
       await updateOrden.mutateAsync({
         ...draft,
+        estadoOriginal: normalizeEstado(orden.estado.codigo),
         serviciosCambios: serviciosCambios.length > 0 ? serviciosCambios : undefined,
         productosCambios: productosCambios.length > 0 ? productosCambios : undefined,
       })

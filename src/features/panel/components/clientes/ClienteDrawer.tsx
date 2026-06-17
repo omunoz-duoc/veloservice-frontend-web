@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import { X, Check, Plus, Mail, Phone, MapPin, User, Pencil, Bike, Trash2, Star, Copy, CheckCheck, ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useMockServices } from "@/lib/api/service-mode"
@@ -11,10 +11,22 @@ import {
 } from "./clientes.mock"
 import { NuevaOTModal } from "../ordenes/NuevaOTModal"
 import { useInvalidateOrdenes } from "../../hooks/useOrdenes"
-import { clientesQueryKey } from "../../hooks/useClientes"
-import { bicicletasClienteQueryKey, bicicletasService } from "../../services/bicicletas.service"
-import type { ClienteResult } from "../ordenes/ordenes.types"
-import { TIPOS_BICI } from "../ordenes/ordenes.constants"
+import { clientesQueryKey, clienteDetalleQueryKey, useClienteDetalle } from "../../hooks/useClientes"
+import { bicicletasService } from "../../services/bicicletas.service"
+import type { ClienteResult, EstadoOT } from "../ordenes/ordenes.types"
+import { TIPOS_BICI, ESTADO_CONFIG } from "../ordenes/ordenes.constants"
+import type { ClienteOrdenResumen } from "../../types/clientes.types"
+
+function fmtFechaCorta(iso: string): string {
+  if (!iso) return ""
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return iso
+  return d.toLocaleDateString("es-CL", { day: "2-digit", month: "short" })
+}
+
+function estadoConfig(estado: string) {
+  return ESTADO_CONFIG[estado as EstadoOT] ?? null
+}
 
 // ─── Shared ────────────────────────────────────────────────────────────────────
 
@@ -295,6 +307,10 @@ function DeleteConfirmAlert({
 function ManageView({
   client,
   bicis,
+  lastOts,
+  otsCount,
+  direccion,
+  clienteDesde,
   onCrearOT,
   onContactar,
   onAddBici,
@@ -303,6 +319,10 @@ function ManageView({
 }: {
   client: Cliente
   bicis: Bicicleta[]
+  lastOts: ClienteOrdenResumen[]
+  otsCount: number
+  direccion: string
+  clienteDesde: string
   onCrearOT: () => void
   onContactar: () => void
   onAddBici: () => void
@@ -313,7 +333,7 @@ function ManageView({
     <div className="space-y-5">
       <div className="grid grid-cols-3 gap-3">
         <StatBox label="Bicicletas" value={bicis.length} sub="registradas" />
-        <StatBox label="OTs históricas" value={client.ots} sub="desde el inicio" />
+        <StatBox label="OTs históricas" value={otsCount} sub="desde el inicio" />
         <StatBox label="Gasto total" value={fmtGastoK(client.gasto)} sub={`últ. ${client.ultima}`} />
       </div>
 
@@ -322,7 +342,7 @@ function ManageView({
         <div className="space-y-1">
           <RowInfo icon={<Mail size={14} strokeWidth={1.6} />} label="Email" value={client.email} />
           <RowInfo icon={<Phone size={14} strokeWidth={1.6} />} label="Teléfono" value={client.tel} />
-          <RowInfo icon={<MapPin size={14} strokeWidth={1.6} />} label="Ciudad" value={client.ciudad} />
+          <RowInfo icon={<MapPin size={14} strokeWidth={1.6} />} label="Dirección" value={direccion || client.ciudad} />
           <RowInfo icon={<User size={14} strokeWidth={1.6} />} label={client.idType} value={client.idNum} mono />
         </div>
       </div>
@@ -331,7 +351,7 @@ function ManageView({
         <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-2.5">Preferencias</div>
         <div className="flex flex-wrap gap-2">
           <span className="bg-vs-chip px-3 py-1.5 rounded-full text-[11.5px]">Canal preferido: <b className="ml-1">{client.canal}</b></span>
-          <span className="bg-vs-chip px-3 py-1.5 rounded-full text-[11.5px]">Cliente desde: <b className="ml-1">{client.fechaReg}</b></span>
+          <span className="bg-vs-chip px-3 py-1.5 rounded-full text-[11.5px]">Cliente desde: <b className="ml-1">{clienteDesde || client.fechaReg}</b></span>
         </div>
         {client.notas && (
           <div className="mt-3 bg-vs-chip rounded-xl p-3 border border-vs-line-2 text-[12.5px] leading-relaxed text-[#4a4438]">
@@ -363,21 +383,29 @@ function ManageView({
 
       <div>
         <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-2.5">Últimas OTs</div>
-        <div className="space-y-2">
-          {[
-            { id: "OT-0343", tipo: "Diagnóstico", fecha: "23 Abr", estado: "Recibido" },
-            { id: "OT-0338", tipo: "Mantención",  fecha: "12 Abr", estado: "Entregado" },
-            { id: "OT-0319", tipo: "Reparación",  fecha: "28 Mar", estado: "Entregado" },
-          ].map((o, i) => (
-            <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-vs-chip border border-vs-line-2">
-              <span className="font-mono text-[11.5px] font-semibold">{o.id}</span>
-              <span className="text-[11.5px] text-[#8a7f70]">· {o.tipo}</span>
-              <span className="flex-1" />
-              <span className="text-[10.5px] text-[#a59682] font-mono">{o.fecha}</span>
-              <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-white">{o.estado}</span>
-            </div>
-          ))}
-        </div>
+        {lastOts.length === 0 ? (
+          <div className="text-[12px] text-[#8a7f70] italic">Sin órdenes registradas.</div>
+        ) : (
+          <div className="space-y-2">
+            {lastOts.map((o, i) => {
+              const cfg = estadoConfig(o.estadoOrden)
+              return (
+                <div key={o.numeroOrden || i} className="flex items-center gap-3 p-2.5 rounded-xl bg-vs-chip border border-vs-line-2">
+                  <span className="font-mono text-[11.5px] font-semibold">{o.numeroOrden}</span>
+                  <span className="text-[11.5px] text-[#8a7f70]">· {o.tipoOrden}</span>
+                  <span className="flex-1" />
+                  <span className="text-[10.5px] text-[#a59682] font-mono">{fmtFechaCorta(o.fechaIngreso)}</span>
+                  <span
+                    className="text-[10.5px] font-semibold px-2 py-0.5 rounded-full"
+                    style={cfg ? { background: cfg.bg, color: cfg.fg } : { background: "#fff" }}
+                  >
+                    {cfg ? cfg.label : o.estadoOrden}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <div className="pt-3 border-t border-vs-line-2 flex gap-2">
@@ -818,12 +846,11 @@ export function ClienteDrawer({
   const queryClient = useQueryClient()
   const clienteIdReal = draft.backendId ?? draft.id
   const useBackendBicis = !useMockServices && !!draft.backendId
-  const bicisQuery = useQuery({
-    queryKey: bicicletasClienteQueryKey(clienteIdReal),
-    queryFn: () => bicicletasService.listarPorCliente(clienteIdReal),
-    enabled: useBackendBicis,
-  })
-  const bicis = useBackendBicis ? bicisQuery.data ?? [] : localBicis
+  const detalleQuery = useClienteDetalle(clienteIdReal)
+  const detalle = detalleQuery.data
+  const bicis = useBackendBicis ? detalle?.bicicletas ?? [] : localBicis
+  const lastOts = detalle?.lastOts ?? []
+  const otsCount = detalle?.otsCount ?? draft.ots
 
   const prefillCliente: ClienteResult = useMemo(() => ({
     id: draft.backendId ?? draft.id,
@@ -862,7 +889,7 @@ export function ClienteDrawer({
   }
 
   const refreshBicis = async () => {
-    await queryClient.invalidateQueries({ queryKey: bicicletasClienteQueryKey(clienteIdReal) })
+    await queryClient.invalidateQueries({ queryKey: clienteDetalleQueryKey(clienteIdReal) })
     await queryClient.invalidateQueries({ queryKey: clientesQueryKey })
   }
 
@@ -981,15 +1008,19 @@ export function ClienteDrawer({
                 {biciError}
               </div>
             )}
-            {useBackendBicis && bicisQuery.isLoading && (
+            {detalleQuery.isLoading && (
               <div className="mb-3 rounded-xl border border-vs-line-2 bg-vs-chip px-3 py-2 text-[12px] text-[#8a7f70]">
-                Cargando bicicletas...
+                Cargando información del cliente...
               </div>
             )}
             {mode === "manage" && (
               <ManageView
                 client={draft}
                 bicis={bicis}
+                lastOts={lastOts}
+                otsCount={otsCount}
+                direccion={detalle?.direccion ?? ""}
+                clienteDesde={detalle?.clienteDesde ?? ""}
                 onCrearOT={() => setShowNuevaOT(true)}
                 onContactar={() => {
                   const c = draft.canal

@@ -1,7 +1,7 @@
 import { httpClient } from "@/lib/api/http-client"
 import type { Bicicleta } from "../components/clientes/clientes.mock"
 
-type ApiBicicleta = {
+export type ApiBicicleta = {
   id: string
   clienteId?: string
   marca?: string
@@ -31,7 +31,7 @@ function parseMarcaModelo(marcaFull: string): { marca: string; modelo: string } 
   return { marca: parts[0], modelo: parts.slice(1).join(" ") }
 }
 
-function toBicicleta(api: ApiBicicleta): Bicicleta {
+export function toBicicleta(api: ApiBicicleta): Bicicleta {
   const marca = [api.marca, api.modelo].filter(Boolean).join(" ").trim()
 
   return {

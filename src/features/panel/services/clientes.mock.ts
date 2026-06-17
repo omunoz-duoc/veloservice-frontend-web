@@ -16,6 +16,28 @@ export const clientesMock: IClientesService = {
   async getClientes() {
     return mockFetch({ total: clientes.length, clientes } as ClientesListResponse)
   },
+  async getClienteDetalle(id: string) {
+    const cliente = clientes.find(c => c.id === id || c.backendId === id)
+    const { BICIS_MOCK } = await import("../components/clientes/clientes.mock")
+    const bicicletas = BICIS_MOCK[id] ?? BICIS_MOCK[cliente?.id ?? ""] ?? []
+
+    return mockFetch({
+      nombre: cliente ? `${cliente.nombre} ${cliente.apellido}` : "",
+      email: cliente?.email ?? "",
+      telefono: cliente?.telefono ?? "",
+      direccion: cliente?.direccion ?? cliente?.ciudad ?? "",
+      rut: cliente?.rut ?? "",
+      clienteDesde: cliente?.fechaReg ?? "",
+      bicicletasCount: bicicletas.length,
+      bicicletas,
+      otsCount: cliente?.ordenesCount ?? cliente?.ordenes_count ?? 0,
+      lastOts: [
+        { numeroOrden: "OT-0343", tipoOrden: "Diagnóstico", estadoOrden: "recibido", fechaIngreso: "2026-04-23" },
+        { numeroOrden: "OT-0338", tipoOrden: "Mantención", estadoOrden: "entregado", fechaIngreso: "2026-04-12" },
+        { numeroOrden: "OT-0319", tipoOrden: "Reparación", estadoOrden: "entregado", fechaIngreso: "2026-03-28" },
+      ],
+    })
+  },
   async createCliente(payload: CreateClientePayload) {
     clientes = [
       {

@@ -15,6 +15,9 @@ export const clientesService: IClientesService = {
   async getClientes() {
     return (await loadClientesService()).getClientes()
   },
+  async getClienteDetalle(id) {
+    return (await loadClientesService()).getClienteDetalle(id)
+  },
   async createCliente(payload) {
     return (await loadClientesService()).createCliente(payload)
   },

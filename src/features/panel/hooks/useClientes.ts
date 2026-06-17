@@ -4,6 +4,7 @@ import type { Cliente as ServiceCliente } from "../types/clientes.types"
 import type { Cliente, TierKey } from "../components/clientes/clientes.mock"
 
 export const clientesQueryKey = ["clientes"] as const
+export const clienteDetalleQueryKey = (id: string) => ["cliente-detalle", id] as const
 
 function isUuid(value: string | undefined) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value ?? "")
@@ -47,6 +48,15 @@ export function useClientes() {
       const res = await clientesService.getClientes()
       return res.clientes.map(toClienteUI)
     },
+    staleTime: 30_000,
+  })
+}
+
+export function useClienteDetalle(id: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: clienteDetalleQueryKey(id ?? ""),
+    queryFn: () => clientesService.getClienteDetalle(id!),
+    enabled: enabled && !!id,
     staleTime: 30_000,
   })
 }

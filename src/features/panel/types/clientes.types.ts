@@ -1,9 +1,32 @@
+import type { Bicicleta } from "../components/clientes/clientes.mock"
+
 export type TipoCliente = "nuevo" | "regular" | "frecuente" | "VIP"
 export type CanalKey = "WhatsApp" | "Email" | "Llamada" | "SMS"
 export type IdType = "RUT" | "Pasaporte" | "DNI"
 
+export type ClienteOrdenResumen = {
+  numeroOrden: string
+  tipoOrden: string
+  estadoOrden: string
+  fechaIngreso: string
+}
+
+export type ClienteDetalle = {
+  nombre: string
+  email: string
+  telefono: string
+  direccion: string
+  rut: string
+  clienteDesde: string
+  bicicletasCount: number
+  bicicletas: Bicicleta[]
+  otsCount: number
+  lastOts: ClienteOrdenResumen[]
+}
+
 export interface IClientesService {
   getClientes(): Promise<ClientesListResponse>
+  getClienteDetalle(id: string): Promise<ClienteDetalle>
   createCliente(payload: CreateClientePayload): Promise<void>
   updateCliente(id: string, payload: CreateClientePayload): Promise<void>
 }

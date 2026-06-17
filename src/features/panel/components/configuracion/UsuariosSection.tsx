@@ -5,15 +5,17 @@ import { configuracionService } from "../../services/configuracion.provider"
 import type { UsuarioPanel, RolUsuario } from "../../types/configuracion.types"
 
 const ROL_LABEL: Record<RolUsuario, string> = {
-  admin: "Admin",
+  admin_taller: "Admin taller",
   mecanico: "Mecánico",
   recepcionista: "Recepcionista",
+  operador: "Operador",
 }
 
 const ROL_COLOR: Record<RolUsuario, string> = {
-  admin: "bg-emerald-50 text-emerald-700",
+  admin_taller: "bg-emerald-50 text-emerald-700",
   mecanico: "bg-blue-50 text-blue-700",
   recepcionista: "bg-purple-50 text-purple-700",
+  operador: "bg-slate-50 text-slate-700",
 }
 
 function Initials({ nombre }: { nombre: string }) {

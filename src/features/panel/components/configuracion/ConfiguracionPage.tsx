@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Building2, User, Users, CreditCard } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAuthStore } from "@/features/auth/store/auth.store"
 import { PerfilNegocioSection } from "./PerfilNegocioSection"
 import { MiPerfilSection } from "./MiPerfilSection"
 import { UsuariosSection } from "./UsuariosSection"
@@ -17,22 +18,24 @@ const SECTIONS: {
   icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean | "true" }>
   roles: RolUsuario[]
 }[] = [
-  { key: "negocio", label: "Negocio", icon: Building2, roles: ["admin"] },
-  { key: "perfil", label: "Mi perfil", icon: User, roles: ["admin", "mecanico", "recepcionista"] },
-  { key: "usuarios", label: "Usuarios", icon: Users, roles: ["admin"] },
-  { key: "plan", label: "Plan", icon: CreditCard, roles: ["admin"] },
+  { key: "negocio", label: "Negocio", icon: Building2, roles: ["admin_taller"] },
+  { key: "perfil", label: "Mi perfil", icon: User, roles: ["admin_taller"] },
+  { key: "usuarios", label: "Usuarios", icon: Users, roles: ["admin_taller"] },
+  { key: "plan", label: "Plan", icon: CreditCard, roles: ["admin_taller"] },
 ]
 
 export function ConfiguracionPage() {
-  const rol: RolUsuario = "admin" // hardcoded in v1 — no real auth yet
-  const visible = SECTIONS.filter((s) => s.roles.includes(rol))
-  const [active, setActive] = useState<SectionKey>(visible[0].key)
+  const rol = useAuthStore((s) => s.user?.rol) as RolUsuario | undefined
+  const visible = SECTIONS.filter((s) => rol && s.roles.includes(rol))
+  const [active, setActive] = useState<SectionKey>("negocio")
+
+  if (!rol || visible.length === 0) return null
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col md:flex-row">
       <nav
         role="tablist"
-        aria-label="Secciones de configuración"
+        aria-label="Secciones de configuracion"
         className="flex min-w-0 gap-1 overflow-x-auto border-b border-[#eae2d6] bg-[#f7f3eb] p-3 md:w-48 md:shrink-0 md:flex-col md:overflow-x-visible md:border-b-0 md:border-r"
       >
         {visible.map(({ key, label, icon: Icon }) => (

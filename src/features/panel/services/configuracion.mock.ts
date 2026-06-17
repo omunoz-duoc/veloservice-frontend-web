@@ -21,7 +21,7 @@ let _miPerfil: MiPerfil = {
 }
 
 const _usuarios: UsuarioPanel[] = [
-  { id: "1", nombre: "Carlos López", email: "carlos@autovelo.cl", rol: "admin", estado: "activo" },
+  { id: "1", nombre: "Carlos López", email: "carlos@autovelo.cl", rol: "admin_taller", estado: "activo" },
   { id: "2", nombre: "María Soto", email: "maria@autovelo.cl", rol: "mecanico", estado: "activo" },
   { id: "3", nombre: "Pedro Ruiz", email: "pedro@autovelo.cl", rol: "mecanico", estado: "activo" },
 ]

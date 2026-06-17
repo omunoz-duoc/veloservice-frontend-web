@@ -22,7 +22,7 @@ function parsePeso(value: string) {
 function kpiInsight(kpi: DashboardKpi) {
   if (kpi.id === "ordenes-activas") return "Taller ocupado"
   if (kpi.id === "bicis-listas") return "Pendiente de retiro"
-  if (kpi.id === "cobros-dia") return parsePeso(kpi.value) === 0 ? "Sin movimientos" : "Cobros registrados"
+  if (kpi.id === "cobros-dia") return parsePeso(kpi.value) === 0 ? "Sin movimientos" : kpi.sub
   if (kpi.id === "stock-bajo") {
     const stockBajo = Number.parseInt(kpi.value, 10) || 0
     return stockBajo === 0 ? "Todo en regla" : `${stockBajo} productos por revisar`

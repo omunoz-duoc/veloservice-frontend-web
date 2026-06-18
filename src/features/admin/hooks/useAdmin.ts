@@ -16,15 +16,38 @@ export function useAdminTallerById(id: string) {
   })
 }
 
-export function useUpdateTallerEstado() {
+export function useAdminPlanes() {
+  return useQuery({
+    queryKey: ["admin", "planes"],
+    queryFn: () => adminService.getPlanes(),
+  })
+}
+
+export function useCreateTaller() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, estado }: { id: string; estado: Parameters<typeof adminService.updateTallerEstado>[1] }) =>
-      adminService.updateTallerEstado(id, estado),
+    mutationFn: adminService.createTaller,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "talleres"] })
       qc.invalidateQueries({ queryKey: ["admin", "suscripciones"] })
       qc.invalidateQueries({ queryKey: ["admin", "kpis"] })
+      qc.invalidateQueries({ queryKey: ["admin", "metrics"] })
+      qc.invalidateQueries({ queryKey: ["admin", "executive-summary"] })
+    },
+  })
+}
+
+export function useUpdateTallerEstado() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, activo }: { id: string; activo: boolean }) =>
+      adminService.updateTallerEstado(id, activo),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "talleres"] })
+      qc.invalidateQueries({ queryKey: ["admin", "suscripciones"] })
+      qc.invalidateQueries({ queryKey: ["admin", "kpis"] })
+      qc.invalidateQueries({ queryKey: ["admin", "metrics"] })
+      qc.invalidateQueries({ queryKey: ["admin", "executive-summary"] })
     },
   })
 }

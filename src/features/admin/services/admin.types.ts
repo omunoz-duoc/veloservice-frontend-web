@@ -9,6 +9,7 @@ export interface TallerAdmin {
   direccion: string
   telefono: string
   email: string
+  activo: boolean
   estado: EstadoTaller
   plan: PlanSaaS
   fechaRegistro: string
@@ -17,6 +18,15 @@ export interface TallerAdmin {
   cantidadOTsMes: number
   moduloIds: string[]
   operacion?: TallerOperacionResumen
+}
+
+export interface CrearTallerInput {
+  nombre: string
+  rut: string
+  telefono: string | null
+  email: string | null
+  planId: string
+  activo: boolean
 }
 
 export interface TallerOperacionResumen {
@@ -41,6 +51,15 @@ export interface ModuloSaaS {
   descripcion: string
   categoria: "core" | "add-on"
   iconKey: string
+}
+
+export interface PlanSaasAdmin {
+  id: string
+  codigo: string
+  nombre: string
+  descripcion: string | null
+  activo: boolean
+  orden: number
 }
 
 export interface SuscripcionTaller {

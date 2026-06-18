@@ -26,12 +26,7 @@ export const realAdminService: IAdminService = {
   getSaasKpis: () => httpClient.get<SaasKpis>("admin/metrics/saas-kpis"),
 
   getSuscripciones: () => httpClient.get<SuscripcionTaller[]>("admin/suscripciones"),
-  getMetricasDetalle: async () => ({
-    mrrHistorico: [],
-    nuevosTalleresHistorico: [],
-    churnHistorico: [],
-    distribucionPlanes: [],
-  }),
+  getMetricasDetalle: () => httpClient.get<MetricasSaaSDetalle>("admin/metrics/historical"),
 
   updateTallerEstado: async () => {
     throw new Error("No implementado todavía")

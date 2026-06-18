@@ -53,4 +53,8 @@ export interface MetricasSaaSDetalle {
   nuevosTalleresHistorico: { mes: string; count: number }[]
   churnHistorico: { mes: string; rate: number }[]
   distribucionPlanes: { plan: PlanSaaS; count: number }[]
+  usuariosPorTaller: { tallerNombre: string; count: number }[]
+  clientesPorTaller: { tallerNombre: string; count: number }[]
+  sucursalesPorTaller: { tallerNombre: string; count: number }[]
+  ordenesPorTaller: { tallerNombre: string; count: number }[]
 }

@@ -22,6 +22,7 @@ type BulkChanges = {
 }
 
 type UpdateOrdenDraft = OrdenTrabajo & {
+  estadoOriginal?: EstadoOT
   productosCambios?: OrdenProductoCambioPayload[]
   serviciosCambios?: OrdenServicioCambioPayload[]
 }

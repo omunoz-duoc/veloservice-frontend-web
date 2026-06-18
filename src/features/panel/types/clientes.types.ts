@@ -34,7 +34,7 @@ export interface IClientesService {
 export type Cliente = {
   id: string
   backendId?: string
-  codigoCliente?: string
+  codigoCliente?: string | null
   clienteId?: string
   nombre: string
   apellido: string

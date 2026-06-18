@@ -1,9 +1,12 @@
 import { useQuery } from "@tanstack/react-query"
 import { ordenesService } from "@/features/panel/services/ordenes.provider"
+import { getActiveSucursalId } from "@/lib/sucursales"
 
 export function useOrdenesKpis() {
+  const sucursalId = getActiveSucursalId()
+
   return useQuery({
-    queryKey: ["ordenes", "metricas"],
+    queryKey: ["ordenes", "metricas", sucursalId],
     queryFn: async () => {
       const metricas = await ordenesService.getOrdenesMetricas()
 

@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAuthStore } from "@/features/auth/store/auth.store"
 
 type NavItem = {
   key: string
@@ -92,9 +93,12 @@ function NavGroup({
 
 export function Sidebar() {
   const pathname = usePathname()
+  const user = useAuthStore((s) => s.user)
+  const isAdminTaller = user?.rol === "admin_taller"
+  const sistemaItems = isAdminTaller ? NAV_SISTEMA : []
 
   return (
-    <aside className="w-[240px] shrink-0 px-5 py-7 flex flex-col">
+    <aside className="hidden w-[240px] shrink-0 flex-col px-5 py-7 md:flex">
       {/* Logo */}
       <div className="px-3 mb-7">
         <div className="flex items-center gap-2">
@@ -125,7 +129,9 @@ export function Sidebar() {
       </div>
 
       <NavGroup label="Administración" items={NAV_ADMIN} pathname={pathname} />
-      <NavGroup label="Sistema" items={NAV_SISTEMA} pathname={pathname} />
+      {sistemaItems.length > 0 && (
+        <NavGroup label="Sistema" items={sistemaItems} pathname={pathname} />
+      )}
       <NavGroup label="Ayuda" items={NAV_AYUDA} pathname={pathname} />
     </aside>
   )

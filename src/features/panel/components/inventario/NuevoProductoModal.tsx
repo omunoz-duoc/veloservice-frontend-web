@@ -133,13 +133,13 @@ export function NuevoProductoModal({
   const cat = getCategoriaConfig(form.cat)
 
   return (
-    <div className="fixed inset-0 z-50 flex vs-fade-in">
+    <div className="fixed inset-0 z-50 flex">
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
 
-      <div className="w-[520px] bg-vs-bg h-full overflow-y-auto flex flex-col vs-slide-in-right">
-        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0">
+      <div className="flex h-full w-full max-w-[540px] flex-col overflow-y-auto bg-black/30 backdrop-blur-sm">
+        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col">
           {/* Header */}
-          <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
+          <div className="flex flex-wrap items-center gap-3 border-b border-vs-line-2 p-5">
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
               style={{ background: cat.bg, color: cat.fg }}
@@ -173,7 +173,7 @@ export function NuevoProductoModal({
             </div>
 
             {/* Ref + Categoría */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required>Referencia / SKU</FLabel>
                 <FInput
@@ -199,7 +199,7 @@ export function NuevoProductoModal({
             </div>
 
             {/* Costo + Precio */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required>Costo unitario (CLP)</FLabel>
                 <FInput
@@ -225,7 +225,7 @@ export function NuevoProductoModal({
             </div>
 
             {/* Stock + Mínimo */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required>Stock inicial</FLabel>
                 <FInput
@@ -251,7 +251,7 @@ export function NuevoProductoModal({
             </div>
 
             {/* Proveedor + Ubicación */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel>Proveedor</FLabel>
                 <FInput value={form.prov} onChange={v => set("prov", v)} placeholder="ej. Bicisport SpA" />
@@ -264,7 +264,7 @@ export function NuevoProductoModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-3 p-5 border-t border-vs-line-2 bg-[#faf6f0] rounded-b-[24px]">
+          <div className="flex flex-wrap items-center gap-3 rounded-b-[24px] border-t border-vs-line-2 bg-[#faf6f0] p-5">
             <div className="text-[11.5px] text-[#8a7f70]">
               {submitError ? (
                 <span className="font-semibold text-vs-warn">{submitError}</span>

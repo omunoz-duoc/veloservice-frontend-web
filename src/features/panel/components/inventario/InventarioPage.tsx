@@ -13,8 +13,6 @@ import {
 import { ProductoDrawer, CatChip, StockBadge, type DrawerMode } from "./ProductoDrawer"
 import { NuevoProductoModal } from "./NuevoProductoModal"
 
-// ─── Mini stat card ────────────────────────────────────────────────────────────
-
 type Tone = "violet" | "good" | "warn" | "info"
 
 const TONES: Record<Tone, { fg: string; bg: string }> = {
@@ -36,7 +34,7 @@ type ProductoBackendLike = Producto & {
 function MiniStat({ label, value, icon, tone }: { label: string; value: string | number; icon: React.ReactNode; tone: Tone }) {
   const t = TONES[tone]
   return (
-    <div className="bg-vs-card border border-vs-line rounded-[18px] p-4 flex items-center gap-3">
+    <div className="flex min-w-0 items-center gap-3 rounded-[18px] border border-vs-line bg-vs-card p-4">
       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: t.bg, color: t.fg }}>
         {icon}
       </div>
@@ -48,7 +46,11 @@ function MiniStat({ label, value, icon, tone }: { label: string; value: string |
   )
 }
 
-// ─── Table helpers ─────────────────────────────────────────────────────────────
+function csvCell(value: string | number | null | undefined): string {
+  const text = value == null ? "" : String(value)
+  const escaped = text.replace(/"/g, "\"\"")
+  return /[",\r\n]/.test(escaped) ? `"${escaped}"` : escaped
+}
 
 function Th({ children, right }: { children?: React.ReactNode; right?: boolean }) {
   return (
@@ -84,10 +86,7 @@ function ProductoRow({
       </td>
       <td className="px-4 py-3.5 align-middle">
         <div className="flex items-start gap-2.5">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: cat.bg, color: cat.fg }}
-          >
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: cat.bg, color: cat.fg }}>
             <Package size={16} strokeWidth={1.6} />
           </div>
           <div className="min-w-0">
@@ -126,30 +125,16 @@ function ProductoRow({
       </td>
       <td className="px-4 py-3.5 align-middle">
         <div className="flex items-center gap-1 justify-end">
-          <button
-            onClick={onView}
-            title="Ver detalle"
-            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-ink active:scale-90 transition-all duration-150"
-          >
+          <button onClick={onView} title="Ver detalle" className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-ink active:scale-90 transition-all duration-150">
             <Eye size={13} strokeWidth={1.6} />
           </button>
-          <button
-            onClick={onEdit}
-            title="Editar"
-            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-ink active:scale-90 transition-all duration-150"
-          >
+          <button onClick={onEdit} title="Editar" className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-ink active:scale-90 transition-all duration-150">
             <Pencil size={12} strokeWidth={1.6} />
           </button>
-          <button
-            title="Ajustar stock"
-            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-violet active:scale-90 transition-all duration-150"
-          >
+          <button title="Ajustar stock" className="hidden w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-violet active:scale-90 transition-all duration-150">
             <PlusCircle size={13} strokeWidth={1.6} />
           </button>
-          <button
-            title="Más"
-            className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-ink active:scale-90 transition-all duration-150 hidden"
-          >
+          <button title="Más" className="w-8 h-8 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center text-vs-ink active:scale-90 transition-all duration-150 hidden">
             <MoreHorizontal size={13} strokeWidth={1.6} />
           </button>
         </div>
@@ -158,15 +143,16 @@ function ProductoRow({
   )
 }
 
-// ─── Page ──────────────────────────────────────────────────────────────────────
-
 export function InventarioPage() {
   const { data: fetched = [] } = useInventarioProductos()
   const createProducto = useCreateProducto()
   const updateProductoMutation = useUpdateProducto()
   const productos = fetched
+
   const [tab, setTab] = useState<"all" | "ok" | "low" | "out">("all")
   const [query, setQuery] = useState("")
+  const [showCategories, setShowCategories] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState("Todas")
   const [sel, setSel] = useState<Set<string>>(new Set())
   const [drawer, setDrawer] = useState<{ producto: Producto; mode: DrawerMode } | null>(null)
   const [showModal, setShowModal] = useState(false)
@@ -187,29 +173,43 @@ export function InventarioPage() {
     [productos]
   )
 
+  const categories = useMemo(
+    () => ["Todas", ...Array.from(new Set(productos.map(p => p.cat)))],
+    [productos]
+  )
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     const catLabel = (cat: string) => getCategoriaConfig(cat).label
+
     return productos.filter(p => {
       if (tab === "out" && p.stock !== 0) return false
       if (tab === "low" && !(p.stock > 0 && p.stock < p.min)) return false
       if (tab === "ok" && !(p.stock >= p.min)) return false
+      if (selectedCategory !== "Todas" && p.cat !== selectedCategory) return false
+
       if (q) {
-        const hay = (productoVisibleId(p) + " " + p.id + " " + p.nombre + " " + p.ref + " " + p.prov + " " + catLabel(p.cat)).toLowerCase()
+        const hay = (
+          productoVisibleId(p) + " " +
+          p.id + " " +
+          p.nombre + " " +
+          p.ref + " " +
+          p.prov + " " +
+          catLabel(p.cat)
+        ).toLowerCase()
+
         if (!hay.includes(q)) return false
       }
+
       return true
     })
-  }, [productos, tab, query])
+  }, [productos, tab, query, selectedCategory])
 
   const toggleSel = (id: string) =>
     setSel(prev => {
       const n = new Set(prev)
-      if (n.has(id)) {
-        n.delete(id)
-      } else {
-        n.add(id)
-      }
+      if (n.has(id)) n.delete(id)
+      else n.add(id)
       return n
     })
 
@@ -242,6 +242,50 @@ export function InventarioPage() {
     setDrawer(null)
   }
 
+  const exportSelected = () => {
+    const selectedProducts = productos.filter(p => sel.has(p.id))
+    if (selectedProducts.length === 0) return
+
+    const headers = [
+      "id",
+      "producto_id",
+      "nombre",
+      "referencia",
+      "categoria",
+      "proveedor",
+      "ubicacion",
+      "costo_unitario",
+      "precio_asignado",
+      "stock",
+      "stock_minimo",
+    ]
+
+    const rows = selectedProducts.map(p => [
+      p.id,
+      productoVisibleId(p),
+      p.nombre,
+      p.ref,
+      p.cat,
+      p.prov,
+      p.ubic,
+      p.costo,
+      p.precio,
+      p.stock,
+      p.min,
+    ])
+
+    const csv = `\uFEFF${[headers, ...rows].map(row => row.map(csvCell).join(",")).join("\r\n")}`
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = "inventario-seleccionados.csv"
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
   const tabs = [
     { k: "all", l: "Todos",      c: counts.all },
     { k: "ok",  l: "En stock",   c: counts.ok },
@@ -250,16 +294,16 @@ export function InventarioPage() {
   ]
 
   return (
-    <div className="p-6">
-      {/* Page header */}
-      <div className="flex items-end justify-between mb-5">
-        <div>
+    <div className="min-w-0">
+      <div className="mb-5 flex min-w-0 flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-[26px] font-semibold tracking-tight">Inventario</h1>
           <p className="text-[13px] text-[#8a7f70] mt-1">
             {productos.length} productos · Valor total {fmt(valorTotal)} · {counts.low + counts.out} alertas de stock
           </p>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex flex-wrap items-center gap-2">
           <button className="flex items-center gap-2 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[13px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
             Importar CSV
           </button>
@@ -276,17 +320,15 @@ export function InventarioPage() {
         </div>
       </div>
 
-      {/* Mini stats */}
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="mb-4 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MiniStat label="Valor inventario" value={fmt(valorTotal)} icon={<TrendingUp size={18} strokeWidth={1.6} />} tone="violet" />
         <MiniStat label="En stock" value={counts.ok} icon={<Package size={18} strokeWidth={1.6} />} tone="good" />
         <MiniStat label="Stock bajo" value={counts.low} icon={<Bell size={18} strokeWidth={1.6} />} tone="warn" />
         <MiniStat label="Agotados" value={counts.out} icon={<Bell size={18} strokeWidth={1.6} />} tone="warn" />
       </div>
 
-      {/* Filter bar */}
-      <div className="bg-vs-card border border-vs-line rounded-[20px] p-3 mb-4 flex items-center gap-2 flex-wrap">
-        <div className="flex gap-1 bg-vs-chip p-1 rounded-full">
+      <div className="mb-4 flex min-w-0 flex-wrap items-center gap-2 rounded-[20px] border border-vs-line bg-vs-card p-3">
+        <div className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-vs-chip p-1">
           {tabs.map(t => (
             <button
               key={t.k}
@@ -304,88 +346,108 @@ export function InventarioPage() {
           ))}
         </div>
 
-        <div className="flex-1" />
+        <div className="hidden flex-1 sm:block" />
 
-        <div className="flex items-center gap-2 bg-vs-chip px-3 py-1.5 rounded-full min-w-[260px]">
+        <div className="flex w-full min-w-0 items-center gap-2 rounded-full bg-vs-chip px-3 py-1.5 sm:w-auto sm:min-w-[260px]">
           <Search size={14} strokeWidth={1.6} className="text-[#a59682] shrink-0" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Buscar producto, SKU, proveedor…"
-            className="bg-transparent outline-none text-[12.5px] flex-1 placeholder:text-[#a59682]"
+            className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-[#a59682]"
           />
         </div>
 
-        <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
-          <Filter size={12} strokeWidth={1.6} />
-          Categoría
-        </button>
-        <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 hidden">
+        <div className="relative">
+          <button
+            onClick={() => setShowCategories(prev => !prev)}
+            className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150"
+          >
+            <Filter size={12} strokeWidth={1.6} />
+            {selectedCategory === "Todas" ? "Categoría" : getCategoriaConfig(selectedCategory).label}
+          </button>
+
+          {showCategories && (
+            <div className="absolute right-0 z-20 mt-2 w-44 overflow-hidden rounded-xl border border-vs-line bg-vs-card shadow-lg">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    setSelectedCategory(cat)
+                    setShowCategories(false)
+                  }}
+                  className="w-full px-4 py-2 text-left text-[12px] hover:bg-[#faf7f1]"
+                >
+                  {cat === "Todas" ? "Todas" : getCategoriaConfig(cat).label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button className="hidden flex items-center gap-1.5 bg-vs-chip text-vs-ink px-3 py-1.5 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
           <Building2 size={12} strokeWidth={1.6} />
           Proveedor
         </button>
       </div>
 
-      {/* Bulk bar */}
       {sel.size > 0 && (
-        <div className="bg-vs-ink text-white border border-vs-ink rounded-[16px] px-4 py-2.5 mb-3 flex items-center gap-3 vs-scale-in hidden">
+        <div className="mb-3 min-w-0 flex-wrap items-center gap-3 rounded-[16px] border border-vs-ink bg-vs-ink px-4 py-2.5 text-white vs-scale-in">
           <span className="text-[12.5px] font-semibold">{sel.size} seleccionado{sel.size > 1 ? "s" : ""}</span>
           <div className="flex-1" />
           <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors hidden">Generar OC</button>
           <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors hidden">Ajustar precios</button>
-          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Exportar</button>
+          <button onClick={exportSelected} className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Exportar</button>
           <button onClick={() => setSel(new Set())} className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Cancelar</button>
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-vs-card border border-vs-line rounded-[20px] overflow-hidden">
-        <div className="overflow-x-auto">
-        <table className="w-full text-left min-w-[860px]">
-          <thead>
-            <tr className="bg-[#faf6f0] border-b border-vs-line">
-              <th className="px-4 py-3 w-10">
-                <input type="checkbox" checked={allSelected} onChange={toggleAll} className="w-4 h-4 rounded accent-vs-ink" />
-              </th>
-              <Th>Producto ID</Th>
-              <Th>Nombre</Th>
-              <Th>Referencia</Th>
-              <Th>Categoría</Th>
-              <Th right>Costo unit.</Th>
-              <Th right>Precio asignado</Th>
-              <Th>Stock</Th>
-              <Th right>Acciones</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map(p => (
-              <ProductoRow
-                key={p.id}
-                p={p}
-                selected={sel.has(p.id)}
-                onSelect={() => toggleSel(p.id)}
-                onView={() => setDrawer({ producto: p, mode: "view" })}
-                onEdit={() => setDrawer({ producto: p, mode: "edit" })}
-              />
-            ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={9} className="text-center py-12 text-[#8a7f70] text-[13px]">
-                  Sin resultados para los filtros actuales.
-                </td>
+      <div className="min-w-0 overflow-hidden rounded-[20px] border border-vs-line bg-vs-card">
+        <div className="max-w-full overflow-x-auto">
+          <table className="min-w-[900px] w-full text-left">
+            <thead>
+              <tr className="bg-[#faf6f0] border-b border-vs-line">
+                <th className="px-4 py-3 w-10">
+                  <input type="checkbox" checked={allSelected} onChange={toggleAll} className="w-4 h-4 rounded accent-vs-ink" />
+                </th>
+                <Th>Producto ID</Th>
+                <Th>Nombre</Th>
+                <Th>Referencia</Th>
+                <Th>Categoría</Th>
+                <Th right>Costo unit.</Th>
+                <Th right>Precio asignado</Th>
+                <Th>Stock</Th>
+                <Th right>Acciones</Th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map(p => (
+                <ProductoRow
+                  key={p.id}
+                  p={p}
+                  selected={sel.has(p.id)}
+                  onSelect={() => toggleSel(p.id)}
+                  onView={() => setDrawer({ producto: p, mode: "view" })}
+                  onEdit={() => setDrawer({ producto: p, mode: "edit" })}
+                />
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="text-center py-12 text-[#8a7f70] text-[13px]">
+                    Sin resultados para los filtros actuales.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center gap-3 px-4 py-3 border-t border-vs-line-2 bg-[#faf6f0]">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 border-t border-vs-line-2 bg-[#faf6f0] px-4 py-3">
           <div className="text-[12px] text-[#8a7f70]">
             Mostrando <b className="font-mono text-vs-ink">{filtered.length}</b> de{" "}
             <b className="font-mono text-vs-ink">{productos.length}</b> productos
           </div>
-          <div className="flex-1" />
+          <div className="hidden flex-1 sm:block" />
           <div className="flex items-center gap-1">
             <button className="w-8 h-8 rounded-full bg-vs-chip flex items-center justify-center text-[#8a7f70] hover:bg-[#ebe3d6] transition-colors">
               <ChevronLeft size={14} strokeWidth={1.6} />
@@ -404,7 +466,6 @@ export function InventarioPage() {
         VeloService · v2.4.1 · Última sincronización hace 3 seg
       </div>
 
-      {/* Drawer */}
       {drawer && (
         <ProductoDrawer
           producto={drawer.producto}
@@ -415,7 +476,6 @@ export function InventarioPage() {
         />
       )}
 
-      {/* Modal */}
       {showModal && (
         <NuevoProductoModal
           nextId={nextProductoId(productos)}

@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { X, Check, Pencil, Package, TrendingUp, Plus, Minus, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAjustarStockProducto } from "@/features/panel/hooks/useInventarioProductos"
+import type { MovimientoStockTipo } from "@/features/panel/types/inventario.types"
 import {
   CATEGORIAS, MOVIMIENTOS_MOCK, fmt, getCategoriaConfig, margen, productoVisibleId,
   type Producto, type CatKey,
@@ -118,6 +120,10 @@ export function ProductoDrawer({
   const [mode, setMode] = useState<DrawerMode>(initialMode)
   const [draft, setDraft] = useState<Producto>({ ...initial })
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [ajusteTipo, setAjusteTipo] = useState<MovimientoStockTipo | null>(null)
+  const [ajusteCantidad, setAjusteCantidad] = useState("")
+  const [ajusteError, setAjusteError] = useState<string | null>(null)
+  const ajustarStock = useAjustarStockProducto()
 
   const set = <K extends keyof Producto>(key: K, val: Producto[K]) =>
     setDraft(prev => ({ ...prev, [key]: val }))
@@ -136,14 +142,51 @@ export function ProductoDrawer({
     }
   }
 
+  const selectAjuste = (tipo: MovimientoStockTipo) => {
+    setAjusteTipo(tipo)
+    setAjusteCantidad("")
+    setAjusteError(null)
+  }
+
+  const handleConfirmAjuste = async () => {
+    if (!ajusteTipo) return
+
+    const cantidad = Number(ajusteCantidad)
+    if (!Number.isInteger(cantidad) || cantidad <= 0) {
+      setAjusteError("Ingresa una cantidad mayor que cero.")
+      return
+    }
+    if (ajusteTipo === "salida" && cantidad > draft.stock) {
+      setAjusteError("La salida no puede superar el stock actual.")
+      return
+    }
+
+    setAjusteError(null)
+    try {
+      const result = await ajustarStock.mutateAsync({
+        productoId: draft.id,
+        payload: {
+          tipo: ajusteTipo,
+          cantidad,
+          motivo: `Ajuste manual de ${ajusteTipo} desde detalle de producto`,
+        },
+      })
+      set("stock", result.stockPosterior)
+      setAjusteTipo(null)
+      setAjusteCantidad("")
+    } catch {
+      setAjusteError("No se pudo ajustar el stock.")
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex vs-fade-in">
+    <div className="fixed inset-0 z-50 flex">
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
 
-      <div className="w-[540px] bg-vs-bg h-full overflow-y-auto flex flex-col vs-slide-in-right">
-        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0">
+      <div className="flex h-full w-full max-w-[540px] flex-col overflow-y-auto bg-black/30 backdrop-blur-sm">
+        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col">
           {/* Header */}
-          <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
+          <div className="flex flex-wrap items-center gap-3 border-b border-vs-line-2 p-5">
             <div
               className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
               style={{ background: cat.bg, color: cat.fg }}
@@ -193,7 +236,7 @@ export function ProductoDrawer({
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <StatBox label="Margen" value={`${m}%`} sub={`${fmt(draft.precio - draft.costo)} ganancia`} />
               <StatBox label="Stock actual" value={draft.stock} sub={`mín ${draft.min}`} />
               <StatBox
@@ -213,7 +256,7 @@ export function ProductoDrawer({
             </div>
 
             {/* Ref + Categoría */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required={isEdit}>Referencia / SKU</FLabel>
                 {isEdit
@@ -235,7 +278,7 @@ export function ProductoDrawer({
             </div>
 
             {/* Costo + Precio */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required={isEdit}>Costo unitario</FLabel>
                 {isEdit
@@ -253,7 +296,7 @@ export function ProductoDrawer({
             </div>
 
             {/* Stock mín + Ubicación */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel required={isEdit}>Stock mínimo</FLabel>
                 {isEdit
@@ -261,7 +304,7 @@ export function ProductoDrawer({
                   : <div className="text-[13px] font-mono">{draft.min}</div>
                 }
               </div>
-              <div>
+              <div className={isEdit ? "hidden" : undefined}>
                 <FLabel required={isEdit}>Ubicación</FLabel>
                 {isEdit
                   ? <FInput value={draft.ubic} onChange={v => set("ubic", v)} mono />
@@ -284,20 +327,58 @@ export function ProductoDrawer({
               <>
                 <div className="pt-3 border-t border-vs-line-2">
                   <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest mb-3">Ajustar stock</div>
-                  <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => selectAjuste("salida")}
+                      className={cn(
+                        "flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150",
+                        ajusteTipo === "salida" && "bg-vs-warn-bg text-vs-warn"
+                      )}
+                    >
                       <Minus size={12} strokeWidth={2} />
                       Salida
                     </button>
-                    <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+                    <button
+                      onClick={() => selectAjuste("entrada")}
+                      className={cn(
+                        "flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150",
+                        ajusteTipo === "entrada" && "bg-vs-good-bg text-vs-good"
+                      )}
+                    >
                       <Plus size={12} strokeWidth={2} />
                       Entrada
                     </button>
-                    <button className="flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
+                    <button className="hidden flex items-center gap-1.5 bg-vs-chip text-vs-ink px-4 py-2 rounded-full text-[12px] font-medium hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150">
                       <TrendingUp size={12} strokeWidth={1.6} />
                       Orden compra
                     </button>
                   </div>
+                  {ajusteTipo && (
+                    <div className="mt-3 rounded-xl border border-vs-line-2 bg-vs-chip p-3">
+                      <div className="mb-2 text-[11px] font-medium text-[#8a7f70]">
+                        {ajusteTipo === "entrada" ? "Cantidad a agregar" : "Cantidad a quitar"}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="number"
+                          min={1}
+                          value={ajusteCantidad}
+                          onChange={e => setAjusteCantidad(e.target.value)}
+                          className="w-28 rounded-xl border border-vs-line-2 bg-white px-3 py-2 text-[12.5px] font-mono outline-none focus:border-[#a59682]"
+                        />
+                        <button
+                          onClick={handleConfirmAjuste}
+                          disabled={ajustarStock.isPending}
+                          className="rounded-full bg-vs-ink px-4 py-2 text-[12px] font-medium text-white transition-colors hover:bg-[#1e2228] disabled:opacity-60"
+                        >
+                          {ajustarStock.isPending ? "Guardando..." : "Confirmar"}
+                        </button>
+                      </div>
+                      {ajusteError && (
+                        <div className="mt-2 text-[11.5px] font-medium text-vs-warn">{ajusteError}</div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="pt-3 border-t border-vs-line-2">

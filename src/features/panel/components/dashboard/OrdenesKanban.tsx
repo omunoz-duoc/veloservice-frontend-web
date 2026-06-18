@@ -13,8 +13,6 @@ const PRIORIDAD_COLOR: Record<string, string> = {
   baja:  "#a59682",
 }
 
-const URGENTE_COLUMN_ID = "col-urgente"
-
 const ESTADO_BACKEND_BY_COLUMN: Record<string, string> = {
   "col-recibido": "recibida",
   "col-proceso": "en_reparacion",
@@ -38,7 +36,7 @@ type OrdenBoardItem = BoardItem & {
 export function OrdenesKanban() {
   const { data: initialData, isLoading } = useOrdenesKanban()
   const queryClient = useQueryClient()
-  const [dataSource, setDataSource] = useState<BoardData | null>(null)
+  const [dataSource, setDataSource] = useState<{ base: BoardData | null; data: BoardData } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [containerWidth, setContainerWidth] = useState(0)
@@ -51,20 +49,23 @@ export function OrdenesKanban() {
     return () => ro.disconnect()
   }, [])
 
-  const board = dataSource ?? initialData ?? null
+  const board = dataSource && dataSource.base === initialData
+    ? dataSource.data
+    : initialData ?? null
 
   if (isLoading || !board) {
     return (
-      <div className="bg-vs-card border border-vs-line rounded-[24px] p-5 animate-pulse min-h-[300px]" />
+      <div className="min-h-[300px] min-w-0 animate-pulse rounded-[24px] border border-vs-line bg-vs-card p-5" />
     )
   }
 
   const colCount = board.root.children.length
-  const MIN_COL_WIDTH = 159
-  const BOARD_GAP = 8
+  const MIN_COL_WIDTH = 200
+  const BOARD_GAP = 12
   const colWidth = containerWidth > 0
     ? Math.max(MIN_COL_WIDTH, (containerWidth - BOARD_GAP * (colCount - 1)) / colCount)
     : MIN_COL_WIDTH
+  const boardMinWidth = colCount * MIN_COL_WIDTH + BOARD_GAP * Math.max(colCount - 1, 0)
 
   const configMap: BoardProps["configMap"] = {
     card: {
@@ -104,7 +105,7 @@ export function OrdenesKanban() {
   }
 
   return (
-    <div className="bg-vs-card border border-vs-line rounded-[24px] p-4">
+    <div className="min-w-0 overflow-hidden rounded-[24px] border border-vs-line bg-vs-card p-4">
       <div className="mb-3">
         <div className="text-[10px] font-semibold uppercase tracking-widest text-[#a59682]">Pipeline</div>
         <div className="text-[15px] font-semibold text-vs-ink">Ordenes de trabajo</div>
@@ -114,12 +115,18 @@ export function OrdenesKanban() {
           {error}
         </div>
       )}
-      <div ref={containerRef} className="overflow-x-auto">
+      <div ref={containerRef} className="min-w-0 max-w-full overflow-x-auto">
         <Kanban
           dataSource={board}
           configMap={configMap}
+          rootStyle={{ width: "100%", minWidth: `${boardMinWidth}px`, gap: `${BOARD_GAP}px`, overflow: "visible" }}
           cardsGap={6}
-          columnWrapperStyle={() => ({ width: `${colWidth}px`, minWidth: `${MIN_COL_WIDTH}px` })}
+          columnWrapperStyle={() => ({
+            width: `${colWidth}px`,
+            minWidth: `${MIN_COL_WIDTH}px`,
+            maxWidth: `${colWidth}px`,
+            flex: `1 0 ${MIN_COL_WIDTH}px`,
+          })}
           columnListContentStyle={() => ({ maxHeight: "430px", overflowY: "auto", paddingRight: "2px" })}
           onCardMove={(move) => {
             const previousBoard = board
@@ -132,19 +139,7 @@ export function OrdenesKanban() {
             )
 
             setError(null)
-
-            const movedCard = nextBoard[move.cardId] as OrdenBoardItem | undefined
-            if (move.toColumnId === URGENTE_COLUMN_ID && movedCard?.content) {
-              nextBoard[move.cardId] = {
-                ...movedCard,
-                content: {
-                  ...movedCard.content,
-                  prioridad: "alta",
-                },
-              }
-            }
-
-            setDataSource(nextBoard)
+            setDataSource({ base: initialData ?? null, data: nextBoard })
 
             if (move.fromColumnId === move.toColumnId) return
 
@@ -152,32 +147,28 @@ export function OrdenesKanban() {
             const ordenId = card?.content?.ordenId
 
             if (!ordenId) {
-              setDataSource(previousBoard)
+              setDataSource({ base: initialData ?? null, data: previousBoard })
               setError("No se pudo actualizar la orden.")
               return
             }
 
-            if (move.toColumnId !== URGENTE_COLUMN_ID && !ESTADO_BACKEND_BY_COLUMN[move.toColumnId]) {
-              setDataSource(previousBoard)
+            if (!ESTADO_BACKEND_BY_COLUMN[move.toColumnId]) {
+              setDataSource({ base: initialData ?? null, data: previousBoard })
               setError("No se pudo cambiar el estado de la orden.")
               return
             }
 
-            const request = move.toColumnId === URGENTE_COLUMN_ID
-              ? ordenesService.updateOrden(ordenId, { prioridad: "alta" })
-              : ordenesService.cambiarEstado(ordenId, {
-                  codigo: ESTADO_BACKEND_BY_COLUMN[move.toColumnId],
-                  observacion: "Cambio de estado desde dashboard pipeline",
-                })
-
-            void request
+            void ordenesService.cambiarEstado(ordenId, {
+              codigo: ESTADO_BACKEND_BY_COLUMN[move.toColumnId],
+              observacion: "Cambio de estado desde dashboard pipeline",
+            })
               .then(() => {
                 void queryClient.invalidateQueries({ queryKey: ["ordenes"] })
                 void queryClient.invalidateQueries({ queryKey: ["ordenes", "urgentes"] })
                 void queryClient.invalidateQueries({ queryKey: ["mecanicos", "activos"] })
               })
               .catch(() => {
-                setDataSource(previousBoard)
+                setDataSource({ base: initialData ?? null, data: previousBoard })
                 setError("No se pudo actualizar la orden.")
               })
           }}

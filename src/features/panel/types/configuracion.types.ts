@@ -1,4 +1,4 @@
-export type RolUsuario = "admin" | "mecanico" | "recepcionista"
+export type RolUsuario = "admin_taller" | "mecanico" | "recepcionista" | "operador"
 
 export interface PerfilNegocio {
   nombre: string

@@ -13,7 +13,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
 
   useSessionExpiryGuard("/login_admin")
 
-  const isAdmin = user?.rol === "sysadmin" || user?.rol === "admin"
+  const isAdmin = user?.rol === "sysadmin" || user?.rol === "admin" || user?.rol === "plataforma"
 
   useEffect(() => {
     if (hydrated) {

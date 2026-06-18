@@ -13,9 +13,9 @@ export function UrgentesCard() {
   const { data: ordenes = [], isLoading } = useOrdenesUrgentes()
 
   return (
-    <div className="bg-vs-card border border-vs-line rounded-[24px] p-4 h-full min-h-[300px]">
+    <div className="h-full min-h-[300px] min-w-0 rounded-[24px] border border-vs-line bg-vs-card p-4">
       <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <div className="text-[10px] font-semibold uppercase tracking-widest text-[#a59682]">Urgentes</div>
           <div className="text-[15px] font-semibold text-vs-ink">Ordenes prioritarias</div>
         </div>

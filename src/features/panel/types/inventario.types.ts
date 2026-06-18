@@ -4,6 +4,7 @@ export interface IInventarioService {
   getStockBajo(): Promise<ProductosListResponse>
   createProducto(payload: ProductoWritePayload): Promise<Producto>
   updateProducto(id: string, payload: ProductoWritePayload): Promise<Producto>
+  ajustarStock(productoId: string, payload: MovimientoStockRequest): Promise<MovimientoStockResponse>
 }
 
 
@@ -44,4 +45,23 @@ export type ProductoWritePayload = {
   stockMinimo: number
   categoriaId?: string | null
   activo?: boolean
+}
+
+export type MovimientoStockTipo = "entrada" | "salida"
+
+export type MovimientoStockRequest = {
+  tipo: MovimientoStockTipo
+  cantidad: number
+  motivo: string
+}
+
+export type MovimientoStockResponse = {
+  id: string
+  productoId: string
+  tipo: MovimientoStockTipo
+  cantidad: number
+  stockAnterior: number
+  stockPosterior: number
+  motivo: string
+  createdAt: string
 }

@@ -46,6 +46,14 @@ function toStringList(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
 }
 
+function isUuid(value: string | null | undefined) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value ?? "")
+}
+
+function displayServicioCodigo(value: string) {
+  return isUuid(value) ? "Sin código" : value
+}
+
 function normalizeServicioForPage(raw: RawServicioForPage): Servicio {
   return {
     id: raw.id ?? "SV-SIN-ID",
@@ -80,6 +88,8 @@ function ServicioCard({
   onEdit: () => void
 }) {
   const cat = CATEGORIAS.find(c => c.key === servicio.cat)!
+  const codigo = displayServicioCodigo(servicio.id)
+
   return (
     <div
       onClick={onView}
@@ -97,7 +107,7 @@ function ServicioCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-mono text-[10.5px] text-[#a59682]">{servicio.id}</span>
+            <span className="font-mono text-[10.5px] text-[#a59682]">{codigo}</span>
             {servicio.popular && (
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[#faecd6] text-[#8c6a1e] vs-scale-in">
                 POPULAR
@@ -154,10 +164,12 @@ function ServicioRow({
   onView: () => void
   onEdit: () => void
 }) {
+  const codigo = displayServicioCodigo(servicio.id)
+
   return (
     <tr className="border-b border-vs-line-2 hover:bg-[#faf6f0] transition-colors group">
       <td className="px-4 py-3.5 align-middle font-mono font-semibold text-[12.5px]">
-        {servicio.id}
+        {codigo}
       </td>
       <td className="px-4 py-3.5 align-middle">
         <div className="text-[13px] font-semibold">{servicio.nombre}</div>
@@ -243,9 +255,9 @@ function CategorySection({
   const cat = CATEGORIAS.find(c => c.key === catKey)!
 
   return (
-    <section className="vs-scale-in">
+    <section className="min-w-0 vs-scale-in">
       {/* Section header */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="mb-3 flex min-w-0 flex-wrap items-center gap-3">
         <button
           onClick={onToggle}
           className="w-7 h-7 rounded-full bg-vs-chip hover:bg-[#ebe3d6] flex items-center justify-center transition-all duration-200 active:scale-90 shrink-0"
@@ -262,7 +274,7 @@ function CategorySection({
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-2.5">
             <h2 className="text-[15px] font-semibold tracking-tight">{cat.label}</h2>
             <span className="font-mono text-[11px] text-[#8a7f70] bg-vs-chip px-2 py-0.5 rounded-full">
               {items.length}
@@ -274,7 +286,7 @@ function CategorySection({
         <button
           onClick={onAdd}
           className="flex items-center gap-1.5 text-[12px] bg-vs-chip text-[#4a4438] px-3 py-1.5 rounded-full
-                     hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150 shrink-0"
+                     hover:bg-[#ebe3d6] active:scale-95 transition-all duration-150"
         >
           <Plus size={13} strokeWidth={2} />
           Añadir a {cat.label.toLowerCase()}
@@ -286,9 +298,9 @@ function CategorySection({
         className="grid transition-[grid-template-rows] duration-300 ease-in-out"
         style={{ gridTemplateRows: collapsed ? "0fr" : "1fr" }}
       >
-        <div className="overflow-hidden">
+        <div className="min-w-0 overflow-hidden">
           {view === "grid" ? (
-            <div className="grid grid-cols-3 gap-3 pb-1">
+            <div className="grid min-w-0 grid-cols-1 gap-3 p-1 md:grid-cols-2 2xl:grid-cols-3">
               {items.map(s => (
                 <ServicioCard
                   key={s.id}
@@ -299,8 +311,9 @@ function CategorySection({
               ))}
             </div>
           ) : (
-            <div className="bg-vs-card border border-vs-line rounded-[20px] overflow-hidden mb-1">
-              <table className="w-full text-left">
+            <div className="mb-1 min-w-0 overflow-hidden rounded-[20px] border border-vs-line bg-vs-card">
+              <div className="max-w-full overflow-x-auto">
+              <table className="min-w-[900px] w-full text-left">
                 <thead>
                   <tr className="bg-[#faf6f0] border-b border-vs-line">
                     {["Código", "Servicio", "Incluye", "Duración", "Precio", "Estado"].map(h => (
@@ -324,6 +337,7 @@ function CategorySection({
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>
@@ -435,7 +449,7 @@ export function ServiciosPage() {
   )
 
   return (
-    <div>
+    <div className="min-w-0">
       <PageHeader
         breadcrumb={[{ label: "Panel", href: "/dashboard" }, { label: "Servicios" }]}
         title="Catálogo de servicios"
@@ -452,9 +466,9 @@ export function ServiciosPage() {
       )}
 
       {/* Filter bar */}
-      <div className="bg-vs-card border border-vs-line rounded-[24px] p-3 mb-5 flex items-center gap-2 flex-wrap">
+      <div className="mb-5 flex min-w-0 flex-wrap items-center gap-2 rounded-[24px] border border-vs-line bg-vs-card p-3">
         {/* Tab pills */}
-        <div className="flex gap-1 bg-vs-chip p-1 rounded-full overflow-x-auto max-w-full shrink-0">
+        <div className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-vs-chip p-1">
           {tabs.map(tab => (
             <button
               key={tab.key}
@@ -477,16 +491,16 @@ export function ServiciosPage() {
           ))}
         </div>
 
-        <div className="flex-1" />
+        <div className="hidden flex-1 sm:block" />
 
         {/* Search */}
-        <div className="flex items-center gap-2 bg-vs-chip px-3 py-1.5 rounded-full min-w-[240px] transition-shadow duration-200 focus-within:shadow-[0_0_0_2px_#6b5bd120]">
+        <div className="flex w-full min-w-0 items-center gap-2 rounded-full bg-vs-chip px-3 py-1.5 transition-shadow duration-200 focus-within:shadow-[0_0_0_2px_#6b5bd120] sm:w-auto sm:min-w-[240px]">
           <Search size={14} strokeWidth={1.6} className="text-[#a59682] shrink-0" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Buscar servicio…"
-            className="bg-transparent outline-none text-[12.5px] flex-1 placeholder:text-[#a59682]"
+            className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-[#a59682]"
           />
           {query && (
             <button
@@ -522,7 +536,7 @@ export function ServiciosPage() {
       </div>
 
       {/* Grouped sections */}
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         {isLoading && (
           <div className="bg-vs-card border border-vs-line rounded-[24px] p-12 text-center text-[#8a7f70] text-[13px]">
             Cargando servicios…

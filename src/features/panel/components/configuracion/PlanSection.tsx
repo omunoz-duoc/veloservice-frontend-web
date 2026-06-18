@@ -9,11 +9,11 @@ export function PlanSection() {
   })
 
   return (
-    <div>
+    <div className="min-w-0">
       <h2 className="text-xl font-bold text-[#0f1114]">Plan y facturación</h2>
       <p className="text-sm text-[#8a7f70] mt-1 mb-6">Tu suscripción actual</p>
 
-      <div className="max-w-sm border border-[#eae2d6] rounded-2xl p-6 bg-[#f7f3eb]">
+      <div className="max-w-sm min-w-0 rounded-2xl border border-[#eae2d6] bg-[#f7f3eb] p-6">
         <div className="text-2xl font-bold text-[#0f1114] mb-1">Plan {PLAN_INFO.nombre}</div>
 
         <div className="text-2xl font-semibold text-[#0f1114] mb-1">

@@ -20,13 +20,14 @@ type NavItem = {
   href: string
   icon: LucideIcon
   badge?: number
+  hidden?: boolean
 }
 
 const NAV_PLATAFORMA: NavItem[] = [
   { key: "dashboard", label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { key: "talleres", label: "Talleres", href: "/admin/talleres", icon: Building2, badge: 10 },
   { key: "suscripciones", label: "Suscripciones", href: "/admin/suscripciones", icon: CreditCard },
-  { key: "modulos", label: "Módulos", href: "/admin/modulos", icon: Puzzle },
+  { key: "modulos", label: "Módulos", href: "/admin/modulos", icon: Puzzle, hidden: true },
 ]
 
 const NAV_METRICAS: NavItem[] = [
@@ -34,7 +35,7 @@ const NAV_METRICAS: NavItem[] = [
 ]
 
 const NAV_SISTEMA: NavItem[] = [
-  { key: "configuracion", label: "Configuraciones", href: "/admin/configuracion", icon: Settings },
+  { key: "configuracion", label: "Configuraciones", href: "/admin/configuracion", icon: Settings, hidden: true },
 ]
 
 function NavGroup({
@@ -46,13 +47,19 @@ function NavGroup({
   items: NavItem[]
   pathname: string
 }) {
+  const visibleItems = items.filter(item => !item.hidden)
+
+  if (visibleItems.length === 0) {
+    return null
+  }
+
   return (
     <div className="mb-6">
       <div className="text-[10.5px] uppercase tracking-[0.14em] text-[#b8a88d] font-medium px-3 mb-2">
         {label}
       </div>
       <nav className="flex flex-col gap-1">
-        {items.map((item) => {
+        {visibleItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(item.href + "/")
           return (
             <Link

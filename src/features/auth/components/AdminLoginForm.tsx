@@ -36,10 +36,10 @@ export function AdminLoginForm() {
     if (!validateFields()) return
     try {
       const user = await loginAsync({ email, password })
-      if (user.rol === "sysadmin") {
+      if (user.rol === "sysadmin" || user.rol === "admin" || user.rol === "plataforma" || user.ambito === "plataforma") {
         router.push("/admin")
       } else {
-        setError("Acceso restringido a sysadmin únicamente.")
+        setError("Acceso restringido a administradores de plataforma únicamente.")
       }
     } catch (err: unknown) {
       console.error("Admin login error:", err)

@@ -6,7 +6,7 @@ import {
 import type { LucideIcon } from "lucide-react"
 import { KpiCard } from "@/components/common/KpiCard"
 import { useDashboardKpis } from "@/features/panel/hooks/useDashboardKpis"
-import type { KpiIconKey } from "@/features/panel/types/dashboard.types"
+import type { DashboardKpi, KpiIconKey } from "@/features/panel/types/dashboard.types"
 
 const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   ordenes: ClipboardList,
@@ -15,12 +15,27 @@ const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   stock:   AlertTriangle,
 }
 
+function parsePeso(value: string) {
+  return Number.parseInt(value.replace(/\D/g, ""), 10) || 0
+}
+
+function kpiInsight(kpi: DashboardKpi) {
+  if (kpi.id === "ordenes-activas") return "Taller ocupado"
+  if (kpi.id === "bicis-listas") return "Pendiente de retiro"
+  if (kpi.id === "cobros-dia") return parsePeso(kpi.value) === 0 ? "Sin movimientos" : kpi.sub
+  if (kpi.id === "stock-bajo") {
+    const stockBajo = Number.parseInt(kpi.value, 10) || 0
+    return stockBajo === 0 ? "Todo en regla" : `${stockBajo} productos por revisar`
+  }
+  return kpi.sub
+}
+
 export function KpiGrid() {
   const { data: kpis = [], isLoading } = useDashboardKpis()
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-4 gap-4 mb-4">
+      <div className="mb-4 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map(i => (
           <div
             key={i}
@@ -32,7 +47,7 @@ export function KpiGrid() {
   }
 
   return (
-    <div className="grid grid-cols-4 gap-4 mb-4">
+    <div className="mb-4 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {kpis.map(kpi => (
         <KpiCard
           key={kpi.id}
@@ -43,8 +58,7 @@ export function KpiGrid() {
           sub={kpi.sub}
           accent={kpi.accent}
           icon={ICON_MAP[kpi.iconKey]}
-          spark={kpi.spark}
-          progress={kpi.progress}
+          insight={kpiInsight(kpi)}
         />
       ))}
     </div>

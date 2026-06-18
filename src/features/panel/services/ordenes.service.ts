@@ -62,6 +62,7 @@ type BackendOrdenesListResponse = {
 const ESTADO_MAP: Record<string, FrontendEstadoOT> = {
     pendiente:           "recibido",
     recibido:            "recibido",
+    recibida:            "recibido",
     en_diagnostico:      "diagnostico",
     diagnostico:         "diagnostico",
     en_reparacion:       "proceso",

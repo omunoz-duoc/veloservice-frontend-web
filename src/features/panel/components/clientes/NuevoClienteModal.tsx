@@ -94,11 +94,9 @@ function emptyPayload(): NuevoClientePayload {
 // ─── Modal ─────────────────────────────────────────────────────────────────────
 
 export function NuevoClienteModal({
-  nextId,
   onClose,
   onCreate,
 }: {
-  nextId: string
   onClose: () => void
   onCreate: (cliente: Cliente) => void
 }) {
@@ -122,7 +120,7 @@ export function NuevoClienteModal({
     const now = new Date()
     const mes = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][now.getMonth()]
     const cliente: Cliente = {
-      id: nextId,
+      id: "",
       nombre: form.nombre.trim(),
       idType: form.idType,
       idNum: form.idNum.trim(),
@@ -145,17 +143,16 @@ export function NuevoClienteModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex vs-fade-in">
+    <div className="fixed inset-0 z-50 flex">
       <div onClick={onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
 
-      <div className="w-[520px] bg-vs-bg h-full overflow-y-auto flex flex-col vs-slide-in-right">
-        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0">
+      <div className="flex h-full w-full max-w-[540px] flex-col overflow-y-auto bg-black/30 backdrop-blur-sm">
+        <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col">
           {/* Header */}
-          <div className="flex items-center gap-3 p-5 border-b border-vs-line-2">
+          <div className="flex flex-wrap items-center gap-3 border-b border-vs-line-2 p-5">
             <ClienteAvatar nombre={form.nombre || "NC"} tier={form.tier} size={44} />
             <div className="flex-1">
               <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">Nuevo ciclista</div>
-              <div className="text-[15px] font-semibold font-mono text-[#a59682]">{nextId}</div>
             </div>
             <button
               onClick={onClose}
@@ -180,7 +177,7 @@ export function NuevoClienteModal({
               {errors.has("nombre") && <p className="text-[11px] text-vs-warn mt-1">Campo requerido</p>}
             </div>
 
-            <div className="grid grid-cols-[130px_1fr] gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[130px_1fr]">
               <div>
                 <FLabel>Tipo ID</FLabel>
                 <FSelect
@@ -221,14 +218,14 @@ export function NuevoClienteModal({
               <FInput value={form.tel} onChange={v => set("tel", v)} placeholder="+56 9 0000 0000" />
             </div>
 
-            <div>
+            <div className="hidden">
               <FLabel>Ciudad / Comuna</FLabel>
               <FInput value={form.ciudad} onChange={v => set("ciudad", v)} placeholder="ej. Providencia, Santiago" />
             </div>
 
             <FSection title="Clasificación" />
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <FLabel>Canal preferido</FLabel>
                 <FSelect
@@ -277,7 +274,7 @@ export function NuevoClienteModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-3 p-5 border-t border-vs-line-2 bg-[#faf6f0] rounded-b-[24px]">
+          <div className="flex flex-wrap items-center gap-3 rounded-b-[24px] border-t border-vs-line-2 bg-[#faf6f0] p-5">
             <div className="text-[11.5px] text-[#8a7f70]">
               Tier:{" "}
               <span className="font-semibold" style={{ color: TIERS.find(t => t.key === form.tier)?.fg }}>

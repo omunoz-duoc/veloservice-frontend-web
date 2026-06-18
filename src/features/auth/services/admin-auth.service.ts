@@ -5,11 +5,11 @@ export type { AdminUser };
 
 export const adminAuthService: IAdminAuthService = {
   async login(email, password) {
-    return httpClient.post<AdminUser>("auth/login-admin", { email, password });
+    return httpClient.post<AdminUser>("auth/login_admin", { email, password });
   },
 
   async logout() {
-    return httpClient.post("auth/logout-admin", {});
+    return httpClient.post("auth/logout_admin", {});
   },
 };
 

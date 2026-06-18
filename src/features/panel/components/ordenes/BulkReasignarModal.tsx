@@ -48,8 +48,8 @@ export function BulkReasignarModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded-[24px] shadow-xl w-[460px] p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+      <div className="w-full max-w-[460px] rounded-[24px] bg-white p-6 shadow-xl">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-[15px] font-semibold text-vs-ink">
             Reasignar{" "}

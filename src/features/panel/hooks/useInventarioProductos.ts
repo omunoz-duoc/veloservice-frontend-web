@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { inventarioService } from "@/features/panel/services/inventario.provider"
 import type { CatKey, Producto } from "../components/inventario/inventario.mock"
-import type { Producto as ServiceProducto, ProductoWritePayload } from "../types/inventario.types"
+import type { MovimientoStockRequest, Producto as ServiceProducto, ProductoWritePayload } from "../types/inventario.types"
 
 const CAT_MAP: Record<string, CatKey> = {
   neumaticos: "ruedas",
@@ -83,6 +83,20 @@ export function useUpdateProducto() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventario", "productos"] })
       queryClient.invalidateQueries({ queryKey: ["productos", "stock-bajo"] })
+    },
+  })
+}
+
+export function useAjustarStockProducto() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ productoId, payload }: { productoId: string; payload: MovimientoStockRequest }) =>
+      inventarioService.ajustarStock(productoId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventario", "productos"] })
+      queryClient.invalidateQueries({ queryKey: ["productos", "stock-bajo"] })
+      queryClient.invalidateQueries({ queryKey: ["inventario", "metricas"] })
     },
   })
 }

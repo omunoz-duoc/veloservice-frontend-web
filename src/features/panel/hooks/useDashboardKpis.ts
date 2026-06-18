@@ -10,7 +10,8 @@ export function useDashboardKpis(): { data: DashboardKpi[]; isLoading: boolean }
 
   const isLoading = finanzas.isLoading || inventario.isLoading || ordenes.isLoading
 
-  const cobros = finanzas.data?.cobrosDelDia ?? 0
+  const cobros = finanzas.data?.cobrosDelDia ?? finanzas.data?.cobros_del_dia ?? 0
+  const cantidadCobros = finanzas.data?.cantidadCobrosDia ?? finanzas.data?.cantidad_cobros_dia ?? 0
   const stockBajo = inventario.data?.stockBajo ?? 0
   const activas = ordenes.data?.activas ?? 0
   const listas = ordenes.data?.listas ?? 0
@@ -44,7 +45,7 @@ export function useDashboardKpis(): { data: DashboardKpi[]; isLoading: boolean }
       value: `$ ${cobros.toLocaleString("es-CL")}`,
       delta: "",
       trend: "up",
-      sub: "meta $ 1.100.000",
+      sub: cantidadCobros > 0 ? `${cantidadCobros} cobros realizados` : "Sin movimientos",
       accent: "info",
       iconKey: "cobros",
       progress: Math.min(cobros / 1_100_000, 1),
@@ -55,7 +56,7 @@ export function useDashboardKpis(): { data: DashboardKpi[]; isLoading: boolean }
       value: String(stockBajo).padStart(2, "0"),
       delta: "",
       trend: "warn",
-      sub: "productos bajo mínimo",
+      sub:stockBajo === 0 ? "Todo en regla":stockBajo === 1 ? "1 producto por revisar" : `${stockBajo} productos por revisar`,
       accent: "warn",
       iconKey: "stock",
       spark: [1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, stockBajo],

@@ -473,7 +473,7 @@ function ServicioLine({
 
       {isEditing && (
         <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <label className="space-y-1">
               <span className="text-[11px] text-[#8a7f70] uppercase tracking-wider block">Precio aplicado</span>
               <input
@@ -566,7 +566,7 @@ function ProductoLine({
 
       {isEditing && (
         <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <label className="space-y-1">
               <span className="text-[11px] text-[#8a7f70] uppercase tracking-wider block">Cantidad</span>
               <input
@@ -634,7 +634,7 @@ function DrawerFrame({
   return (
     <div className="fixed inset-0 z-50 flex">
       <div onClick={disableClose ? undefined : onClose} className="flex-1 bg-black/30 backdrop-blur-sm" />
-      <div className="w-full max-w-[560px] bg-vs-bg h-full overflow-y-auto flex flex-col">
+      <div className="flex h-full w-full max-w-[560px] flex-col overflow-y-auto bg-black/30 backdrop-blur-sm">
         <div className="bg-vs-card border border-vs-line rounded-[24px] m-3 mb-0 flex flex-col">
           {children}
         </div>
@@ -658,14 +658,14 @@ function DrawerSkeleton({ onClose }: { onClose: () => void }) {
         <div className="w-20 h-8 rounded-full bg-[#e7ded1] animate-pulse" />
       </div>
       <div className="p-5 space-y-5">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className={`${bar} w-28`} />
           <div className={`${bar} w-20`} />
         </div>
         {[1, 2, 3, 4].map(i => (
           <div key={i} className="pt-4 border-t border-vs-line-2 space-y-3">
             <div className={`${bar} w-24`} />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className={`${bar} w-full`} />
               <div className={`${bar} w-full`} />
             </div>
@@ -1078,7 +1078,7 @@ export function OTDrawer({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {isEditing && draft ? (
             <>
               <EditSelect
@@ -1119,7 +1119,7 @@ export function OTDrawer({
         </div>
 
         <Section title="Fechas">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Field label="Fecha de ingreso" value={formatFecha(orden.fechaIngreso)} />
             <Field label="Fecha prometida" value={formatFecha(orden.fechaPrometida)} />
             <Field label="Fecha de entrega" value={formatFecha(orden.fechaEntrega)} />
@@ -1144,7 +1144,7 @@ export function OTDrawer({
           <div className="space-y-4">
             <Field label="Nombre" value={fullName(orden.cliente)} />
             <Field label="RUT" value={orden.cliente?.rut || "-"} mono />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Telefono" value={orden.cliente?.telefono || "-"} />
               <Field label="Email" value={orden.cliente?.email || "-"} />
             </div>
@@ -1154,7 +1154,7 @@ export function OTDrawer({
         <Section title="Bicicleta">
           <div className="space-y-4">
             <Field label="Marca / Modelo" value={bikeName} />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="Tipo" value={orden.bicicleta?.tipo || "-"} />
               <Field label="Color" value={orden.bicicleta?.color || "-"} />
             </div>
@@ -1265,7 +1265,7 @@ export function OTDrawer({
                   {productosQuery.isLoading && <div className="text-[12px] text-[#8a7f70]">Cargando productos...</div>}
                   {productosQuery.isError && <div className="text-[12px] text-vs-warn">No se pudieron cargar productos.</div>}
                   {!productosQuery.isLoading && !productosQuery.isError && productoOptions.length === 0 && <div className="text-[12px] text-[#8a7f70]">No hay productos disponibles.</div>}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <label className="space-y-1">
                       <span className="text-[11px] text-[#8a7f70] uppercase tracking-wider block">Cantidad</span>
                       <input
@@ -1341,7 +1341,7 @@ export function OTDrawer({
         )}
 
         {hasLineItems && (
-          <div className="border-t border-vs-line-2 pt-4 flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-vs-line-2 pt-4">
             <div className="text-[14px] font-semibold text-[#2b2f36]">Total</div>
             <div className="text-[15px] font-semibold text-[#2b2f36] font-mono">{formatPeso(total)}</div>
           </div>

@@ -12,7 +12,7 @@ export interface TallerAdmin {
   estado: EstadoTaller
   plan: PlanSaaS
   fechaRegistro: string
-  fechaRenovacion: string
+  fechaRenovacion: string | null
   cantidadUsuarios: number
   cantidadOTsMes: number
   moduloIds: string[]
@@ -33,7 +33,7 @@ export interface SuscripcionTaller {
   precioMensual: number
   estado: EstadoSuscripcion
   fechaInicio: string
-  fechaRenovacion: string
+  fechaRenovacion: string | null
   diasRestantes: number
   mrr: number
 }

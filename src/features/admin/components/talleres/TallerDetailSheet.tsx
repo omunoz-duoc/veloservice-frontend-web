@@ -21,6 +21,11 @@ function estadoLabel(estado: TallerAdmin["estado"]) {
   return map[estado] ?? estado
 }
 
+function formatNullableDate(value: string | null) {
+  if (!value) return "Sin renovación"
+  return new Date(value).toLocaleDateString("es-CL")
+}
+
 export function TallerDetailSheet({ taller, onClose }: { taller: TallerAdmin; onClose: () => void }) {
   const { data: modulos } = useAdminModulos()
   const modulosActivos = modulos?.filter((m) => taller.moduloIds.includes(m.id)) ?? []
@@ -102,7 +107,7 @@ export function TallerDetailSheet({ taller, onClose }: { taller: TallerAdmin; on
               </div>
               <div className="flex items-center justify-between text-[13px]">
                 <span className="text-[#8a7f70]">Próxima renovación</span>
-                <span className="font-medium text-vs-ink">{new Date(taller.fechaRenovacion).toLocaleDateString("es-CL")}</span>
+                <span className="font-medium text-vs-ink">{formatNullableDate(taller.fechaRenovacion)}</span>
               </div>
             </div>
           </div>

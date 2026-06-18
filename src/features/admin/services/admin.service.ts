@@ -2,6 +2,7 @@ import { httpClient } from "@/lib/api/http-client"
 import type {
   TallerAdmin,
   ModuloSaaS,
+  SuscripcionTaller,
   SaasKpis,
   MetricasSaaSDetalle,
 } from "./admin.types"
@@ -12,7 +13,7 @@ export interface IAdminService {
   updateTallerEstado(): Promise<void>
   updateTallerModulos(): Promise<void>
   getModulos(): Promise<ModuloSaaS[]>
-  getSuscripciones(): Promise<[]>
+  getSuscripciones(): Promise<SuscripcionTaller[]>
   updateSuscripcion(): Promise<void>
   getSaasKpis(): Promise<SaasKpis>
   getMetricasDetalle(): Promise<MetricasSaaSDetalle>
@@ -24,7 +25,7 @@ export const realAdminService: IAdminService = {
   getModulos: () => httpClient.get<ModuloSaaS[]>("admin/modulos"),
   getSaasKpis: () => httpClient.get<SaasKpis>("admin/metrics/saas-kpis"),
 
-  getSuscripciones: async () => [],
+  getSuscripciones: () => httpClient.get<SuscripcionTaller[]>("admin/suscripciones"),
   getMetricasDetalle: async () => ({
     mrrHistorico: [],
     nuevosTalleresHistorico: [],

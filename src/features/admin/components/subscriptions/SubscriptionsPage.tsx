@@ -23,6 +23,11 @@ function estadoLabel(estado: EstadoSuscripcion) {
   return map[estado] ?? estado
 }
 
+function formatNullableDate(value: string | null) {
+  if (!value) return "Sin renovación"
+  return new Date(value).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" })
+}
+
 export function SubscriptionsPage() {
   const { data: suscripciones, isLoading } = useAdminSuscripciones()
   const updateSuscripcion = useUpdateSuscripcion()
@@ -37,7 +42,7 @@ export function SubscriptionsPage() {
     setEditing(s)
     setPlanEdit(s.plan)
     setPrecioEdit(s.precioMensual)
-    setRenovacionEdit(s.fechaRenovacion)
+    setRenovacionEdit(s.fechaRenovacion ?? "")
     setEstadoEdit(s.estado)
   }
 
@@ -95,7 +100,7 @@ export function SubscriptionsPage() {
                       <StatusBadge label={estadoLabel(s.estado)} tone={estadoTone(s.estado)} />
                     </td>
                     <td className="py-3 px-4 text-[12px] text-[#8a7f70]">
-                      {new Date(s.fechaRenovacion).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" })}
+                      {formatNullableDate(s.fechaRenovacion)}
                     </td>
                     <td className="py-3 px-4 text-right">
                       <span

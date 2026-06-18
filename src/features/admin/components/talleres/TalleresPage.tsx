@@ -12,6 +12,11 @@ import { cn } from "@/lib/utils"
 const PLAN_OPTIONS = ["todos", "starter", "pro", "enterprise"] as const
 const ESTADO_OPTIONS = ["todos", "activo", "trial", "suspendido", "inactivo", "pendiente"] as const
 
+function formatNullableDate(value: string | null) {
+  if (!value) return "Sin renovación"
+  return new Date(value).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" })
+}
+
 function estadoTone(estado: EstadoTaller) {
   switch (estado) {
     case "activo": return "good" as const
@@ -149,7 +154,7 @@ export function TalleresPage() {
                     <td className="py-3 px-4 text-right font-mono text-vs-ink">{t.cantidadUsuarios}</td>
                     <td className="py-3 px-4 text-right font-mono text-vs-ink">{t.cantidadOTsMes}</td>
                     <td className="py-3 px-4 text-[12px] text-[#8a7f70]">
-                      {new Date(t.fechaRenovacion).toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" })}
+                      {formatNullableDate(t.fechaRenovacion)}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center justify-end gap-2">

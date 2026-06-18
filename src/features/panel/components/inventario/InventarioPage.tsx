@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import Swal from "sweetalert2"
 import { useCreateProducto, useInventarioProductos, useUpdateProducto } from "../../hooks/useInventarioProductos"
 import { Search, Plus, Filter, Package, Bell, TrendingUp, ChevronLeft, ChevronRight, Barcode, Building2, Eye, Pencil, PlusCircle, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ApiError, getApiErrorMessage } from "@/lib/api/api-error"
 import {
   fmt, getCategoriaConfig, margen, productoVisibleId, stockEstado, nextProductoId,
   type Producto,
@@ -217,8 +219,22 @@ export function InventarioPage() {
   const allSelected = filtered.length > 0 && sel.size === filtered.length
 
   const addProducto = async (p: Producto) => {
-    await createProducto.mutateAsync(p)
-    setShowModal(false)
+    try {
+      await createProducto.mutateAsync(p)
+      setShowModal(false)
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        await Swal.fire({
+          icon: "error",
+          title: "Producto duplicado",
+          text: getApiErrorMessage(error) ?? "El producto ya existe en esta sucursal.",
+          confirmButtonText: "Entendido",
+          confirmButtonColor: "#2a2e35",
+        })
+        return
+      }
+      throw error
+    }
   }
 
   const updateProducto = async (updated: Producto) => {

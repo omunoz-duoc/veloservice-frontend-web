@@ -11,6 +11,12 @@ import { ClienteDrawer, TierChip, ClienteAvatar, type DrawerMode } from "./Clien
 import { NuevoClienteModal } from "./NuevoClienteModal"
 import { useClientes, useCreateClienteMutation, useUpdateClienteCacheMutation } from "../../hooks/useClientes"
 
+function csvCell(value: string | number | null | undefined): string {
+  const text = value == null ? "" : String(value)
+  const escaped = text.replace(/"/g, "\"\"")
+  return `"${escaped}"`
+}
+
 // ─── Table header cell ─────────────────────────────────────────────────────────
 
 function Th({ children, right }: { children?: React.ReactNode; right?: boolean }) {
@@ -185,6 +191,52 @@ export function ClientesPage() {
     setDrawer(null)
   }
 
+  const exportSelectedClientes = () => {
+    const selectedClientes = clientes.filter(c => sel.has(clienteKey(c)))
+    if (selectedClientes.length === 0) return
+
+    const headers = [
+      "Código cliente",
+      "Nombre",
+      "Tipo identificación",
+      "Identificación",
+      "Email",
+      "Teléfono",
+      "Bicicletas",
+      "OTs históricas",
+      "Gasto total",
+      "Tier",
+      "Canal",
+      "Última actividad",
+    ]
+
+    const rows = selectedClientes.map(c => [
+      c.codigoCliente,
+      c.nombre,
+      c.idType,
+      c.idNum,
+      c.email,
+      c.tel,
+      c.bicis,
+      c.ots,
+      c.gasto,
+      c.tier,
+      c.canal,
+      c.ultima,
+    ])
+
+    const csv = `\uFEFF${[headers, ...rows].map(row => row.map(csvCell).join(",")).join("\r\n")}`
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = "clientes-seleccionados.csv"
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
   const tabs = [
     { k: "all",       l: "Todos",     c: counts.all },
     { k: "vip",       l: "VIP",       c: counts.vip },
@@ -273,12 +325,12 @@ export function ClientesPage() {
 
       {/* Bulk selection bar */}
       {sel.size > 0 && (
-        <div className="mb-3 hidden min-w-0 flex-wrap items-center gap-3 rounded-[16px] border border-vs-ink bg-vs-ink px-4 py-2.5 text-white vs-scale-in">
+        <div className="mb-3 min-w-0 flex-wrap items-center gap-3 rounded-[16px] border border-vs-ink bg-vs-ink px-4 py-2.5 text-white vs-scale-in">
           <span className="text-[12.5px] font-semibold">{sel.size} seleccionado{sel.size > 1 ? "s" : ""}</span>
           <div className="flex-1" />
-          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Enviar recordatorio</button>
-          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Cambiar tier</button>
-          <button className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Exportar</button>
+          <button className="hidden text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Enviar recordatorio</button>
+          <button className="hidden text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Cambiar tier</button>
+          <button onClick={exportSelectedClientes} className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Exportar</button>
           <button onClick={() => setSel(new Set())} className="text-[12px] px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors">Cancelar</button>
         </div>
       )}

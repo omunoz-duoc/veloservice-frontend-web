@@ -264,7 +264,10 @@ function ProductosMultiSelect({
           className={`flex items-center gap-2 bg-vs-chip rounded-xl px-3 py-2 border transition-colors cursor-text ${
             open ? "border-[#a59682]" : "border-vs-line-2"
           }`}
-          onClick={() => setOpen(true)}
+          onClick={() => {
+            onFirstFocus()
+            setOpen(true)
+          }}
         >
           <Search size={13} strokeWidth={1.8} className="text-[#8a7f70] shrink-0" />
           <input
@@ -281,9 +284,14 @@ function ProductosMultiSelect({
           }
         </div>
 
-        {open && !loading && (
+        {open && (
           <div className="absolute z-10 mt-1 w-full bg-vs-card border border-vs-line rounded-2xl shadow-lg overflow-hidden max-h-52 overflow-y-auto">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex items-center gap-2 px-3 py-3 text-[12px] text-[#8a7f70]">
+                <Loader2 size={13} strokeWidth={2} className="animate-spin shrink-0" />
+                Cargando productos...
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="px-3 py-3 text-[12px] text-[#8a7f70]">Sin resultados para &quot;{query}&quot;</div>
             ) : filtered.map(p => {
               const isSel = selectedIds.includes(p.id)

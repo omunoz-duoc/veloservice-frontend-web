@@ -16,6 +16,23 @@ export interface TallerAdmin {
   cantidadUsuarios: number
   cantidadOTsMes: number
   moduloIds: string[]
+  operacion?: TallerOperacionResumen
+}
+
+export interface TallerOperacionResumen {
+  sucursales: number
+  usuarios: number
+  clientes: number
+  bicicletas: number
+  servicios: number
+  productos: number
+  proveedores: number
+  compras: number
+  ordenes: number
+  garantias: number
+  membresias: number
+  cobros: number
+  notificacionesPendientes: number
 }
 
 export interface ModuloSaaS {

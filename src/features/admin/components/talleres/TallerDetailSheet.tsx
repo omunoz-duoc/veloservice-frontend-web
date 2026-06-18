@@ -22,22 +22,43 @@ function estadoLabel(estado: TallerAdmin["estado"]) {
 }
 
 function formatNullableDate(value: string | null) {
-  if (!value) return "Sin renovación"
+  if (!value) return "Sin renovacion"
   return new Date(value).toLocaleDateString("es-CL")
 }
 
-export function TallerDetailSheet({ taller, onClose }: { taller: TallerAdmin; onClose: () => void }) {
+const OPERACION_LABELS: Array<{ key: keyof NonNullable<TallerAdmin["operacion"]>; label: string }> = [
+  { key: "sucursales", label: "Sucursales" },
+  { key: "usuarios", label: "Usuarios" },
+  { key: "clientes", label: "Clientes" },
+  { key: "bicicletas", label: "Bicicletas" },
+  { key: "servicios", label: "Servicios" },
+  { key: "productos", label: "Productos" },
+  { key: "proveedores", label: "Proveedores" },
+  { key: "compras", label: "Compras" },
+  { key: "ordenes", label: "Ordenes" },
+  { key: "garantias", label: "Garantias" },
+  { key: "membresias", label: "Membresias" },
+  { key: "cobros", label: "Cobros" },
+  { key: "notificacionesPendientes", label: "Notif. pendientes" },
+]
+
+export function TallerDetailSheet({
+  taller,
+  isLoadingDetalle = false,
+  onClose,
+}: {
+  taller: TallerAdmin
+  isLoadingDetalle?: boolean
+  onClose: () => void
+}) {
   const { data: modulos } = useAdminModulos()
   const modulosActivos = modulos?.filter((m) => taller.moduloIds.includes(m.id)) ?? []
 
   return (
     <>
-      {/* Backdrop */}
       <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
 
-      {/* Sheet */}
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-vs-card border-l border-vs-line shadow-2xl z-50 flex flex-col vs-slide-in-right">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-vs-line">
           <div>
             <h2 className="text-[16px] font-semibold text-vs-ink">{taller.nombre}</h2>
@@ -51,15 +72,12 @@ export function TallerDetailSheet({ taller, onClose }: { taller: TallerAdmin; on
           </button>
         </div>
 
-        {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-6">
-          {/* Estado */}
           <div className="flex items-center gap-3">
             <StatusBadge label={estadoLabel(taller.estado)} tone={estadoTone(taller.estado)} dot={taller.estado === "activo"} />
             <span className="text-[12px] text-[#8a7f70]">Plan <span className="font-semibold text-vs-ink capitalize">{taller.plan}</span></span>
           </div>
 
-          {/* Info */}
           <div className="bg-[#f7f3eb] border border-vs-line rounded-2xl p-4 flex flex-col gap-3">
             <div className="flex items-start gap-3 text-[13px]">
               <MapPin size={15} className="text-[#8a7f70] shrink-0 mt-0.5" />
@@ -79,7 +97,6 @@ export function TallerDetailSheet({ taller, onClose }: { taller: TallerAdmin; on
             </div>
           </div>
 
-          {/* Stats */}
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-vs-card border border-vs-line rounded-2xl p-4">
               <div className="flex items-center gap-2 text-[11px] text-[#8a7f70] mb-1">
@@ -97,24 +114,47 @@ export function TallerDetailSheet({ taller, onClose }: { taller: TallerAdmin; on
             </div>
           </div>
 
-          {/* Suscripcion */}
           <div>
-            <h3 className="text-[13px] font-semibold text-vs-ink mb-2">Suscripción</h3>
+            <h3 className="text-[13px] font-semibold text-vs-ink mb-2">Informacion general</h3>
             <div className="bg-vs-card border border-vs-line rounded-2xl p-4 flex flex-col gap-2">
-              <div className="flex items-center justify-between text-[13px]">
-                <span className="text-[#8a7f70]">Plan</span>
-                <span className="font-medium text-vs-ink capitalize">{taller.plan}</span>
-              </div>
-              <div className="flex items-center justify-between text-[13px]">
-                <span className="text-[#8a7f70]">Próxima renovación</span>
-                <span className="font-medium text-vs-ink">{formatNullableDate(taller.fechaRenovacion)}</span>
-              </div>
+              <InfoRow label="Nombre" value={taller.nombre} />
+              <InfoRow label="RUT" value={taller.rut} />
+              <InfoRow label="Email" value={taller.email} />
+              <InfoRow label="Telefono" value={taller.telefono} />
+              <InfoRow label="Estado" value={estadoLabel(taller.estado)} />
+              <InfoRow label="Plan" value={taller.plan} capitalize />
+              <InfoRow label="Fecha registro" value={new Date(taller.fechaRegistro).toLocaleDateString("es-CL")} />
+              <InfoRow label="Renovacion" value={formatNullableDate(taller.fechaRenovacion)} />
             </div>
           </div>
 
-          {/* Modulos */}
           <div>
-            <h3 className="text-[13px] font-semibold text-vs-ink mb-2">Módulos activos</h3>
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <h3 className="text-[13px] font-semibold text-vs-ink">Resumen operativo</h3>
+              {isLoadingDetalle && (
+                <span className="text-[11px] text-[#8a7f70]">Actualizando...</span>
+              )}
+            </div>
+            {taller.operacion ? (
+              <div className="grid grid-cols-2 gap-2">
+                {OPERACION_LABELS.map((item) => (
+                  <div key={item.key} className="bg-vs-card border border-vs-line rounded-2xl p-3">
+                    <div className="text-[11px] text-[#8a7f70] leading-tight">{item.label}</div>
+                    <div className="mt-1 text-[18px] font-semibold text-vs-ink font-mono">
+                      {taller.operacion?.[item.key] ?? 0}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-vs-card border border-vs-line rounded-2xl p-4 text-[12px] text-[#8a7f70]">
+                {isLoadingDetalle ? "Cargando resumen operativo..." : "Resumen operativo no disponible"}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h3 className="text-[13px] font-semibold text-vs-ink mb-2">Modulos activos</h3>
             <div className="flex flex-wrap gap-2">
               {modulosActivos.length > 0 ? (
                 modulosActivos.map((m) => (
@@ -127,12 +167,21 @@ export function TallerDetailSheet({ taller, onClose }: { taller: TallerAdmin; on
                   </span>
                 ))
               ) : (
-                <span className="text-[12px] text-[#8a7f70]">Sin módulos activados</span>
+                <span className="text-[12px] text-[#8a7f70]">Sin modulos activados</span>
               )}
             </div>
           </div>
         </div>
       </div>
     </>
+  )
+}
+
+function InfoRow({ label, value, capitalize = false }: { label: string; value: string; capitalize?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3 text-[13px]">
+      <span className="text-[#8a7f70]">{label}</span>
+      <span className={`font-medium text-vs-ink text-right ${capitalize ? "capitalize" : ""}`}>{value}</span>
+    </div>
   )
 }

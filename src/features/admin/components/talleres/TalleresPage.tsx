@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { Search, Download, Eye, Ban, CheckCircle } from "lucide-react"
 import { PageHeader } from "@/components/common/PageHeader"
-import { useAdminTalleres, useUpdateTallerEstado } from "@/features/admin/hooks/useAdmin"
+import { useAdminTallerById, useAdminTalleres, useUpdateTallerEstado } from "@/features/admin/hooks/useAdmin"
 import { StatusBadge } from "@/components/common/StatusBadge"
 import { TallerDetailSheet } from "./TallerDetailSheet"
 import type { TallerAdmin, EstadoTaller } from "@/features/admin/services/admin.types"
@@ -41,6 +41,7 @@ export function TalleresPage() {
   const [planFilter, setPlanFilter] = useState<(typeof PLAN_OPTIONS)[number]>("todos")
   const [estadoFilter, setEstadoFilter] = useState<(typeof ESTADO_OPTIONS)[number]>("todos")
   const [selectedTaller, setSelectedTaller] = useState<TallerAdmin | null>(null)
+  const { data: selectedTallerDetalle, isFetching: isFetchingDetalle } = useAdminTallerById(selectedTaller?.id ?? "")
 
   const filtered = useMemo(() => {
     if (!talleres) return []
@@ -201,7 +202,8 @@ export function TalleresPage() {
 
       {selectedTaller && (
         <TallerDetailSheet
-          taller={selectedTaller}
+          taller={selectedTallerDetalle ?? selectedTaller}
+          isLoadingDetalle={isFetchingDetalle}
           onClose={() => setSelectedTaller(null)}
         />
       )}

@@ -1,42 +1,44 @@
+import { httpClient } from "@/lib/api/http-client"
 import type {
   TallerAdmin,
   ModuloSaaS,
-  SuscripcionTaller,
   SaasKpis,
   MetricasSaaSDetalle,
-  EstadoTaller,
-  PlanSaaS,
-  EstadoSuscripcion,
 } from "./admin.types"
 
 export interface IAdminService {
   getTalleres(): Promise<TallerAdmin[]>
   getTallerById(id: string): Promise<TallerAdmin | null>
-  updateTallerEstado(id: string, estado: EstadoTaller): Promise<void>
-  updateTallerModulos(id: string, moduloIds: string[]): Promise<void>
+  updateTallerEstado(): Promise<void>
+  updateTallerModulos(): Promise<void>
   getModulos(): Promise<ModuloSaaS[]>
-  getSuscripciones(): Promise<SuscripcionTaller[]>
-  updateSuscripcion(
-    tallerId: string,
-    data: {
-      plan?: PlanSaaS
-      precioMensual?: number
-      fechaRenovacion?: string
-      estado?: EstadoSuscripcion
-    }
-  ): Promise<void>
+  getSuscripciones(): Promise<[]>
+  updateSuscripcion(): Promise<void>
   getSaasKpis(): Promise<SaasKpis>
   getMetricasDetalle(): Promise<MetricasSaaSDetalle>
 }
 
-// Stubs para endpoints reales del backend (futuro)
-// GET   /admin/talleres
-// GET   /admin/talleres/:id
-// PUT   /admin/talleres/:id/estado
-// GET   /admin/modulos
-// GET   /admin/talleres/:id/modulos
-// PUT   /admin/talleres/:id/modulos
-// GET   /admin/suscripciones
-// PUT   /admin/suscripciones/:tallerId
-// GET   /admin/metrics/saas-kpis
-// GET   /admin/metrics/historical
+export const realAdminService: IAdminService = {
+  getTalleres: () => httpClient.get<TallerAdmin[]>("admin/talleres"),
+  getTallerById: id => httpClient.get<TallerAdmin | null>(`admin/talleres/${id}`),
+  getModulos: () => httpClient.get<ModuloSaaS[]>("admin/modulos"),
+  getSaasKpis: () => httpClient.get<SaasKpis>("admin/metrics/saas-kpis"),
+
+  getSuscripciones: async () => [],
+  getMetricasDetalle: async () => ({
+    mrrHistorico: [],
+    nuevosTalleresHistorico: [],
+    churnHistorico: [],
+    distribucionPlanes: [],
+  }),
+
+  updateTallerEstado: async () => {
+    throw new Error("No implementado todavía")
+  },
+  updateTallerModulos: async () => {
+    throw new Error("No implementado todavía")
+  },
+  updateSuscripcion: async () => {
+    throw new Error("No implementado todavía")
+  },
+}

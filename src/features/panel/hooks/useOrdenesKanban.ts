@@ -19,7 +19,7 @@ const COLUMNAS: KanbanColumna[] = [
   { key: "col-entregado", label: "Entregado",   color: "#3a6ea5", estado: "entregado" },
 ]
 
-function estadoKanban(estado: EstadoOT) {
+export function estadoKanban(estado: EstadoOT) {
   if (estado === "recibido") return "recibido"
   if (estado === "listo") return "listo"
   if (estado === "entregado") return "entregado"
@@ -29,7 +29,7 @@ function estadoKanban(estado: EstadoOT) {
   return null
 }
 
-function ordenesToBoardData(ordenes: OrdenTrabajo[]): BoardData {
+export function ordenesToBoardData(ordenes: OrdenTrabajo[]): BoardData {
   const byEstado: Record<string, OrdenTrabajo[]> = {}
   for (const col of COLUMNAS) byEstado[col.estado] = []
   for (const o of ordenes) {

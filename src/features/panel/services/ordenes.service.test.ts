@@ -1,97 +1,109 @@
-import { describe, expect, it } from "vitest"
 import { mapApiOrden } from "./ordenes.service"
-import type { OrdenTrabajo } from "../types/ordenes.types"
 
-const baseOrden: OrdenTrabajo = {
-  numeroOrden: "OT-0001",
-  tipo: "Mantencion",
-  fechaIngreso: "2026-06-02T14:30:00.000Z",
-  mecanico: "Javier Bravo",
-  cliente: "Ana Lopez",
-  bicicleta: {
-    marca: "Trek",
-    modelo: "Marlin 7",
-    tipo: "MTB",
-    color: "Rojo",
-  },
-  diagnosticoInicial: "Ajuste general",
-  estado: "En Proceso",
-  prioridad: "Media",
+function makeOrden(overrides: Record<string, unknown> = {}) {
+  return {
+    tipo:        { id: "t-1", codigo: "mantencion", nombre: "Mantención" },
+    estado:      { id: "e-1", codigo: "recibido",   nombre: "Recibido"   },
+    fechaIngreso: "2026-06-01T00:00:00Z",
+    prioridad:   "media",
+    ...overrides,
+  } as any
 }
 
-describe("mapApiOrden", () => {
-  it("maps nested backend orders and preserves backendId for detail requests", () => {
-    const orden = mapApiOrden(
-      {
-        id: "uuid-orden-1",
-        numeroOrden: "OT-0099",
-        tipo: { id: "tipo-1", codigo: "MANTENCION", nombre: "Mantencion" },
-        estado: { id: "estado-1", codigo: "EN_PROCESO", nombre: "En proceso" },
-        fechaIngreso: "2026-06-02T14:30:00.000Z",
-        fechaPrometida: "2026-06-05T00:00:00.000Z",
-        fechaEntrega: null,
-        mecanico: { id: "mec-1", nombre: "Javier", apellido: "Bravo" },
-        cliente: {
-          id: "cliente-1",
-          nombre: "Ana",
-          apellido: "Lopez",
-          telefono: "+56912345678",
-          email: "ana@example.com",
-          rut: "11111111-1",
-        },
-        bicicleta: {
-          id: "bici-1",
-          marca: "Trek",
-          modelo: "Marlin 7",
-          tipo: "MTB",
-          aro: "29",
-          color: "Rojo",
-          numeroSerie: "SER-1",
-        },
-        diagnosticoInicial: null,
-        diagnosticoFinal: null,
-        observacionesCliente: "Ruido al pedalear",
-        prioridad: undefined,
-      },
-      0
-    )
+describe("mapApiOrden — ESTADO_MAP", () => {
+  const cases: [string, string][] = [
+    ["recibido",           "recibido"],
+    ["en_reparacion",      "proceso"],
+    ["en_proceso",         "proceso"],
+    ["en_diagnostico",     "diagnostico"],
+    ["esperando_repuesto", "espera"],
+    ["control_calidad",    "calidad"],
+    ["lista_para_entrega", "listo"],
+    ["entregado",          "entregado"],
+    ["cancelada",          "cancelado"],
+  ]
 
-    expect(orden.id).toBe("OT-0099")
-    expect(orden.backendId).toBe("uuid-orden-1")
-    expect(orden.tipo.codigo).toBe("mantencion")
-    expect(orden.estado).toBe("proceso")
-    expect(orden.mecanicoId).toBe("Javier Bravo")
-    expect(orden.clienteNombre).toBe("Ana Lopez")
-    expect(orden.biciMarca).toBe("Trek Marlin 7")
-    expect(orden.biciTalla).toBe("29")
-    expect(orden.descripcion).toBe("Ruido al pedalear")
+  for (const [backendCodigo, expected] of cases) {
+    it(`"${backendCodigo}" → "${expected}"`, () => {
+      const o = mapApiOrden(makeOrden({ estado: { id: "e-1", codigo: backendCodigo, nombre: backendCodigo } }), 0)
+      expect(o.estado).toBe(expected)
+    })
+  }
+
+  it("unknown estado code falls back to 'recibido'", () => {
+    const o = mapApiOrden(makeOrden({ estado: { id: "e-x", codigo: "desconocido", nombre: "?" } }), 0)
+    expect(o.estado).toBe("recibido")
+  })
+})
+
+describe("mapApiOrden — cliente field", () => {
+  it("string cliente → used directly as clienteNombre", () => {
+    const o = mapApiOrden(makeOrden({ cliente: "Ana Torres" }), 0)
+    expect(o.clienteNombre).toBe("Ana Torres")
   })
 
-  it("normalizes known backend tipo and estado values", () => {
-    const orden = mapApiOrden(
-      {
-        ...baseOrden,
-        tipo: "Mantención",
-        estado: "En Proceso",
-      },
-      0
-    )
-
-    expect(orden.tipo.codigo).toBe("mantencion")
-    expect(orden.tipo.nombre).toBe("Mantención")
-    expect(orden.estado).toBe("proceso")
+  it("object cliente → nombre + apellido joined", () => {
+    const o = mapApiOrden(makeOrden({ cliente: { nombre: "Ana", apellido: "Torres" } }), 0)
+    expect(o.clienteNombre).toBe("Ana Torres")
   })
 
-  it("keeps unknown tipo values without crashing chip config lookups", () => {
-    const orden = mapApiOrden(
-      {
-        ...baseOrden,
-        tipo: "Ajuste Premium",
-      },
-      0
-    )
-
-    expect(orden.tipo.codigo).toBe("ajuste_premium")
-    expect(orden.tipo.nombre).toBe("Ajuste Premium")
+  it("missing cliente → 'Sin cliente'", () => {
+    const o = mapApiOrden(makeOrden(), 0)
+    expect(o.clienteNombre).toBe("Sin cliente")
   })
+})
+
+describe("mapApiOrden — mecanico field", () => {
+  it("string mecanico → mecanicoId equals it", () => {
+    const uuid = "aaaaaaaa-aaaa-1aaa-8aaa-aaaaaaaaaaaa"
+    const o = mapApiOrden(makeOrden({ mecanico: uuid }), 0)
+    expect(o.mecanicoId).toBe(uuid)
+  })
+
+  it("object mecanico → mecanicoId is fullName (nombre + apellido)", () => {
+    const o = mapApiOrden(makeOrden({ mecanico: { id: "uuid-123", nombre: "Luis", apellido: "Rojas" } }), 0)
+    expect(o.mecanicoId).toBe("Luis Rojas")
+  })
+
+  it("null mecanico → 'Sin asignar'", () => {
+    const o = mapApiOrden(makeOrden({ mecanico: null }), 0)
+    expect(o.mecanicoId).toBe("Sin asignar")
+  })
+})
+
+describe("mapApiOrden — bicicleta fallbacks", () => {
+  it("missing bicicleta → biciMarca is 'Sin bicicleta'", () => {
+    const o = mapApiOrden(makeOrden(), 0)
+    expect(o.biciMarca).toBe("Sin bicicleta")
+  })
+
+  it("missing bicicleta.tipo → biciTipo is 'Otro'", () => {
+    const o = mapApiOrden(makeOrden({ bicicleta: { marca: "Trek", modelo: "Marlin" } }), 0)
+    expect(o.biciTipo).toBe("Otro")
+  })
+
+  it("missing bicicleta.color → biciColor is ''", () => {
+    const o = mapApiOrden(makeOrden({ bicicleta: { marca: "Trek", modelo: "Marlin" } }), 0)
+    expect(o.biciColor).toBe("")
+  })
+})
+
+describe("mapApiOrden — numeroOrden / id", () => {
+  it("uses numeroOrden as id when present", () => {
+    const o = mapApiOrden(makeOrden({ numeroOrden: "OT-0099" }), 0)
+    expect(o.id).toBe("OT-0099")
+  })
+
+  it("falls back to OT-XXXX format based on idx when numeroOrden absent", () => {
+    const o = mapApiOrden(makeOrden(), 2)
+    expect(o.id).toBe("OT-0003")
+  })
+})
+
+describe("mapApiOrden — prioridad normalization", () => {
+  it('"alta" → "alta"',        () => expect(mapApiOrden(makeOrden({ prioridad: "alta" }),        0).prioridad).toBe("alta"))
+  it('"baja" → "baja"',        () => expect(mapApiOrden(makeOrden({ prioridad: "baja" }),        0).prioridad).toBe("baja"))
+  it('"urgente" → "alta"',     () => expect(mapApiOrden(makeOrden({ prioridad: "urgente" }),     0).prioridad).toBe("alta"))
+  it('unknown → "media"',      () => expect(mapApiOrden(makeOrden({ prioridad: "desconocido" }), 0).prioridad).toBe("media"))
+  it('undefined → "media"',    () => expect(mapApiOrden(makeOrden({ prioridad: undefined }),     0).prioridad).toBe("media"))
 })

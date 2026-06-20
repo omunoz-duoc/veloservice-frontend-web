@@ -507,32 +507,34 @@ export function OrdenesPage() {
       )}
 
       {/* Tab bar + search + filters */}
-      <div className="mb-4 flex min-w-0 flex-wrap items-center gap-2 rounded-[24px] border border-vs-line bg-vs-card p-3">
-        <div className="mb-4 flex min-w-0 flex-1 flex-wrap gap-2">
-          <div className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-vs-chip p-1">
-            {TABS.map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={cn(
-                  "text-[12px] px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 whitespace-nowrap transition-colors",
-                  activeTab === tab.key
-                    ? "bg-white shadow-sm text-vs-ink"
-                    : "text-[#8a7f70] hover:text-vs-ink"
-                )}
-              >
-                {tab.label}
-                <span className={cn(
-                  "text-[10.5px] font-mono px-1.5 rounded-md",
-                  activeTab === tab.key ? "bg-[#ece7de]" : "bg-white/60"
-                )}>
-                  {String(counts[tab.key]).padStart(2, "0")}
-                </span>
-              </button>
-            ))}
-          </div>
-          <div className="hidden flex-1 sm:block" />
-          <div className="flex w-full min-w-0 items-center gap-2 rounded-full bg-vs-chip px-3 py-1.5 sm:w-auto sm:min-w-[220px]">
+      <div className="mb-4 flex flex-col gap-2 rounded-[24px] border border-vs-line bg-vs-card p-3">
+        {/* Row 1: tabs */}
+        <div className="flex gap-1 overflow-x-auto rounded-full bg-vs-chip p-1">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                "text-[12px] px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 whitespace-nowrap transition-colors",
+                activeTab === tab.key
+                  ? "bg-white shadow-sm text-vs-ink"
+                  : "text-[#8a7f70] hover:text-vs-ink"
+              )}
+            >
+              {tab.label}
+              <span className={cn(
+                "text-[10.5px] font-mono px-1.5 rounded-md",
+                activeTab === tab.key ? "bg-[#ece7de]" : "bg-white/60"
+              )}>
+                { counts[tab.key] ? String(counts[tab.key]).padStart(2, "0") : "00" }
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Row 2: search + filters */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex min-w-[180px] flex-1 items-center gap-2 rounded-full bg-vs-chip px-3 py-1.5">
             <Search size={14} strokeWidth={1.6} className="text-[#a59682] shrink-0" />
             <input
               value={query}
@@ -541,9 +543,6 @@ export function OrdenesPage() {
               className="min-w-0 flex-1 bg-transparent text-[12.5px] outline-none placeholder:text-[#a59682]"
             />
           </div>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
           <FilterDropdown
             label="Tipo"
             icon={<SlidersHorizontal size={13} strokeWidth={1.6} />}
@@ -554,8 +553,7 @@ export function OrdenesPage() {
           <FilterDropdown
             label="Mecánico"
             icon={<Wrench size={13} strokeWidth={1.6} />}
-            options={mecanicos.map(m => ({ value: `${m.nombre} ${m.apellido}`.trim().toLowerCase(),
-            label: `${m.nombre} ${m.apellido}`.trim(),color: "#6b5bd1",}))}
+            options={mecanicos.map(m => ({ value: `${m.nombre} ${m.apellido}`.trim().toLowerCase(), label: `${m.nombre} ${m.apellido}`.trim(), color: "#6b5bd1" }))}
             selected={filterMecanicos}
             onChange={setFilterMecanicos}
           />

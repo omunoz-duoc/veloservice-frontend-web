@@ -10,6 +10,8 @@ import {
 import { ClienteDrawer, TierChip, ClienteAvatar, type DrawerMode } from "./ClienteDrawer"
 import { NuevoClienteModal } from "./NuevoClienteModal"
 import { useClientes, useCreateClienteMutation, useUpdateClienteCacheMutation } from "../../hooks/useClientes"
+import Swal from "sweetalert2"
+import { ApiError, getApiErrorMessage } from "@/lib/api/api-error"
 
 function csvCell(value: string | number | null | undefined): string {
   const text = value == null ? "" : String(value)
@@ -181,8 +183,9 @@ export function ClientesPage() {
     try {
       await createCliente.mutateAsync(c)
       setShowModal(false)
-    } catch {
-      // Error is rendered below the filter bar.
+    } catch (err) {
+      const msg = getApiErrorMessage(err) ?? (err instanceof ApiError ? err.message : "No se pudo crear el ciclista. Intenta nuevamente.")
+      await Swal.fire({ icon: "error", title: "Error al crear ciclista", text: msg })
     }
   }
 
@@ -315,13 +318,13 @@ export function ClientesPage() {
         </button>
       </div>
 
-      {(isError || createCliente.isError || updateClienteMutation.isError) && (
+      {/* {(isError || createCliente.isError || updateClienteMutation.isError) && (
         <div className="bg-vs-warn-bg border border-vs-warn/20 text-vs-warn rounded-[16px] px-4 py-3 mb-4 text-[13px]">
           {isError && error instanceof Error
             ? error.message
             : "No se pudo guardar el ciclista. Intenta nuevamente."}
         </div>
-      )}
+      )} */}
 
       {/* Bulk selection bar */}
       {sel.size > 0 && (

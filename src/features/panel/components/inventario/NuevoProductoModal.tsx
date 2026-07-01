@@ -115,7 +115,7 @@ export function NuevoProductoModal({
       id: nextId,
       nombre: form.nombre.trim(),
       ref: form.ref.trim(),
-      cat: form.cat,
+      cat: "23000000-0000-4000-8000-000000000003",
       costo: parseInt(form.costo.replace(/\D/g, "")) || 0,
       precio: parseInt(form.precio.replace(/\D/g, "")) || 0,
       stock: parseInt(form.stock) || 0,
@@ -148,7 +148,8 @@ export function NuevoProductoModal({
             </div>
             <div className="flex-1">
               <div className="text-[11px] text-[#8a7f70] uppercase tracking-widest">Nuevo producto</div>
-              <div className="text-[15px] font-semibold font-mono text-[#a59682]">{nextId}</div>
+              {/* <div className="text-[15px] font-semibold font-mono text-[#a59682]">{nextId}</div> */}
+              <div className="text-[15px] font-semibold font-mono text-[#a59682]">P-0027</div>
             </div>
             <button
               onClick={onClose}

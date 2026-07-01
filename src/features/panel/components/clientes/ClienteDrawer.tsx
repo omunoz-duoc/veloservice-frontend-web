@@ -161,7 +161,7 @@ function BikeCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-[13px] font-semibold truncate">{b.marca}</span>
-            <span className="text-[10px] font-mono text-[#a59682] bg-vs-chip px-1.5 py-0.5 rounded-full shrink-0">{b.id}</span>
+            {/* <span className="text-[10px] font-mono text-[#a59682] bg-vs-chip px-1.5 py-0.5 rounded-full shrink-0">{b.id}</span> */}
           </div>
           <div className="text-[11.5px] text-[#8a7f70] mt-0.5">{b.tipo} · Talla {b.talla} · {b.color}</div>
           {expanded && (

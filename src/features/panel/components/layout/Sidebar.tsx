@@ -107,8 +107,7 @@ function NavGroup({
 export function Sidebar() {
   const pathname = usePathname()
   const user = useAuthStore((s) => s.user)
-  const isAdminTaller = user?.rol === "admin_taller"
-  const sistemaItems = isAdminTaller ? NAV_SISTEMA : []
+  const sistemaItems = user ? NAV_SISTEMA : []
 
   const [collapsed, setCollapsed] = useState(false)
 

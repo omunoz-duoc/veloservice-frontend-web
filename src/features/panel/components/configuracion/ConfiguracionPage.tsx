@@ -16,10 +16,15 @@ const SECTIONS: {
   key: SectionKey
   label: string
   icon: React.ComponentType<{ size?: number; "aria-hidden"?: boolean | "true" }>
-  roles: RolUsuario[]
+  roles: readonly RolUsuario[]
 }[] = [
   { key: "negocio", label: "Negocio", icon: Building2, roles: ["admin_taller"] },
-  { key: "perfil", label: "Mi perfil", icon: User, roles: ["admin_taller"] },
+  {
+    key: "perfil",
+    label: "Mi perfil",
+    icon: User,
+    roles: ["admin_taller", "jefe_taller", "mecanico", "recepcionista"],
+  },
   { key: "usuarios", label: "Usuarios", icon: Users, roles: ["admin_taller"] },
   { key: "plan", label: "Plan", icon: CreditCard, roles: ["admin_taller"] },
 ]
@@ -27,9 +32,14 @@ const SECTIONS: {
 export function ConfiguracionPage() {
   const rol = useAuthStore((s) => s.user?.rol) as RolUsuario | undefined
   const visible = SECTIONS.filter((s) => rol && s.roles.includes(rol))
-  const [active, setActive] = useState<SectionKey>("negocio")
+  const [active, setActive] = useState<SectionKey>(() =>
+    rol === "admin_taller" ? "negocio" : "perfil"
+  )
 
   if (!rol || visible.length === 0) return null
+  const resolvedActive = visible.some((section) => section.key === active)
+    ? active
+    : visible[0].key
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col md:flex-row">
@@ -43,12 +53,12 @@ export function ConfiguracionPage() {
             key={key}
             id={`tab-${key}`}
             role="tab"
-            aria-selected={active === key}
+            aria-selected={resolvedActive === key}
             aria-controls={`panel-${key}`}
             onClick={() => setActive(key)}
             className={cn(
               "flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors md:w-full md:shrink",
-              active === key
+              resolvedActive === key
                 ? "bg-[#2d2926] text-white"
                 : "text-[#8a7f70] hover:bg-[#ece7e0] hover:text-[#2d2926]"
             )}
@@ -60,15 +70,16 @@ export function ConfiguracionPage() {
       </nav>
 
       <div
-        id={`panel-${active}`}
+        id={`panel-${resolvedActive}`}
         role="tabpanel"
-        aria-labelledby={`tab-${active}`}
+        aria-labelledby={`tab-${resolvedActive}`}
+        tabIndex={0}
         className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"
       >
-        {active === "negocio" && <PerfilNegocioSection />}
-        {active === "perfil" && <MiPerfilSection />}
-        {active === "usuarios" && <UsuariosSection />}
-        {active === "plan" && <PlanSection />}
+        {resolvedActive === "negocio" ? <PerfilNegocioSection /> : null}
+        {resolvedActive === "perfil" ? <MiPerfilSection /> : null}
+        {resolvedActive === "usuarios" ? <UsuariosSection /> : null}
+        {resolvedActive === "plan" ? <PlanSection /> : null}
       </div>
     </div>
   )

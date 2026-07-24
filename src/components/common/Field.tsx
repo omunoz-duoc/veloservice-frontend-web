@@ -11,6 +11,8 @@ interface FieldProps {
   autoFocus?: boolean;
   suffix?: React.ReactNode;
   id?: string;
+  disabled?: boolean;
+  required?: boolean;
 }
 
 export function Field({
@@ -24,6 +26,8 @@ export function Field({
   autoFocus,
   suffix,
   id,
+  disabled = false,
+  required = false,
 }: FieldProps) {
   return (
     <div>
@@ -31,7 +35,8 @@ export function Field({
         className={cn(
           "bg-[#f7f3eb] border border-vs-line-2 rounded-[14px] px-[14px] py-3 flex items-center gap-2.5",
           "transition-colors duration-150 focus-within:border-vs-ink focus-within:bg-white",
-          error && "border-vs-warn"
+          error && "border-vs-warn",
+          disabled && "cursor-not-allowed opacity-65"
         )}
       >
         {icon && <span className="text-[#a59682] flex-shrink-0">{icon}</span>}
@@ -42,7 +47,9 @@ export function Field({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           autoFocus={autoFocus}
-          className="bg-transparent outline-none flex-1 text-[14px] text-vs-ink placeholder:text-[#a59682] min-w-0"
+          disabled={disabled}
+          required={required}
+          className="min-w-0 flex-1 bg-transparent text-[14px] text-vs-ink outline-none placeholder:text-[#a59682] disabled:cursor-not-allowed"
         />
         {suffix}
       </div>

@@ -58,4 +58,4 @@ next-env.d.ts
 /.agents
 /.claude
 /.superpowers
-/docs
+/docs/*

@@ -1,12 +1,25 @@
-export type RolUsuario = "admin_taller" | "mecanico" | "recepcionista" | "operador"
+export type RolUsuario = "admin_taller" | "jefe_taller" | "mecanico" | "recepcionista"
 
 export interface PerfilNegocio {
   nombre: string
   rut: string
+  telefono: string
+  email: string
+  logoUrl: string | null
+}
+
+export interface SucursalConfiguracion {
+  id: string
+  nombre: string
   direccion: string
   telefono: string
   email: string
-  logoUrl?: string | null
+}
+
+export interface SucursalUsuario {
+  id: string
+  nombre: string
+  esPrincipal: boolean
 }
 
 export interface MiPerfil {
@@ -17,9 +30,11 @@ export interface MiPerfil {
 export interface UsuarioPanel {
   id: string
   nombre: string
+  apellido: string
   email: string
   rol: RolUsuario
-  estado: "activo"
+  activo: boolean
+  sucursales: SucursalUsuario[]
 }
 
 export interface PlanInfo {

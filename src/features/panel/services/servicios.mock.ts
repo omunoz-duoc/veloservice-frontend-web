@@ -20,13 +20,14 @@ export const serviciosMock: IServiciosService = {
         id: id ?? `SV-${String(servicios.length + 101).padStart(3, "0")}`,
         ots30: 0,
         ...payload,
+        activo: payload.activo ?? true,
       },
     ]
     return mockFetch(undefined as void)
   },
   async updateServicio(id: string, payload: CreateServicioPayload) {
     servicios = servicios.map(servicio => servicio.id === id
-      ? { ...servicio, ...payload }
+      ? { ...servicio, ...payload, activo: payload.activo ?? servicio.activo }
       : servicio)
     return mockFetch(undefined as void)
   },

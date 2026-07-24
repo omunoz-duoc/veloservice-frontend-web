@@ -74,6 +74,13 @@ export interface SuscripcionTaller {
   mrr: number
 }
 
+export interface ActualizarSuscripcionInput {
+  plan: PlanSaaS
+  precioMensual: number
+  fechaRenovacion: string | null
+  estado: EstadoSuscripcion
+}
+
 export interface SaasKpis {
   totalTalleres: number
   talleresActivos: number

@@ -29,16 +29,16 @@ let createdCounter = 10
 
 export const nuevaOTMock: INuevaOTService = {
   async getClientes() {
-    return mockFetch({ clientes: mock.clientes })
+    return mockFetch(mock.clientes)
   },
   async getBicicletas(clienteId: string) {
-    return mockFetch({ bicicletas: mock.bicicletasByCliente[clienteId] ?? [] })
+    return mockFetch(mock.bicicletasByCliente[clienteId] ?? [])
   },
   async getTipos() {
-    return mockFetch({ tipos: mock.tipos }, 150)
+    return mockFetch(mock.tipos, 150)
   },
   async getMecanicos() {
-    return mockFetch({ mecanicos: mock.mecanicos }, 150)
+    return mockFetch(mock.mecanicos, 150)
   },
   async getProductos() {
     return mockFetch({ productos: mock.productos })

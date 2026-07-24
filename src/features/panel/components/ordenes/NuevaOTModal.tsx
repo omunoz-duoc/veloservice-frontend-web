@@ -249,7 +249,7 @@ function ServiciosMultiSelect({
                 >
                   <div>
                     <div className="text-[12.5px] font-medium text-vs-ink">{s.nombre}</div>
-                    <div className="text-[11px] text-[#8a7f70]">${s.precioBase.toLocaleString("es-CL")}</div>
+                    <div className="text-[11px] text-[#8a7f70]">${(s.precioBase ?? 0).toLocaleString("es-CL")}</div>
                   </div>
                   {selected && (
                     <div className="w-4 h-4 rounded-full bg-[#6b5bd1] flex items-center justify-center shrink-0">

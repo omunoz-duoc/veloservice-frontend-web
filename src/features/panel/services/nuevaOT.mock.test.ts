@@ -3,7 +3,7 @@ import { nuevaOTMock } from "./nuevaOT.mock"
 
 describe("nuevaOTMock.getClientes", () => {
   it("returns a non-empty clientes array with lean fields", async () => {
-    const { clientes } = await nuevaOTMock.getClientes()
+    const clientes = await nuevaOTMock.getClientes()
     expect(clientes.length).toBeGreaterThan(0)
     for (const c of clientes) {
       expect(c.id).toBeTruthy()
@@ -15,8 +15,8 @@ describe("nuevaOTMock.getClientes", () => {
 
 describe("nuevaOTMock.getBicicletas", () => {
   it("returns bicicletas for a known cliente", async () => {
-    const { clientes } = await nuevaOTMock.getClientes()
-    const { bicicletas } = await nuevaOTMock.getBicicletas(clientes[0].id)
+    const clientes = await nuevaOTMock.getClientes()
+    const bicicletas = await nuevaOTMock.getBicicletas(clientes[0].id)
     expect(Array.isArray(bicicletas)).toBe(true)
     for (const b of bicicletas) {
       expect(b.id).toBeTruthy()
@@ -28,14 +28,14 @@ describe("nuevaOTMock.getBicicletas", () => {
   })
 
   it("returns empty array for an unknown cliente", async () => {
-    const { bicicletas } = await nuevaOTMock.getBicicletas("does-not-exist")
+    const bicicletas = await nuevaOTMock.getBicicletas("does-not-exist")
     expect(bicicletas).toEqual([])
   })
 })
 
 describe("nuevaOTMock catalogs", () => {
   it("getTipos returns tipos with codigo + nombre", async () => {
-    const { tipos } = await nuevaOTMock.getTipos()
+    const tipos = await nuevaOTMock.getTipos()
     expect(tipos.length).toBeGreaterThan(0)
     for (const t of tipos) {
       expect(t.id).toBeTruthy()
@@ -45,7 +45,7 @@ describe("nuevaOTMock catalogs", () => {
   })
 
   it("getMecanicos returns mecanicos with id + nombre", async () => {
-    const { mecanicos } = await nuevaOTMock.getMecanicos()
+    const mecanicos = await nuevaOTMock.getMecanicos()
     expect(mecanicos.length).toBeGreaterThan(0)
     for (const m of mecanicos) {
       expect(m.id).toBeTruthy()

@@ -4,6 +4,10 @@ import { ApiError } from "./api-error";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://veloservice-backend-337hberz7q-tl.a.run.app/api/v1/";
 
+export interface HttpRequestOptions {
+  attachSucursal?: boolean;
+}
+
 function isPublicAuthEndpoint(endpoint: string): boolean {
   return endpoint === "auth/login"
     || endpoint === "auth/login_admin"
@@ -17,7 +21,8 @@ function authHeader(endpoint: string): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-function shouldAttachSucursal(endpoint: string): boolean {
+function shouldAttachSucursal(endpoint: string, options?: HttpRequestOptions): boolean {
+  if (options?.attachSucursal === false) return false;
   if (endpoint.startsWith("auth")) return false;
   const user = useAuthStore.getState().user;
   return user?.ambito === "taller";
@@ -28,8 +33,8 @@ function getSucursalQueryParam(): string {
   return sucursalId ? `sucursalId=${encodeURIComponent(sucursalId)}` : "";
 }
 
-function appendSucursalToEndpoint(endpoint: string): string {
-  if (!shouldAttachSucursal(endpoint)) return endpoint;
+function appendSucursalToEndpoint(endpoint: string, options?: HttpRequestOptions): string {
+  if (!shouldAttachSucursal(endpoint, options)) return endpoint;
   const param = getSucursalQueryParam();
   if (!param) return endpoint;
   const separator = endpoint.includes("?") ? "&" : "?";
@@ -61,16 +66,16 @@ async function assertOk(res: Response, message: string) {
 }
 
 export const httpClient = {
-  get: async <T>(endpoint: string): Promise<T> => {
-    const url = appendSucursalToEndpoint(endpoint);
+  get: async <T>(endpoint: string, options?: HttpRequestOptions): Promise<T> => {
+    const url = appendSucursalToEndpoint(endpoint, options);
     const res = await fetch(`${apiUrl}${url}`, {
       headers: { ...authHeader(endpoint) },
     });
     await assertOk(res, `GET ${endpoint} failed`);
     return res.json() as Promise<T>;
   },
-  post: async <T>(endpoint: string, body: unknown): Promise<T> => {
-    const finalBody = shouldAttachSucursal(endpoint) ? injectSucursalIntoBody(body) : body;
+  post: async <T>(endpoint: string, body: unknown, options?: HttpRequestOptions): Promise<T> => {
+    const finalBody = shouldAttachSucursal(endpoint, options) ? injectSucursalIntoBody(body) : body;
     const res = await fetch(`${apiUrl}${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeader(endpoint) },
@@ -79,8 +84,8 @@ export const httpClient = {
     await assertOk(res, `POST ${endpoint} failed`);
     return parseOptionalJson<T>(res);
   },
-  put: async <T>(endpoint: string, body: unknown): Promise<T> => {
-    const finalBody = shouldAttachSucursal(endpoint) ? injectSucursalIntoBody(body) : body;
+  put: async <T>(endpoint: string, body: unknown, options?: HttpRequestOptions): Promise<T> => {
+    const finalBody = shouldAttachSucursal(endpoint, options) ? injectSucursalIntoBody(body) : body;
     const res = await fetch(`${apiUrl}${endpoint}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", ...authHeader(endpoint) },
@@ -89,8 +94,8 @@ export const httpClient = {
     await assertOk(res, `PUT ${endpoint} failed`);
     return res.json() as Promise<T>;
   },
-  patch: async <T>(endpoint: string, body: unknown): Promise<T> => {
-    const finalBody = shouldAttachSucursal(endpoint) ? injectSucursalIntoBody(body) : body;
+  patch: async <T>(endpoint: string, body: unknown, options?: HttpRequestOptions): Promise<T> => {
+    const finalBody = shouldAttachSucursal(endpoint, options) ? injectSucursalIntoBody(body) : body;
     const res = await fetch(`${apiUrl}${endpoint}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", ...authHeader(endpoint) },
@@ -99,8 +104,9 @@ export const httpClient = {
     await assertOk(res, `PATCH ${endpoint} failed`);
     return parseOptionalJson<T>(res);
   },
-  delete: async (endpoint: string): Promise<void> => {
-    const res = await fetch(`${apiUrl}${endpoint}`, {
+  delete: async (endpoint: string, options?: HttpRequestOptions): Promise<void> => {
+    const url = appendSucursalToEndpoint(endpoint, options);
+    const res = await fetch(`${apiUrl}${url}`, {
       method: "DELETE",
       headers: { ...authHeader(endpoint) },
     });

@@ -7,6 +7,7 @@ import type {
   SuscripcionTaller,
   SaasKpis,
   MetricasSaaSDetalle,
+  ActualizarSuscripcionInput,
 } from "./admin.types"
 
 export interface IAdminService {
@@ -14,11 +15,11 @@ export interface IAdminService {
   getTallerById(id: string): Promise<TallerAdmin | null>
   createTaller(data: CrearTallerInput): Promise<TallerAdmin>
   updateTallerEstado(id: string, activo: boolean): Promise<TallerAdmin>
-  updateTallerModulos(): Promise<void>
+  updateTallerModulos(id: string, moduloIds: string[]): Promise<void>
   getPlanes(): Promise<PlanSaasAdmin[]>
   getModulos(): Promise<ModuloSaaS[]>
   getSuscripciones(): Promise<SuscripcionTaller[]>
-  updateSuscripcion(): Promise<void>
+  updateSuscripcion(tallerId: string, data: ActualizarSuscripcionInput): Promise<void>
   getSaasKpis(): Promise<SaasKpis>
   getMetricasDetalle(): Promise<MetricasSaaSDetalle>
 }
@@ -36,10 +37,10 @@ export const realAdminService: IAdminService = {
   getSuscripciones: () => httpClient.get<SuscripcionTaller[]>("admin/suscripciones"),
   getMetricasDetalle: () => httpClient.get<MetricasSaaSDetalle>("admin/metrics/historical"),
 
-  updateTallerModulos: async () => {
-    throw new Error("No implementado todavia")
+  updateTallerModulos: async (id, moduloIds) => {
+    throw new Error(`No implementado todavia: módulos de ${id} (${moduloIds.length})`)
   },
-  updateSuscripcion: async () => {
-    throw new Error("No implementado todavia")
+  updateSuscripcion: async (tallerId, data) => {
+    throw new Error(`No implementado todavia: suscripción ${tallerId} (${data.plan})`)
   },
 }

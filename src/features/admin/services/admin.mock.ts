@@ -25,7 +25,7 @@ const MODULOS_DISPONIBLES: ModuloSaaS[] = [
 ]
 
 // ─── Mock data de talleres ────────────────────────────────────────────────────
-const _talleres: TallerAdmin[] = [
+const _talleresRaw: Omit<TallerAdmin, "activo">[] = [
   {
     id: "t1",
     nombre: "Taller AutoVelo",
@@ -178,6 +178,11 @@ const _talleres: TallerAdmin[] = [
   },
 ]
 
+const _talleres: TallerAdmin[] = _talleresRaw.map((t) => ({
+  ...t,
+  activo: t.estado === "activo" || t.estado === "trial",
+}))
+
 // ─── Suscripciones derivadas ──────────────────────────────────────────────────
 function buildSuscripciones(): SuscripcionTaller[] {
   const planPrices: Record<PlanSaaS, number> = {
@@ -186,10 +191,11 @@ function buildSuscripciones(): SuscripcionTaller[] {
     enterprise: 59990,
   }
   return _talleres.map((t) => {
-    const renovacion = new Date(t.fechaRenovacion)
     const hoy = new Date()
-    const diffMs = renovacion.getTime() - hoy.getTime()
-    const diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+    const renovacion = t.fechaRenovacion ? new Date(t.fechaRenovacion) : null
+    const diasRestantes = renovacion
+      ? Math.ceil((renovacion.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24))
+      : 0
     return {
       tallerId: t.id,
       tallerNombre: t.nombre,
@@ -344,6 +350,10 @@ export async function mockGetSaasKpis(): Promise<SaasKpis> {
   return computeKpis()
 }
 
+function sucursalesPorPlan(plan: PlanSaaS): number {
+  return plan === "enterprise" ? 3 : plan === "pro" ? 2 : 1
+}
+
 export async function mockGetMetricasDetalle(): Promise<MetricasSaaSDetalle> {
   await delay(300)
   return {
@@ -351,5 +361,9 @@ export async function mockGetMetricasDetalle(): Promise<MetricasSaaSDetalle> {
     nuevosTalleresHistorico: [...NUEVOS_HISTORICO],
     churnHistorico: [...CHURN_HISTORICO],
     distribucionPlanes: computeDistribucionPlanes(),
+    usuariosPorTaller: _talleres.map((t) => ({ tallerNombre: t.nombre, count: t.cantidadUsuarios })),
+    clientesPorTaller: _talleres.map((t) => ({ tallerNombre: t.nombre, count: t.cantidadUsuarios * 40 })),
+    sucursalesPorTaller: _talleres.map((t) => ({ tallerNombre: t.nombre, count: sucursalesPorPlan(t.plan) })),
+    ordenesPorTaller: _talleres.map((t) => ({ tallerNombre: t.nombre, count: t.cantidadOTsMes })),
   }
 }

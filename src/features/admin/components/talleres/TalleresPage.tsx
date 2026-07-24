@@ -371,7 +371,7 @@ function CreateTallerModal({
             Activo
           </label>
 
-          {error && (
+          {Boolean(error) && (
             <div className="sm:col-span-2 rounded-2xl border border-vs-warn/30 bg-vs-warn-bg px-3 py-2 text-[12px] text-vs-warn">
               No se pudo crear el taller. Revisa que el RUT no exista y que los campos requeridos esten completos.
             </div>
